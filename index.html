@@ -957,7 +957,11 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       const res = await Promise.allSettled(['profiles', 'friendships', 'runs', 'joins', 'config', 'home'].map(w => this.fetch(w)));
       if (this.uid !== uid) return;
       const bad = res.find(r => r.status === 'rejected');
-      if (bad) console.warn('In. load', bad.reason);
+      if (bad) {
+        console.warn('In. load', bad.reason);
+        // Right after sign-in Supabase can briefly reject a fresh token ("JWT issued at future"), so try again shortly.
+        if (!this.retry) this.retry = setTimeout(() => { this.retry = null; this.loadAll(); }, 2000);
+      }
       Store.emit();
     },
     soon(what) {
