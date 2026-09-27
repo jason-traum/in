@@ -337,6 +337,138 @@ create policy config_read on public.app_config for select to authenticated using
 create policy config_update on public.app_config for update to authenticated using (public.is_admin()) with check (public.is_admin());
 
 -- ---------------------------------------------------------------------------------------------
+-- Notifications. push_subs holds the phones that turned them on. Triggers below write what happened
+-- to outbox, and the "notify" edge function (supabase/functions/notify) sends them every minute along
+-- with the evening and 30-minute reminders, logging each one in notif_log so it goes out once.
+-- Only the edge function (service role) reads these; people can see and remove their own phones.
+-- ---------------------------------------------------------------------------------------------
+alter table public.app_config add column if not exists vapid_public text;
+
+create table if not exists public.push_subs (
+  endpoint text primary key check (char_length(endpoint) between 10 and 1000),
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  p256dh text not null check (char_length(p256dh) <= 200),
+  auth text not null check (char_length(auth) <= 100),
+  created_at timestamptz not null default now()
+);
+create index if not exists push_subs_user_idx on public.push_subs (user_id);
+
+-- The app's own signing keys for push, made by the edge function the first time it runs.
+create table if not exists public.push_keys (id int primary key check (id = 1), public text not null, jwk jsonb not null);
+
+create table if not exists public.outbox (
+  id bigserial primary key,
+  kind text not null,
+  run_id text,
+  user_id uuid,   -- who did it
+  target uuid,    -- who to tell, when it's one person (friend requests)
+  ref text,       -- detail: the message id, or in/maybe
+  at timestamptz not null default now(),
+  done_at timestamptz
+);
+create index if not exists outbox_todo_idx on public.outbox (id) where done_at is null;
+
+create table if not exists public.notif_log (key text primary key, at timestamptz not null default now());
+
+alter table public.push_subs enable row level security;
+alter table public.push_keys enable row level security;
+alter table public.outbox enable row level security;
+alter table public.notif_log enable row level security;
+revoke all on public.push_subs, public.push_keys, public.outbox, public.notif_log from anon, authenticated;
+grant select, delete on public.push_subs to authenticated;
+drop policy if exists push_own on public.push_subs;
+create policy push_own on public.push_subs for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- Save this phone for notifications. On a shared phone it moves to whoever signed in last.
+create or replace function public.save_push(p_endpoint text, p_p256dh text, p_auth text) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'not signed in'; end if;
+  delete from public.push_subs where endpoint = p_endpoint;
+  insert into public.push_subs (endpoint, user_id, p256dh, auth) values (p_endpoint, auth.uid(), p_p256dh, p_auth);
+end $$;
+revoke execute on function public.save_push(text, text, text) from public, anon;
+grant execute on function public.save_push(text, text, text) to authenticated;
+
+create or replace function public.queue_join() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if tg_op = 'INSERT' or new.kind is distinct from old.kind then
+    insert into public.outbox (kind, run_id, user_id, ref) values ('join', new.run_id, new.user_id, new.kind);
+  end if;
+  return null;
+end $$;
+drop trigger if exists queue_join on public.joins;
+create trigger queue_join after insert or update of kind on public.joins for each row execute function public.queue_join();
+
+create or replace function public.queue_message() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.outbox (kind, run_id, user_id, ref) values ('msg', new.run_id, new.user_id, new.id::text);
+  return null;
+end $$;
+drop trigger if exists queue_message on public.messages;
+create trigger queue_message after insert on public.messages for each row execute function public.queue_message();
+
+create or replace function public.queue_run() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if new.status = 'cancelled' and old.status <> 'cancelled' then
+    insert into public.outbox (kind, run_id, user_id) values ('cancel', new.id, old.host);
+  elsif new.status = 'locked' and old.status = 'intention' then
+    insert into public.outbox (kind, run_id, user_id) values ('confirm', new.id, new.host);
+  elsif new.status <> 'cancelled' and (new.date, new.start, new.spot, new.place, new.place_id, new.finish, new.finish_id)
+      is distinct from (old.date, old.start, old.spot, old.place, old.place_id, old.finish, old.finish_id) then
+    insert into public.outbox (kind, run_id, user_id) values ('change', new.id, new.host);
+  end if;
+  if old.host is not null and new.host is null and new.status <> 'cancelled' then
+    insert into public.outbox (kind, run_id, user_id) values ('hostleft', new.id, old.host);
+  end if;
+  return null;
+end $$;
+drop trigger if exists queue_run on public.runs;
+create trigger queue_run after update on public.runs for each row execute function public.queue_run();
+
+create or replace function public.queue_friend() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if new.status = 'pending' and (tg_op = 'INSERT' or old.status is distinct from 'pending' or old.from_id is distinct from new.from_id) then
+    insert into public.outbox (kind, user_id, target) values ('freq', new.from_id, new.to_id);
+  elsif tg_op = 'UPDATE' and new.status = 'accepted' and old.status = 'pending' then
+    insert into public.outbox (kind, user_id, target) values ('faccept', new.to_id, new.from_id);
+  end if;
+  return null;
+end $$;
+drop trigger if exists queue_friend on public.friendships;
+create trigger queue_friend after insert or update on public.friendships for each row execute function public.queue_friend();
+
+-- For the edge function: take the next batch of events (each is handed out once), and mark reminder
+-- keys as sent, returning the ones that weren't already.
+create or replace function public.claim_outbox() returns setof public.outbox
+language plpgsql security definer set search_path = public as $$
+begin
+  delete from public.outbox where done_at < now() - interval '7 days';
+  delete from public.notif_log where at < now() - interval '30 days';
+  return query update public.outbox set done_at = now()
+    where id in (select o.id from public.outbox o where o.done_at is null order by o.id limit 200 for update skip locked)
+    returning *;
+end $$;
+create or replace function public.claim_keys(p_keys text[]) returns setof text
+language sql security definer set search_path = public as $$
+  insert into public.notif_log (key) select distinct unnest(p_keys) on conflict do nothing returning key;
+$$;
+revoke execute on function public.claim_outbox(), public.claim_keys(text[]) from public, anon, authenticated;
+do $$ begin
+  if exists (select 1 from pg_roles where rolname = 'service_role') then
+    grant execute on function public.claim_outbox(), public.claim_keys(text[]) to service_role;
+    grant all on public.push_subs, public.push_keys, public.outbox, public.notif_log to service_role;
+    grant usage, select on sequence public.outbox_id_seq to service_role;
+    grant select on public.profiles, public.runs, public.joins, public.messages to service_role;
+    grant select, update on public.app_config to service_role;
+  end if;
+end $$;
+
+-- ---------------------------------------------------------------------------------------------
 -- Live updates: tell Supabase Realtime to broadcast changes to these tables. Joins are left out
 -- on purpose (see touch_run above), and the app never deletes friend requests, it marks them removed.
 -- ---------------------------------------------------------------------------------------------

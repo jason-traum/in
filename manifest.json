@@ -1,7 +1,7 @@
 {
   "name": "In.",
   "short_name": "In.",
-  "description": "Plan tomorrow's run with friends on the Schuylkill River Trail.",
+  "description": "Plan tomorrow's run with friends, on the river trail or anywhere in Philly.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

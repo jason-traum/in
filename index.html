@@ -376,6 +376,10 @@ input[type=range]{width:100%;accent-color:var(--green);min-height:28px}
 .daychip[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:var(--on-green)}
 .daychip[aria-pressed="true"] small{color:inherit}
 .sheet-actions{display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap;position:sticky;bottom:0;background:var(--surface);padding-block:14px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--hair);margin-top:4px}
+.notif-card{display:grid;gap:10px;margin:14px 0;padding:14px 16px;border-radius:14px;background:var(--surface);border:1px solid var(--hair)}
+.notif-card p{margin:0;font-size:14.5px;line-height:1.45;color:var(--ink-2)}
+.notif-card b{color:var(--ink)}
+.notif-act{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 .extras{margin-top:22px;padding-block:14px 20px;border-top:1px solid var(--hair);display:grid;gap:14px}
 .extra-row{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
 .extra-row > div{flex:1 1 220px}
@@ -979,6 +983,42 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     return { code: 'unavailable', message: msg };
   }
 
+  /* ---------------- Notifications (web push) ----------------
+     The phone subscribes with the app's public key and the subscription is saved to push_subs. The notify
+     edge function sends the notifications. On iPhone this only works from the Home Screen app. */
+  const b64uBytes = s => { const b = atob(String(s).replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((String(s).length + 3) % 4)); return Uint8Array.from(b, c => c.charCodeAt(0)); };
+  const sameKey = (a, b) => { if (!a) return false; const x = new Uint8Array(a); return x.length === b.length && x.every((v, i) => v === b[i]); };
+  const Push = {
+    supported: () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window,
+    ios: () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
+    standalone: () => !!((window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone),
+    needsHome() { return this.ios() && !this.standalone(); },
+    perm: () => ('Notification' in window ? Notification.permission : 'unsupported'),
+    register() {
+      if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
+      navigator.serviceWorker.register('sw.js').catch(e => console.warn('In. notifications', e));
+    },
+    async current() { if (!this.supported()) return null; const reg = await navigator.serviceWorker.ready; return reg.pushManager.getSubscription(); },
+    // Subscribe this phone (or refresh its subscription) and save it for whoever is signed in.
+    async on(vapid) {
+      const reg = await navigator.serviceWorker.ready;
+      const key = b64uBytes(vapid);
+      let sub = await reg.pushManager.getSubscription();
+      if (sub && !sameKey(sub.options && sub.options.applicationServerKey, key)) { await sub.unsubscribe(); sub = null; }
+      if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
+      const j = sub.toJSON();
+      await Cloud.savePush(j.endpoint, j.keys.p256dh, j.keys.auth);
+    },
+    async off() {
+      const sub = await this.current();
+      if (!sub) return;
+      const ep = sub.endpoint;
+      await sub.unsubscribe();
+      await Cloud.deletePush(ep);
+    },
+    later: () => Number(lsGet('in-notif-later') || 0) > Date.now() - 5 * 864e5,
+  };
+
   const Cloud = {
     sb: null, cfg: null, uid: null, chan: null, poll: null, timers: {}, local: null, rows: { friendships: {}, joins: {} },
     // What's wrong with config.js, if anything: 'config' (not filled in), 'url', 'secret' (the private key), 'lib' (supabase-js didn't load).
@@ -1094,7 +1134,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       } else if (what === 'config') {
         const { data, error } = await sb.from('app_config').select('*').eq('id', 'app').maybeSingle();
         if (error) throw error;
-        Store.config = data ? { samples: data.samples } : {};
+        Store.config = data ? { samples: data.samples, vapid: data.vapid_public || '' } : {};
       } else if (what === 'home') {
         const { data, error } = await sb.from('homes').select('*').eq('id', me).maybeSingle();
         if (error) throw error;
@@ -1144,6 +1184,12 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     async saveProfile(p) {
       await this.run(this.sb.from('profiles').upsert({ id: this.uid, handle: p.handle, spot: p.spot, pace: p.pace, travel: p.travel || 'walk', vis: p.vis || 'fof', updated_at: iso() }), 'profiles');
       Store.profiles = Object.assign({}, Store.profiles, { [this.uid]: p }); Store.emit();
+    },
+    async savePush(endpoint, p256dh, auth) {
+      await this.run(this.sb.rpc('save_push', { p_endpoint: endpoint, p_p256dh: p256dh, p_auth: auth }));
+    },
+    async deletePush(endpoint) {
+      await this.run(this.sb.from('push_subs').delete().eq('endpoint', endpoint));
     },
     async saveHome(h) {
       const located = typeof h.lat === 'number' && typeof h.lng === 'number';
@@ -1758,6 +1804,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     return html`<div>
       <${NoteLine} M=${M} />
       ${M.canWrite && !M.meP ? html`<div class="setup"><span>Set up your runner card to post and join runs.</span><button class="btn btn-go btn-sm" onClick=${openProfile}>Set up</button></div>` : null}
+      <${NotifCard} M=${M} />
       <${YourRuns} M=${M} onOpen=${onOpen} openLock=${openLock} openPost=${openPost} />
       <div class=${'controls' + (M.mine.length ? ' after-yours' : '')}>
         <h2 class=${M.mine.length ? 'find-l' : 'vh'}>Find a run</h2>
@@ -2083,6 +2130,84 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     </div>`;
   }
 
+  // Asks once to turn on notifications. In iPhone Safari it explains the Home Screen step instead,
+  // since iPhone only allows notifications from the Home Screen app.
+  function NotifCard({ M }) {
+    const [hide, setHide] = useState(() => Push.later());
+    const [perm, setPerm] = useState(() => Push.perm());
+    const [busy, setBusy] = useState(false);
+    const [err, setErr] = useState('');
+    if (hide || M.mode !== 'live' || !Store.cloud || !M.meP) return null;
+    const later = () => { lsSet('in-notif-later', String(Date.now())); setHide(true); };
+    if (Push.needsHome()) {
+      return html`<section class="notif-card" aria-label="Notifications">
+        <p><b>Want notifications?</b> Add In. to your Home Screen: in Safari, tap Share, then Add to Home Screen, and open In. from there. You’ll hear when someone joins your run and before your runs.</p>
+        <div class="notif-act"><button type="button" class="btn btn-line btn-sm" onClick=${later}>Not now</button></div>
+      </section>`;
+    }
+    const vapid = Store.config && Store.config.vapid;
+    if (!Push.supported() || !vapid || perm !== 'default') return null;
+    const turnOn = async () => {
+      setBusy(true);
+      setErr('');
+      try {
+        const p = await Notification.requestPermission();
+        setPerm(p);
+        if (p === 'granted') await Push.on(vapid);
+      } catch (e) {
+        console.warn('In. notifications', e);
+        setErr('Couldn’t turn them on. You can try again from your runner card.');
+      }
+      setBusy(false);
+    };
+    return html`<section class="notif-card" aria-label="Notifications">
+      <p><b>Turn on notifications?</b> Hear when someone joins or messages about your run, when a run you’re in changes, and the night before and 30 minutes before a run.</p>
+      ${err ? html`<p class="warnline">${err}</p>` : null}
+      <div class="notif-act">
+        <button type="button" class="btn btn-line btn-sm" onClick=${later}>Not now</button>
+        <button type="button" class="btn btn-go btn-sm" onClick=${turnOn} disabled=${busy}>${busy ? 'Turning on…' : 'Turn on'}</button>
+      </div>
+    </section>`;
+  }
+
+  // The on/off switch on your runner card.
+  function NotifRow() {
+    const [perm, setPerm] = useState(() => Push.perm());
+    const [on, setOn] = useState(false);
+    const [busy, setBusy] = useState(false);
+    const [err, setErr] = useState('');
+    useEffect(() => {
+      let live = true;
+      if (Push.supported() && perm === 'granted') Push.current().then(s => { if (live) setOn(!!s); }, () => {});
+      return () => { live = false; };
+    }, [perm]);
+    const vapid = Store.config && Store.config.vapid;
+    let hint = 'When someone joins or messages about your run, when a run you’re in changes, and the night before and 30 minutes before a run.';
+    let control = null;
+    if (Push.needsHome()) hint = 'On iPhone, add In. to your Home Screen (in Safari, tap Share, then Add to Home Screen) and open it from there to turn these on.';
+    else if (!Push.supported() || !vapid) hint = 'This browser can’t show notifications from In.';
+    else if (perm === 'denied') hint = 'Notifications are blocked for In. Allow them in your phone’s settings, then come back here.';
+    else {
+      const flip = async v => {
+        setBusy(true);
+        setErr('');
+        try {
+          if (v === 'on') {
+            const p = Push.perm() === 'granted' ? 'granted' : await Notification.requestPermission();
+            setPerm(p);
+            if (p === 'granted') { await Push.on(vapid); setOn(true); }
+          } else { await Push.off(); setOn(false); }
+        } catch (e) { console.warn('In. notifications', e); setErr('That didn’t work. Try again.'); }
+        setBusy(false);
+      };
+      control = html`<${Seg} label="Notifications" value=${on ? 'on' : 'off'} onChange=${v => { if (!busy) flip(v); }} options=${[['on', 'On'], ['off', 'Off']]} />`;
+    }
+    return html`<div class="extra-row">
+      <div><b>Notifications</b><p class="hint">${hint}</p>${err ? html`<p class="warnline">${err}</p>` : null}</div>
+      ${control}
+    </div>`;
+  }
+
   function ProfileExtras({ M, act }) {
     const [confirmReset, setConfirmReset] = useState(false);
     const showSamples = M.mode === 'sandbox' || (M.mode === 'live' && M.isOwner);
@@ -2097,9 +2222,10 @@ input[type=email]:focus{border-color:var(--green);outline:none}
           ? html`<span><button type="button" class="btn btn-line btn-sm btn-danger" onClick=${() => { setConfirmReset(false); act.resetSandbox(); }}>Erase and start over</button><button type="button" class="btn btn-text btn-sm" onClick=${() => setConfirmReset(false)}>Keep</button></span>`
           : html`<button type="button" class="btn btn-line btn-sm" onClick=${() => setConfirmReset(true)}>Reset sandbox</button>`}
       </div>` : null}
+      ${Store.cloud && M.mode === 'live' && M.meP ? html`<${NotifRow} />` : null}
       ${Store.cloud && M.mode === 'live' ? html`<div class="extra-row">
         <div><b>Account</b><p class="hint">Signed in as ${Store.email || 'you'}.</p></div>
-        <button type="button" class="btn btn-line btn-sm" onClick=${() => Cloud.signOut().then(() => location.reload(), () => location.reload())}>Sign out</button>
+        <button type="button" class="btn btn-line btn-sm" onClick=${() => Push.off().catch(() => {}).then(() => Cloud.signOut()).then(() => location.reload(), () => location.reload())}>Sign out</button>
       </div>` : null}
     </div>`;
   }
@@ -2590,6 +2716,35 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         window.requestAnimationFrame(() => { try { window.scrollTo({ top: 0, behavior: reduceMotion() ? 'auto' : 'smooth' }); } catch (e) { window.scrollTo(0, 0); } });
       },
     }), []);
+
+    // Links from notifications: ?run=<id>[&tab=chat] opens that run, ?tab=friends opens Friends.
+    const link = useRef((() => { const q = new URLSearchParams(location.search); return q.get('run') || q.get('tab') ? { run: q.get('run'), tab: q.get('tab') } : null; })());
+    useEffect(() => {
+      Push.register();
+      if (!('serviceWorker' in navigator)) return undefined;
+      const onMsg = e => {
+        if (!e.data || e.data.type !== 'open' || !e.data.url) return;
+        try { const q = new URL(e.data.url).searchParams; link.current = { run: q.get('run'), tab: q.get('tab') }; setVer(v => v + 1); } catch (x) {}
+      };
+      navigator.serviceWorker.addEventListener('message', onMsg);
+      return () => navigator.serviceWorker.removeEventListener('message', onMsg);
+    }, []);
+    useEffect(() => {
+      const l = link.current;
+      if (!l || !M.ready) return;
+      link.current = null;
+      try { history.replaceState(null, '', location.pathname); } catch (e) {}
+      if (l.tab === 'friends') { setSheet(null); setTab('friends'); return; }
+      if (l.run && M.runById[l.run]) { setTab('runs'); setSheet({ type: 'run', runId: l.run, tab: l.tab === 'chat' ? 'chat' : 'details' }); }
+    }, [M]);
+    // Keep this phone's notification subscription saved for whoever is signed in.
+    const pushedFor = useRef('');
+    useEffect(() => {
+      const vapid = Store.config && Store.config.vapid;
+      if (!M.ready || !M.me || !Store.cloud || !vapid || !Push.supported() || Push.perm() !== 'granted' || pushedFor.current === M.me) return;
+      pushedFor.current = M.me;
+      Push.on(vapid).catch(e => console.warn('In. notifications', e));
+    }, [M]);
 
     const asked = useRef(false);
     useEffect(() => {

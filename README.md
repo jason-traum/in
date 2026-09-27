@@ -10,6 +10,7 @@ Live at **https://jason-traum.github.io/in/**
 - `config.js` points it at the Supabase project. The publishable key in it is meant to be public.
 - `supabase.sql` is the database: tables, privacy rules, and live-update settings. Paste it into Supabase > SQL Editor and run it (put the admin email on line 10 first). It's safe to rerun after changes.
 - GitHub Pages serves this repo's `main` branch, so pushing a change updates the site in a minute or two.
+- `sw.js` shows notifications. `supabase/functions/notify` is the Supabase edge function that sends them (deploy it with JWT verification off), and `notify_cron.sql` runs it every minute.
 
 ## What's private
 
@@ -18,6 +19,10 @@ Live at **https://jason-traum.github.io/in/**
 - Runs follow their setting (Friends, Friends of friends, All Wharton), and people who joined a run (or said maybe) can always see it.
 - A run's chat is visible to everyone who can see that run.
 - Signed-out visitors see only the sign-in screen.
+
+## Notifications
+
+People turn them on from the card on the Runs tab or the switch on their runner card. On iPhone that only works from the Home Screen app. They get one when someone joins or messages about their run, when a run they're in changes, is confirmed or cancelled, or loses its host, when someone sends or accepts a friend request, at 8 PM the night before a run, at 9 PM to confirm a proposed run, and 30 minutes before a run.
 
 ## Beta
 
