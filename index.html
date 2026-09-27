@@ -1,0 +1,2205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>In.</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Plan tomorrow's run with friends on the Schuylkill River Trail.">
+<meta property="og:title" content="In.">
+<meta property="og:description" content="Plan tomorrow's run with friends on the Schuylkill River Trail.">
+<meta name="theme-color" content="#1E5F55">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="In.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400..700&family=Saira+Condensed:wght@500;600;700&display=swap">
+<style>
+/* ============================================================================================
+   In. DESIGN RULES (approved Sep 27, 2026). Read before changing any feature, and keep them.
+   1. Riverside base: pale green canvas (--bg), white run surfaces (--surface), deep green actions (--green).
+   2. Every run sits on its own white surface: 14px radius, 12-16px padding, hairline border, faint shadow.
+      No nested cards, no heavy outlines. Lists that belong together (friends, your other runs) share one
+      surface with hairline dividers. Don't flatten everything into divided rows on the canvas.
+   3. The strongest treatment is reserved for your commitment: the solid green "Your run" card at the top,
+      and a green edge plus a "Joined" chip on the joined row. Browsing rows stay plain white.
+   4. Actions: "I'm in" (confirmed) is solid deep green with white text. "I'd be in" (proposed) is outlined.
+      Joined and hosting states are explicit chips, never pale look-alike buttons.
+   5. Condensed type (Saira Condensed) only for the wordmark and start times. Start times outrank day labels;
+      day labels are small body-font labels.
+   6. Keep: run titles that describe the run, pace and distance on their own readable line, who's going and
+      who's hosting, and the Friends / Friends of friends / All Wharton selector. Route and host lines are
+      secondary (--ink-2), never faint.
+   7. Keep the space above the first run short: header, tabs, one compact audience selector, a small day label,
+      one-sentence confirmation rule with "How it works". Explain sorting once.
+   8. Sample content carries a compact "Sample" tag. No dotted names, no explanatory paragraphs above the feed.
+   9. Check at 320 and 390 px with a deliberately long title. No sideways scroll.
+   ============================================================================================ */
+:root{
+  --bg:#EAF2EE;--surface:#FFFFFF;--ink:#15302A;--ink-2:#34493F;--muted:#5A6B63;--hair:#D6E3DC;--fill:#E1EBE6;
+  --green:#1E5F55;--green-hover:#174C44;--on-green:#FFFFFF;--on-green-2:#CFE3DD;--green-soft:#DAEBE3;--green-text:#1A5A4F;
+  --warm:#9A4A16;--scrim:rgba(18,34,29,.42);--shadow:0 1px 2px rgba(21,48,42,.06),0 1px 1px rgba(21,48,42,.03);
+  --f-display:"Saira Condensed","Arial Narrow","Roboto Condensed",sans-serif;
+  --f-body:"Hanken Grotesk",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1513;--surface:#17201D;--ink:#E7EFEB;--ink-2:#C0CCC6;--muted:#93A39B;--hair:#25312C;--fill:#1D2824;
+    --green:#5DB3A3;--green-hover:#76C4B5;--on-green:#0B1A17;--on-green-2:#1E3D37;--green-soft:#1A2F29;--green-text:#80CABB;
+    --warm:#E0A06C;--scrim:rgba(0,0,0,.62);--shadow:none;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1513;--surface:#17201D;--ink:#E7EFEB;--ink-2:#C0CCC6;--muted:#93A39B;--hair:#25312C;--fill:#1D2824;
+  --green:#5DB3A3;--green-hover:#76C4B5;--on-green:#0B1A17;--on-green-2:#1E3D37;--green-soft:#1A2F29;--green-text:#80CABB;
+  --warm:#E0A06C;--scrim:rgba(0,0,0,.62);--shadow:none;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body.sheet-open{overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.45}
+:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+h1,h2,h3,p,dl,dd,figure{margin:0}
+ul{list-style:none;margin:0;padding:0}
+.boot{padding:48px 16px;color:var(--muted)}
+.muted{color:var(--muted)}
+.ic{flex:none;display:inline-block;vertical-align:-2px}
+.sample-tag{display:inline-block;margin-left:7px;padding:1px 7px;border:1px solid var(--hair);border-radius:999px;background:var(--fill);color:var(--muted);font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;line-height:1.5;vertical-align:1px;white-space:nowrap}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* header */
+.top{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--hair)}
+.top-in{max-width:680px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:baseline;gap:12px;min-width:0}
+.mark{font-family:var(--f-display);font-weight:700;font-size:36px;line-height:1;letter-spacing:-.01em;display:inline-flex;align-items:baseline}
+.mark .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--green);margin-left:3px}
+.brand-sub{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mode-chip{align-self:center;margin-left:-4px;padding:2px 8px;border-radius:999px;background:var(--green-soft);color:var(--green-text);font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+.top-r{display:flex;align-items:center;gap:10px;flex:none}
+.me-btn{border:0;background:none;padding:0;border-radius:50%;display:grid;place-items:center;min-width:40px;min-height:40px}
+.me-setup{font-size:13px;font-weight:600;border:1px solid var(--ink);border-radius:999px;padding:7px 12px;white-space:nowrap}
+@media (max-width:520px){.brand-sub{display:none}}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:9px 16px;border-radius:999px;border:1.5px solid transparent;background:none;font-weight:600;font-size:14px;line-height:1;white-space:nowrap;transition:background-color .12s ease-out,color .12s ease-out,border-color .12s ease-out}
+.btn-go{background:var(--green);color:var(--on-green)}
+.btn-go:hover{background:var(--green-hover)}
+.btn-in{background:var(--green-soft);color:var(--green-text)}
+.btn-in:hover{background:color-mix(in srgb,var(--green) 20%,var(--surface))}
+.btn-maybe{border-color:var(--green);color:var(--green-text);background:var(--surface)}
+.btn-maybe:hover{background:var(--green-soft)}
+.btn-line{border-color:var(--hair);background:var(--surface);color:var(--ink)}
+.btn-line:hover{border-color:var(--ink)}
+.btn-text{padding-inline:6px;color:var(--ink-2);font-weight:500}
+.btn-text:hover{color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+.btn-danger{color:var(--warm)}
+.btn-sm{min-height:36px;padding:7px 14px;font-size:13.5px}
+.btn-lg{min-height:48px;font-size:16px;padding-inline:22px}
+.linkish{background:none;border:0;padding:0;color:var(--green-text);font-weight:600;text-decoration:underline;text-underline-offset:3px;font-size:inherit}
+
+/* page */
+.wrap{max-width:680px;margin:0 auto;padding:0 16px 96px}
+.tabs{display:flex;gap:24px;margin-top:4px;border-bottom:1px solid var(--hair)}
+.tab{background:none;border:0;padding:8px 0 10px;font-weight:600;font-size:15px;color:var(--muted);border-bottom:2.5px solid transparent;margin-bottom:-1px;display:inline-flex;gap:6px;align-items:center}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--green)}
+.tab:hover{color:var(--ink)}
+.badge{background:var(--green);color:var(--on-green);font-size:11px;font-weight:700;min-width:18px;height:18px;border-radius:999px;display:inline-grid;place-items:center;padding:0 5px;line-height:1}
+.noteline{font-size:13px;color:var(--muted);margin-top:12px;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center}
+.setup{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px;padding:14px 16px;background:var(--surface);border:1px solid var(--hair);border-radius:14px;box-shadow:var(--shadow)}
+.setup span{flex:1 1 220px}
+
+/* your run: the one strong block on the page */
+.yours{margin-top:16px;display:grid;gap:6px}
+.yr{background:var(--green);color:var(--on-green);border-radius:16px;padding:16px 18px 14px;display:grid;gap:2px;animation:yr-in .3s ease-out}
+@keyframes yr-in{from{opacity:0;transform:translateY(6px)}}
+.yr-k{font-size:13px;font-weight:600;color:var(--on-green-2)}
+.yr-time{font-family:var(--f-display);font-weight:700;font-size:40px;line-height:1.05;font-variant-numeric:tabular-nums;margin-top:2px}
+.yr-time small{font-size:22px;font-weight:600}
+.yr-around{font-family:var(--f-body);font-size:15px;font-weight:500;margin-right:2px}
+.yr-t{font-size:19px;font-weight:600;line-height:1.3;overflow-wrap:anywhere;margin-top:2px}
+.yr-pace{font-size:15.5px;font-weight:500;font-variant-numeric:tabular-nums;margin-top:3px}
+.yr-l{font-size:14px;color:var(--on-green-2);overflow-wrap:anywhere}
+.yr-soc{display:flex;align-items:center;gap:8px;font-size:14px;margin-top:8px}
+.yr .stack .av{outline-color:var(--green)}
+.yr .av{background:var(--on-green-2);color:var(--green)}
+.yr .av.me{background:var(--on-green);color:var(--green)}
+.yr .av.sample{background:var(--green);color:var(--on-green);box-shadow:inset 0 0 0 1.5px var(--on-green-2)}
+.yr-sub{font-size:13.5px;color:var(--on-green-2);margin-top:6px;max-width:56ch}
+.yr-foot{display:flex;justify-content:space-between;align-items:center;gap:8px 12px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.24);border-top-color:color-mix(in srgb,var(--on-green) 24%,transparent)}
+.yr-trip{font-size:14.5px;font-weight:600}
+.yr-act{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.btn-inv{background:var(--on-green);color:var(--green)}
+.btn-inv-line{border-color:var(--on-green-2);color:var(--on-green)}
+.btn-inv-line:hover{background:color-mix(in srgb,var(--on-green) 12%,transparent)}
+.yr.tent{background:var(--green-soft);color:var(--ink)}
+.yr.tent .yr-k{color:var(--green-text)}
+.yr.tent .yr-l,.yr.tent .yr-sub{color:var(--ink-2)}
+.yr.tent .stack .av{outline-color:var(--green-soft)}
+.yr.tent .av{background:var(--surface);color:var(--green-text)}
+.yr.tent .av.me{background:var(--green);color:var(--on-green)}
+.yr.tent .av.sample{background:var(--green-soft);color:var(--ink-2);box-shadow:inset 0 0 0 1.5px var(--muted)}
+.yr.tent .yr-foot{border-top-color:color-mix(in srgb,var(--green) 22%,transparent)}
+.yr.tent .btn-inv{background:var(--green);color:var(--on-green)}
+.yr.tent .btn-inv-line{border-color:var(--green);color:var(--green-text)}
+.yr.drop{background:var(--fill);color:var(--ink-2)}
+.yr.drop .yr-k{color:var(--warm)}
+.yr.drop .yr-l,.yr.drop .yr-sub{color:var(--ink-2)}
+.yr.drop .stack .av{outline-color:var(--fill)}
+.yr.drop .yr-foot{border-top-color:var(--hair)}
+.yr.drop .btn-inv-line{border-color:var(--hair);color:var(--ink);background:var(--surface)}
+.yr-more{display:grid;background:var(--surface);border:1px solid var(--hair);border-radius:14px;padding:0 14px;box-shadow:var(--shadow)}
+.yr-more-b{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:baseline;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--hair);padding:11px 0;color:inherit}
+.yr-more li:last-child .yr-more-b{border-bottom:0}
+@media (hover:hover){.yr-more-b:hover .yr-more-n{text-decoration:underline;text-underline-offset:3px}}
+.yr-more-t{font-family:var(--f-display);font-weight:600;font-size:17px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.yr-more-n{font-weight:500;overflow-wrap:anywhere}
+.yr-more-s{font-size:12.5px;color:var(--green-text);font-weight:600;white-space:nowrap}
+.controls{margin-top:12px}
+.controls.after-yours{margin-top:24px}
+.find-l{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8px}
+.segc{display:flex;gap:2px;padding:3px;background:var(--surface);border:1px solid var(--hair);border-radius:999px;box-shadow:var(--shadow)}
+.segc button{flex:1 1 auto;min-height:32px;padding:0 12px;border:0;border-radius:999px;background:none;color:var(--ink-2);font-size:13px;font-weight:600;white-space:nowrap}
+.segc button[aria-pressed="true"]{background:var(--green);color:var(--on-green)}
+.segc button:not([aria-pressed="true"]):hover{background:var(--fill)}
+@media (max-width:360px){.segc button{padding:0 7px;font-size:12.5px}}
+.controls + .day,.controls + .empty + .day{margin-top:16px}
+.corner{display:flex;align-items:center;gap:8px}
+.corner select{flex:1 1 0;min-width:0}
+.corner span{color:var(--muted);font-weight:600}
+
+/* run list: each run on its own white surface */
+.day{margin-top:22px}
+.day-h{display:flex;align-items:baseline;gap:4px 8px;flex-wrap:wrap}
+.day-h h2{font-size:15px;font-weight:700;line-height:1.3}
+.day-d{font-size:14px;color:var(--muted)}
+.day-sort{margin-left:auto;font-size:12.5px;color:var(--muted)}
+.rule{margin-top:3px;font-size:13.5px;color:var(--ink-2);max-width:62ch}
+.rule-left{color:var(--muted)}
+.rule-more{margin-top:8px;padding:10px 12px;border-radius:10px;background:var(--fill);color:var(--ink-2)}
+.rows{display:grid;gap:10px;margin-top:10px}
+.row{position:relative;display:grid;gap:1px;padding:12px 16px 14px;background:var(--surface);border:1px solid var(--hair);border-radius:14px;box-shadow:var(--shadow);scroll-margin-top:90px}
+.row.mine{border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
+.row.faded{opacity:.6}
+.row-top{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:40px}
+.row-time{display:flex;align-items:baseline;gap:10px;min-width:0;flex-wrap:wrap}
+.row-time b{font-family:var(--f-display);font-weight:600;font-size:25px;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag{font-size:12.5px;font-weight:700;color:var(--warm);letter-spacing:.02em}
+.row-act{position:relative;z-index:1;flex:none;display:flex}
+.row-act .btn{min-height:40px;padding-inline:16px}
+.title{font-size:16.5px;font-weight:600;line-height:1.3;overflow-wrap:anywhere;margin-top:2px}
+.row-link{background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.row-link::after{content:"";position:absolute;inset:0;border-radius:14px}
+.row-link:focus-visible{outline:none}
+.row-link:focus-visible::after{outline:2px solid var(--green);outline-offset:2px}
+@media (hover:hover){.row:hover .row-link{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1.5px}}
+.pace{font-size:15.5px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink)}
+.where{font-size:13.5px;color:var(--ink-2);overflow-wrap:anywhere}
+.social{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-2);margin-top:7px}
+.social > span:last-child,.yr-soc > span:last-child{flex:1 1 auto;min-width:0}
+.nw{white-space:nowrap}
+.state-chip{display:inline-flex;align-items:center;gap:5px;min-height:34px;padding:0 12px;border-radius:999px;background:var(--fill);color:var(--ink-2);font-size:13.5px;font-weight:700;white-space:nowrap}
+.state-chip.in{background:var(--green-soft);color:var(--green-text)}
+.row-note{font-size:13px;color:var(--muted);padding:8px 2px;white-space:nowrap}
+.empty{font-size:14px;color:var(--muted);margin-top:10px}
+.hidden-line{font-size:13.5px;color:var(--muted);margin-top:28px;max-width:62ch}
+.skel-row{height:128px;border-radius:14px;background:linear-gradient(90deg,var(--surface),var(--fill),var(--surface));background-size:200% 100%;animation:sk 1.3s linear infinite}
+@keyframes sk{to{background-position:-200% 0}}
+
+/* avatars */
+.av{display:inline-grid;place-items:center;border-radius:50%;background:var(--green-soft);color:var(--green-text);font-weight:700;flex:none;object-fit:cover;line-height:1;letter-spacing:.02em}
+.av.me{background:var(--green);color:var(--on-green)}
+.av.sample{background:var(--surface);color:var(--ink-2);box-shadow:inset 0 0 0 1px var(--muted)}
+.stack{display:inline-flex;flex:none}
+.stack .av{margin-left:-2px;outline:2px solid var(--surface)}
+.stack .av:first-child{margin-left:0}
+.sheet .stack .av{outline-color:var(--surface)}
+
+/* run detail */
+.detail{display:grid;gap:14px}
+.d-state{font-size:13px;font-weight:600;color:var(--green-text)}
+.d-state.prop{color:var(--warm)}
+.d-title{font-size:22px;font-weight:600;line-height:1.25;overflow-wrap:anywhere;margin-top:-6px}
+.d-time{font-family:var(--f-display);font-weight:700;font-size:44px;line-height:1;font-variant-numeric:tabular-nums;margin-top:-2px}
+.d-time small{font-size:22px;font-weight:600}
+.d-around{font-family:var(--f-body);font-size:15px;font-weight:500;color:var(--muted);margin-right:2px}
+.d-pace{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:-6px}
+.d-next{font-size:14px;color:var(--ink-2);max-width:60ch}
+.d-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.in-mark{display:inline-flex;align-items:center;gap:7px;font-weight:600;color:var(--green-text);min-height:40px}
+.in-mark i{width:10px;height:10px;border-radius:50%;background:var(--green)}
+.d-rows{display:grid;border-top:1px solid var(--hair)}
+.d-rows > div{display:grid;grid-template-columns:84px minmax(0,1fr);gap:10px;padding:10px 0;border-bottom:1px solid var(--hair);align-items:baseline}
+.d-rows dt{font-size:13px;color:var(--muted)}
+.d-rows dd{font-size:14.5px;min-width:0;overflow-wrap:anywhere}
+.d-rows .m{display:block;font-size:12.5px;color:var(--muted)}
+.who{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+.trip{display:grid;gap:4px}
+.trip-sum{display:flex;justify-content:space-between;align-items:center;gap:4px 8px;flex-wrap:wrap}
+.trip-sum p{font-size:15px;font-weight:600}
+.legs{display:grid;gap:3px;padding-top:2px}
+.leg-h{font-size:12.5px;font-weight:600;color:var(--muted);margin-top:10px}
+.leg-h:first-child{margin-top:4px}
+.leg{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:12px;font-size:14px;align-items:baseline}
+.leg .n{text-align:right;font-variant-numeric:tabular-nums}
+.leg .m{color:var(--muted)}
+.leg-tot{border-top:1px solid var(--ink);margin-top:10px;padding-top:7px;font-weight:600}
+.legs .hint{margin-top:8px}
+.trip-mode{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap;margin-top:8px}
+.trip-mode .seg button{min-height:36px;padding:6px 14px;font-size:13.5px}
+
+/* friends */
+.section-title{font-size:15px;font-weight:700;margin:24px 0 8px;line-height:1.3}
+.count{font-family:var(--f-body);font-size:14px;color:var(--muted);font-weight:500;margin-left:8px}
+.flist{background:var(--surface);border:1px solid var(--hair);border-radius:14px;padding:0 16px;box-shadow:var(--shadow)}
+.prow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--hair);flex-wrap:wrap}
+.flist .prow:last-child{border-bottom:0}
+.pi{flex:1 1 170px;min-width:0}
+.pn{font-weight:600}
+.pm{font-size:13px;color:var(--muted)}
+.pa{display:flex;gap:4px;align-items:center;margin-left:auto}
+.pending{font-size:13px;color:var(--muted);padding-inline:6px}
+.search{display:flex;align-items:center;gap:8px;border:1px solid var(--hair);border-radius:10px;background:var(--surface);padding:0 12px;margin-bottom:10px;color:var(--muted)}
+.search:focus-within{border-color:var(--green)}
+.search input[type=search]{border:0;border-radius:0;background:transparent;flex:1;min-height:44px;padding:0;font:inherit;font-size:16px;color:var(--ink);outline:none;min-width:0;width:auto}
+
+/* sheets and forms */
+.overlay{position:fixed;inset:0;z-index:50;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center}
+.sheet{position:relative;background:var(--surface);color:var(--ink);width:100%;max-width:560px;max-height:92vh;max-height:92dvh;overflow:auto;border-radius:16px 16px 0 0;padding:16px 16px 0;overscroll-behavior:contain}
+@media (min-width:700px){.overlay{align-items:center;padding:24px}.sheet{border-radius:14px;padding:22px 24px 0}}
+.sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}
+.sheet-head h2{font-family:var(--f-display);font-weight:700;font-size:28px;line-height:1.05;overflow-wrap:anywhere}
+.sheet-head .sub{font-size:14px;color:var(--muted);margin-top:6px;max-width:46ch}
+.sheet-head.bare{position:absolute;top:14px;right:16px;margin:0;z-index:2}
+.sheet-head.bare h2{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.sheet-head.bare + .detail{padding-top:6px}
+.sheet-head.bare + .detail .d-state{padding-right:48px;min-height:24px}
+.sheet-body-pad{padding-bottom:22px}
+.icon-btn{border:1px solid var(--hair);background:var(--surface);border-radius:999px;width:38px;height:38px;display:grid;place-items:center;flex:none}
+.icon-btn:hover{border-color:var(--ink)}
+.form{display:grid;gap:18px}
+.field{display:grid;gap:7px;min-width:0}
+.field > label,.lbl{font-size:13px;font-weight:600;color:var(--ink-2)}
+.opt{font-weight:400;color:var(--muted);margin-left:6px}
+.hint{font-size:13px;color:var(--muted)}
+.warnline{font-size:13px;color:var(--warm);font-weight:600}
+.err{font-size:13.5px;color:var(--warm);font-weight:600}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:460px){.row2{grid-template-columns:1fr}}
+.sub-field{display:grid;gap:12px;padding:12px 0 2px 14px;border-left:2px solid var(--green-soft)}
+input[type=text],input[type=search],select{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--hair);border-radius:10px;padding:10px 12px;min-height:46px;width:100%}
+input[type=text]:focus,select:focus{border-color:var(--green);outline:none}
+input[type=range]{width:100%;accent-color:var(--green);min-height:28px}
+.stepper{display:inline-flex;align-items:stretch;border:1px solid var(--hair);border-radius:12px;overflow:hidden;background:var(--surface);justify-self:start}
+.stepper button{width:44px;min-height:44px;border:0;background:var(--surface);font-size:20px;color:var(--ink);line-height:1}
+.stepper button:hover{background:var(--fill)}
+.stepper output{min-width:100px;display:grid;place-items:center;font-family:var(--f-display);font-weight:600;font-size:22px;font-variant-numeric:tabular-nums;border-inline:1px solid var(--hair);padding-inline:8px}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;justify-self:start;max-width:100%}
+.seg button{border:1px solid var(--hair);background:var(--surface);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:500;color:var(--ink);min-height:40px}
+.seg button[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:var(--on-green);font-weight:600}
+.seg button:not([aria-pressed="true"]):not(:disabled):hover{border-color:var(--ink)}
+.daypick{display:flex;gap:6px;flex-wrap:wrap}
+.daychip{border:1px solid var(--hair);background:var(--surface);border-radius:10px;padding:7px 8px;font-size:13px;font-weight:600;line-height:1.1;text-align:center;min-width:54px}
+.daychip small{display:block;font-weight:400;color:var(--muted);font-size:11.5px;margin-top:2px}
+.daychip[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:var(--on-green)}
+.daychip[aria-pressed="true"] small{color:inherit}
+.sheet-actions{display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap;position:sticky;bottom:0;background:var(--surface);padding-block:14px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--hair);margin-top:4px}
+.extras{margin-top:22px;padding-block:14px 20px;border-top:1px solid var(--hair);display:grid;gap:14px}
+.extra-row{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.extra-row > div{flex:1 1 220px}
+.sug{display:grid;gap:4px;padding-bottom:14px;border-bottom:1px solid var(--hair)}
+.sug-k{font-size:13px;font-weight:600;color:var(--green-text)}
+.sug-v{font-size:20px;font-weight:600;line-height:1.3}
+.plist{margin-bottom:10px}
+.plist li{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--hair);flex-wrap:wrap}
+.pl-n{font-weight:600}
+.pl-m{font-size:13px;color:var(--muted);flex:1 1 180px}
+.pl-w{font-size:12.5px;font-weight:600;color:var(--warm)}
+.toast-wrap{position:fixed;left:0;right:0;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:70;display:flex;justify-content:center;pointer-events:none;padding-inline:16px}
+body.sheet-open .toast-wrap{top:calc(12px + env(safe-area-inset-top,0px));bottom:auto}
+.toast{background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:12px;font-size:14px;font-weight:500;max-width:520px}
+.signin{min-height:100vh;min-height:100dvh;display:flex;justify-content:center;align-items:flex-start;padding:max(48px,10vh) 16px 48px}
+.signin-in{width:100%;max-width:400px;display:grid;gap:16px}
+.signin .mark{font-size:56px}
+.signin .mark .dot{width:14px;height:14px;margin-left:4px}
+.lede{font-size:16px;color:var(--ink-2);max-width:36ch}
+.signin-card{display:grid;gap:14px;padding:20px;background:var(--surface);border:1px solid var(--hair);border-radius:16px;box-shadow:var(--shadow)}
+.signin-card h1{font-size:21px;font-weight:700;line-height:1.25}
+.signin-card .form{gap:14px}
+.signin-alt{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center}
+.signin-foot{font-size:12.5px}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--hair)}
+.btn-block{width:100%}
+.code-input{text-align:center;letter-spacing:.3em;font-size:22px !important;font-variant-numeric:tabular-nums}
+input[type=email]{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--hair);border-radius:10px;padding:10px 12px;min-height:46px;width:100%}
+input[type=email]:focus{border-color:var(--green);outline:none}
+.foot{margin-top:52px;font-size:12.5px;color:var(--muted);display:grid;gap:4px;max-width:62ch}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<noscript><p style="padding:24px;font-family:system-ui,sans-serif">In. needs JavaScript turned on.</p></noscript>
+<div id="app"><p class="boot">Loading In.</p></div>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/preact/standalone.umd.js"></script>
+<script>
+(function () {
+  'use strict';
+  var root = document.getElementById('app');
+  if (!window.htmPreact) {
+    root.innerHTML = '<p class="boot">In. could not load its interface. Check your connection and reload the page.</p>';
+    return;
+  }
+  const { html, render, useState, useEffect, useMemo, useRef, useCallback } = window.htmPreact;
+
+  /* ---------------- The trail: named access points, mile 0 at the south end (approximate) ---------------- */
+  const SPOTS = [
+    { id: 'grays-ferry', name: 'Grays Ferry Crescent', short: 'Grays Ferry', mi: 0 },
+    { id: 'christian', name: 'Christian St', short: 'Christian St', mi: 1.0, gx: 26, gy: -0.99 },
+    { id: 'south', name: 'South St Bridge', short: 'South St', mi: 1.35, gx: 26, gy: -0.63 },
+    { id: 'locust', name: 'Locust St (Schuylkill River Park)', short: 'Locust St', mi: 1.7, gx: 25, gy: -0.27 },
+    { id: 'walnut', name: 'Walnut St Bridge', short: 'Walnut St', mi: 1.85, gx: 25, gy: -0.18 },
+    { id: 'chestnut', name: 'Chestnut St Bridge', short: 'Chestnut St', mi: 1.95, gx: 24.5, gy: -0.09 },
+    { id: 'market', name: 'Market St', short: 'Market St', mi: 2.05, gx: 24.5, gy: 0 },
+    { id: 'paines', name: "Paine's Park", short: "Paine's Park", mi: 2.8, gx: 25, gy: 0.6 },
+    { id: 'art-museum', name: 'Art Museum / Water Works', short: 'Art Museum', mi: 3.0, gx: 25.5, gy: 0.75 },
+    { id: 'boathouse', name: 'Boathouse Row', short: 'Boathouse Row', mi: 3.3 },
+    { id: 'girard', name: 'Girard Ave Bridge', short: 'Girard Ave', mi: 3.9 },
+    { id: 'strawberry', name: 'Strawberry Mansion Bridge', short: 'Strawberry Mansion', mi: 5.4 },
+    { id: 'falls', name: 'Falls Bridge', short: 'Falls Bridge', mi: 6.9 },
+    { id: 'manayunk', name: 'Manayunk (Lock St)', short: 'Manayunk', mi: 9.8 },
+  ];
+  const SPOT = {};
+  SPOTS.forEach(s => { SPOT[s.id] = s; });
+  const spotMi = id => (SPOT[id] ? SPOT[id].mi : 1.85);
+  const spotName = id => (SPOT[id] ? SPOT[id].name : 'the trail');
+
+  /* ---------------- The street grid: Center City and University City (approximate) ----------------
+     A point is (numbered street, miles north of Market). One block between numbered streets is about 0.1 mi.
+     Walking between two grid points counts city blocks; getting to the trail counts blocks to an access point. */
+  const BLOCK_MI = 0.1;
+  const CROSS = [
+    { id: 'fairmount', name: 'Fairmount Ave', y: 0.75 }, { id: 'spring-garden', name: 'Spring Garden', y: 0.6 },
+    { id: 'callowhill', name: 'Callowhill', y: 0.45 }, { id: 'vine', name: 'Vine', y: 0.34 }, { id: 'race', name: 'Race', y: 0.25 },
+    { id: 'arch', name: 'Arch', y: 0.16 }, { id: 'jfk', name: 'JFK Blvd', y: 0.07 }, { id: 'market', name: 'Market', y: 0 },
+    { id: 'chestnut', name: 'Chestnut', y: -0.09 }, { id: 'sansom', name: 'Sansom', y: -0.135 }, { id: 'walnut', name: 'Walnut', y: -0.18 },
+    { id: 'locust', name: 'Locust', y: -0.27 }, { id: 'spruce', name: 'Spruce', y: -0.36 }, { id: 'pine', name: 'Pine', y: -0.45 },
+    { id: 'lombard', name: 'Lombard', y: -0.54 }, { id: 'south', name: 'South', y: -0.63 }, { id: 'bainbridge', name: 'Bainbridge', y: -0.72 },
+    { id: 'fitzwater', name: 'Fitzwater', y: -0.81 }, { id: 'catharine', name: 'Catharine', y: -0.9 }, { id: 'christian', name: 'Christian', y: -0.99 },
+  ];
+  const CROSS_BY = {};
+  CROSS.forEach(c => { CROSS_BY[c.id] = c; });
+  const STREETS = [];
+  for (let n = 15; n <= 26; n++) STREETS.push(n);
+  for (let n = 30; n <= 42; n++) STREETS.push(n);
+  const ordinal = n => n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th');
+  // Places people meet or end up. Starts in the neighborhood, and food or coffee after.
+  const PLACES = [
+    { id: '2116-chestnut', name: '2116 Chestnut', where: '21st & Chestnut', gx: 21.2, gy: -0.09, kind: 'meet' },
+    { id: 'rittenhouse', name: 'Rittenhouse Square', where: '19th & Walnut corner', gx: 19, gy: -0.18, kind: 'meet' },
+    { id: 'fitler', name: 'Fitler Square', where: '23rd & Pine', gx: 23, gy: -0.45, kind: 'meet' },
+    { id: 'huntsman', name: 'Huntsman Hall', where: '38th & Walnut', gx: 37.3, gy: -0.18, kind: 'meet' },
+    { id: 'la-colombe', name: 'La Colombe', where: '19th & Sansom', gx: 19, gy: -0.135, kind: 'food' },
+    { id: 'parc', name: 'Parc', where: '18th & Locust, on the square', gx: 18, gy: -0.27, kind: 'food' },
+    { id: 'rival-bros', name: 'Rival Bros. Coffee', where: '24th & Lombard', gx: 24, gy: -0.54, kind: 'food' },
+    { id: 'ants-pants', name: 'Ants Pants Cafe', where: '22nd & South', gx: 22.1, gy: -0.63, kind: 'food' },
+  ];
+  const PLACE = {};
+  PLACES.forEach(p => { PLACE[p.id] = p; });
+  const gridD = (a, b) => Math.abs(a.gx - b.gx) * BLOCK_MI + Math.abs(a.gy - b.gy);
+  const GRID_SPOTS = SPOTS.filter(s => typeof s.gx === 'number');
+  // The trail access closest to a grid point, and how far it is.
+  function nearestAccess(pt) {
+    let best = null;
+    GRID_SPOTS.forEach(s => { const d = gridD(pt, s); if (!best || d < best.d) best = { s, d }; });
+    return best;
+  }
+  // Stored fields for a named start or finish. The closest trail spot and off-trail miles ride along so
+  // visibility, the host's confirm suggestion, and older runs all keep working.
+  function startFields(placeId, spot) {
+    const p = PLACE[placeId];
+    if (!p) return { spot: spot, place: '', placeOff: 0, placeId: '' };
+    const n = nearestAccess(p);
+    return { spot: n.s.id, place: p.name, placeOff: Math.round(n.d * 10) / 10, placeId: p.id };
+  }
+  function finishFields(finishId) {
+    const none = { finish: '', finishSpot: '', finishOff: 0, finishId: '' };
+    if (!finishId) return none;
+    if (finishId.indexOf('trail:') === 0) {
+      const id = finishId.slice(6);
+      return SPOT[id] ? { finish: spotName(id), finishSpot: id, finishOff: 0, finishId } : none;
+    }
+    const p = PLACE[finishId];
+    if (!p) return none;
+    const n = nearestAccess(p);
+    return { finish: p.name, finishSpot: n.s.id, finishOff: Math.round(n.d * 10) / 10, finishId: p.id };
+  }
+  // Schematic scale for the strip: each gap between named spots gets a base width plus a bit per mile.
+  const CUM = [];
+  SPOTS.forEach((s, i) => CUM.push(i ? CUM[i - 1] + 29 + 10 * (s.mi - SPOTS[i - 1].mi) : 0));
+  const CUM_MAX = CUM[CUM.length - 1];
+  function norm(mi) {
+    if (mi <= SPOTS[0].mi) return 0;
+    for (let i = 1; i < SPOTS.length; i++) {
+      if (mi <= SPOTS[i].mi) {
+        const a = SPOTS[i - 1].mi, b = SPOTS[i].mi;
+        return (CUM[i - 1] + ((mi - a) / (b - a)) * (CUM[i] - CUM[i - 1])) / CUM_MAX;
+      }
+    }
+    return 1;
+  }
+
+  /* ---------------- Sample classmates: demo content, never written to storage ---------------- */
+  const SAMPLES = [
+    { id: 'sample-maya', handle: 'Maya R.', spot: 'walnut', pace: 525, am: true, pm: false },
+    { id: 'sample-dev', handle: 'Dev K.', spot: 'market', pace: 470, am: true, pm: true },
+    { id: 'sample-priya', handle: 'Priya S.', spot: 'south', pace: 555, am: true, pm: false },
+    { id: 'sample-tomas', handle: 'Tomás A.', spot: 'art-museum', pace: 435, am: true, pm: false },
+    { id: 'sample-hannah', handle: 'Hannah L.', spot: 'christian', pace: 500, am: false, pm: true },
+    { id: 'sample-sam', handle: 'Sam O.', spot: 'walnut', pace: 580, am: true, pm: true },
+    { id: 'sample-ines', handle: 'Inés V.', spot: 'boathouse', pace: 485, am: true, pm: false },
+    { id: 'sample-marcus', handle: 'Marcus B.', spot: 'paines', pace: 510, am: true, pm: true },
+    { id: 'sample-aisha', handle: 'Aisha N.', spot: 'market', pace: 540, am: true, pm: false },
+    { id: 'sample-leo', handle: 'Leo W.', spot: 'south', pace: 460, am: false, pm: true },
+  ].map(s => Object.assign(s, { sample: true, vis: 'fof' }));
+  const SAMPLE_EDGES = [
+    ['sample-maya', 'sample-dev'], ['sample-maya', 'sample-priya'], ['sample-maya', 'sample-sam'], ['sample-maya', 'sample-aisha'],
+    ['sample-dev', 'sample-tomas'], ['sample-dev', 'sample-leo'], ['sample-priya', 'sample-hannah'], ['sample-tomas', 'sample-ines'],
+    ['sample-tomas', 'sample-leo'], ['sample-hannah', 'sample-marcus'], ['sample-ines', 'sample-marcus'],
+  ];
+  // Weekly habits. days: 0 = Sunday. Most go out and back from where they start; placeId starts in the
+  // neighborhood, finishId ends somewhere else (usually food or coffee).
+  const TEMPLATES = [
+    { key: 'maya-am', title: 'Easy miles + coffee', host: 'sample-maya', days: [1, 3, 5], status: 'locked', start: 390, spot: 'walnut', finishId: 'rival-bros', pace: 525, dist: 5, vis: 'fof', note: 'Easy five, then coffee. Back in time for an 8:30 class.', regulars: ['sample-sam', 'sample-aisha'] },
+    { key: 'maya-long', title: 'Sunday long run to the Falls', host: 'sample-maya', days: [0], status: 'locked', start: 480, spot: 'walnut', pace: 540, dist: 10, vis: 'wharton', note: 'Long run to the Falls Bridge and back. Anyone near 9:00 is welcome.', regulars: ['sample-priya', 'sample-sam'] },
+    { key: 'priya-am', title: 'Shakeout before Stats', host: 'sample-priya', days: [1, 4], status: 'intention', start: 420, placeId: 'rittenhouse', finishId: 'la-colombe', pace: 555, dist: 4, vis: 'wharton', note: 'Down to the river and back up for coffee. Flexible on where we start.', regulars: ['sample-maya'] },
+    { key: 'dev-am', title: 'Steady six from Huntsman', host: 'sample-dev', days: [2, 4], status: 'locked', start: 375, placeId: 'huntsman', pace: 470, dist: 6, vis: 'friends', note: 'Meet at Huntsman, jog down Walnut to the river. Steady six.', regulars: ['sample-leo'] },
+    { key: 'dev-long', title: 'Long run past the Falls Bridge', host: 'sample-dev', days: [6], status: 'locked', start: 450, spot: 'market', pace: 480, dist: 12, vis: 'fof', note: 'Long run past the Falls Bridge. Water stop at Lloyd Hall.', regulars: ['sample-tomas'] },
+    { key: 'tomas-tue', title: 'Kelly Drive to the Falls, steady', host: 'sample-tomas', days: [2], status: 'locked', start: 360, spot: 'art-museum', pace: 435, dist: 8, vis: 'wharton', note: 'Kelly Drive to the Falls Bridge. Steady, not a race.', regulars: ['sample-leo', 'sample-dev'] },
+    { key: 'tomas-sat', title: 'Out to Manayunk and back', host: 'sample-tomas', days: [6], status: 'locked', start: 420, spot: 'art-museum', pace: 450, dist: 13, vis: 'wharton', note: 'Out to Manayunk and back. Bring a gel.', regulars: ['sample-ines'] },
+    { key: 'hannah-pm', title: 'Sunset five after class', host: 'sample-hannah', days: [0, 3], status: 'intention', start: 1065, spot: 'christian', pace: 500, dist: 5, vis: 'fof', note: 'After-class five. Sunset over the boardwalk.', regulars: ['sample-marcus'] },
+    { key: 'sam-easy', title: 'Truly easy three', host: 'sample-sam', days: [1, 2, 5], status: 'locked', start: 435, placeId: '2116-chestnut', pace: 580, dist: 3, vis: 'wharton', note: 'Meet in the lobby. Talking pace the whole way.', regulars: ['sample-maya'] },
+    { key: 'ines-am', title: 'Out before the crews', host: 'sample-ines', days: [1, 3], status: 'locked', start: 360, spot: 'boathouse', pace: 485, dist: 5, vis: 'friends', note: 'Out past Strawberry Mansion and back before the crews are out.', regulars: ['sample-tomas'] },
+    { key: 'marcus-thu', title: 'Easy six before class', host: 'sample-marcus', days: [4], status: 'intention', start: 405, spot: 'paines', pace: 510, dist: 6, vis: 'wharton', note: 'Six easy. Open to anyone around 8:30.', regulars: ['sample-aisha'] },
+    { key: 'marcus-sun', title: 'Sunday eight + coffee on the steps', host: 'sample-marcus', days: [0], status: 'intention', start: 480, spot: 'paines', pace: 510, dist: 8, vis: 'wharton', note: 'Sunday eight, coffee on the Art Museum steps after.', regulars: ['sample-ines'] },
+    { key: 'aisha-wed', title: 'Four easy miles, new runners welcome', host: 'sample-aisha', days: [3], status: 'intention', start: 450, spot: 'market', pace: 540, dist: 4, vis: 'wharton', note: 'Four easy miles. New runners welcome.', regulars: [] },
+    { key: 'aisha-sat', title: 'Saturday social miles, then brunch', host: 'sample-aisha', days: [6], status: 'intention', start: 510, spot: 'market', finishId: 'ants-pants', pace: 540, dist: 8, vis: 'fof', note: 'Saturday social miles, then brunch.', regulars: ['sample-maya'] },
+    { key: 'hannah-sun', title: 'Easy six, then brunch at Parc', host: 'sample-hannah', days: [0], status: 'locked', start: 540, placeId: 'fitler', finishId: 'parc', pace: 525, dist: 6, vis: 'wharton', note: 'Fitler Square to the river, out and back along it, then up to Parc.', regulars: ['sample-priya', 'sample-marcus'] },
+    { key: 'leo-pm', title: 'Evening six with a fast finish', host: 'sample-leo', days: [1, 3, 5], status: 'intention', start: 1080, spot: 'south', pace: 460, dist: 6, vis: 'friends', note: 'Evening six, pick it up for the last two.', regulars: ['sample-dev'] },
+  ];
+  const isSample = id => typeof id === 'string' && id.indexOf('sample-') === 0;
+  const pairId = (a, b) => (a < b ? a + '__' + b : b + '__' + a);
+
+  /* ---------------- Formatting ---------------- */
+  const pad2 = n => String(n).padStart(2, '0');
+  const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const DOW_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const dateKey = d => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  const parseKey = k => { const p = k.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); };
+  const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+  const atMin = (k, min) => { const d = parseKey(k); return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, min); };
+  const lockByFor = k => { const d = parseKey(k); return new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1, 22, 0); };
+  function clockParts(min) {
+    const m = ((Math.round(min) % 1440) + 1440) % 1440;
+    let h = Math.floor(m / 60);
+    const pm = h >= 12;
+    h = h % 12 || 12;
+    return { hm: h + ':' + pad2(m % 60), ap: pm ? 'PM' : 'AM' };
+  }
+  const clock = min => { const c = clockParts(min); return c.hm + ' ' + c.ap; };
+  const pace = s => { s = Math.round(s); return Math.floor(s / 60) + ':' + pad2(s % 60); };
+  const mi1 = x => (Math.round(Number((x * 10).toFixed(6))) / 10).toFixed(1);
+  const distTxt = d => (d % 1 ? d.toFixed(1) : String(d));
+  function dur(ms) { const m = Math.max(0, Math.ceil(ms / 60000)); const h = Math.floor(m / 60); return h ? h + 'h ' + pad2(m % 60) + 'm' : m + 'm'; }
+  const dayDiff = (k, todayK) => Math.round((parseKey(k) - parseKey(todayK)) / 864e5);
+  function dayName(k, todayK) { const n = dayDiff(k, todayK); return n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : DOW_LONG[parseKey(k).getDay()]; }
+  function dayRef(k, todayK) { const n = dayDiff(k, todayK); return n === 0 ? 'today' : n === 1 ? 'tomorrow' : DOW_LONG[parseKey(k).getDay()]; }
+  const dateTxt = k => { const d = parseKey(k); return DOW[d.getDay()] + ', ' + MON[d.getMonth()] + ' ' + d.getDate(); };
+  const autoTitle = min => (min < 660 ? 'Morning run' : min < 840 ? 'Midday run' : min < 1020 ? 'Afternoon run' : 'Evening run');
+  const shortPlace = s => String(s || '').split(',')[0].trim();
+  const startLabel = r => r.place || spotName(r.spot);
+  const startShort = r => (r.place ? shortPlace(r.place) : spotName(r.spot));
+  function initials(name) {
+    const w = String(name || '?').replace(/[^\p{L}\p{N}\s]/gu, ' ').split(/\s+/).filter(Boolean);
+    if (!w.length) return '?';
+    return (w[0][0] + (w.length > 1 ? w[w.length - 1][0] : '')).toUpperCase();
+  }
+  function shortName(n) { const w = String(n || '').trim().split(/\s+/).filter(Boolean); return w.length > 1 ? w[0] + ' ' + w[w.length - 1][0] + '.' : w[0] || ''; }
+  const lsGet = k => { try { return window.localStorage.getItem(k); } catch (e) { return null; } };
+  const lsSet = (k, v) => { try { window.localStorage.setItem(k, v); } catch (e) {} };
+  const reduceMotion = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const isWide = () => !!(window.matchMedia && window.matchMedia('(min-width: 960px)').matches);
+
+  /* ---------------- Distance: city blocks on the grid, trail miles along the river ----------------
+     A location is a grid point { gx, gy } (your corner, 2116 Chestnut, a café), a trail spot { spot },
+     or a typed-in place just off the trail { spot, off }. The shortest way between two locations is either
+     straight through the streets (both on the grid) or streets to the trail, along it, and back off. */
+  const offOf = (name, off) => (name ? (typeof off === 'number' ? off : 0.2) : 0);
+  const onGrid = loc => typeof loc.gx === 'number';
+  function toTrail(loc, s) {
+    if (loc.spot) return loc.spot === s.id ? loc.off || 0 : Infinity;
+    return onGrid(loc) && typeof s.gx === 'number' ? gridD(loc, s) : Infinity;
+  }
+  function route(a, b) {
+    let best = onGrid(a) && onGrid(b) ? { mi: gridD(a, b), via: null } : null;
+    SPOTS.forEach(s1 => {
+      const c1 = toTrail(a, s1);
+      if (!isFinite(c1)) return;
+      SPOTS.forEach(s2 => {
+        const c2 = toTrail(b, s2);
+        if (!isFinite(c2)) return;
+        const mi = c1 + Math.abs(s1.mi - s2.mi) + c2;
+        if (!best || mi < best.mi - 1e-9) best = { mi, via: [s1, s2], c1, c2 };
+      });
+    });
+    return best;
+  }
+  function legsOf(a, b, rt) {
+    if (!rt) return [];
+    if (!rt.via) return rt.mi >= 0.05 ? [{ from: a.name, to: b.name, mi: rt.mi }] : [];
+    const s1 = rt.via[0], s2 = rt.via[1], out = [];
+    if (rt.c1 >= 0.05) out.push({ from: a.name, to: s1.name, mi: rt.c1 });
+    if (Math.abs(s1.mi - s2.mi) >= 0.05) out.push({ label: 'Along the trail to ' + s2.name, mi: Math.abs(s1.mi - s2.mi) });
+    if (rt.c2 >= 0.05) out.push({ from: s2.name, to: b.name, mi: rt.c2 });
+    return out;
+  }
+  const trailFinish = r => (typeof r.finishId === 'string' && r.finishId.indexOf('trail:') === 0 && SPOT[r.finishId.slice(6)] ? r.finishId.slice(6) : '');
+  function startLoc(r) {
+    const p = PLACE[r.placeId];
+    if (p) return { name: p.name, gx: p.gx, gy: p.gy };
+    if (r.place) return { name: shortPlace(r.place), spot: r.spot, off: r.placeOff };
+    return { name: spotName(r.spot), spot: r.spot, off: 0 };
+  }
+  function finishLoc(r) {
+    if (!r.finish) return startLoc(r);
+    const p = PLACE[r.finishId];
+    if (p) return { name: p.name, gx: p.gx, gy: p.gy };
+    const ts = trailFinish(r);
+    if (ts) return { name: spotName(ts), spot: ts, off: 0 };
+    return { name: shortPlace(r.finish), spot: r.finishSpot || r.spot, off: r.finishOff || 0 };
+  }
+  // Home: your nearest corner if you set one (private), otherwise your trail spot plus door-to-trail miles.
+  function homeLoc(meP, home) {
+    if (home && typeof home.st === 'number' && CROSS_BY[home.cross]) return { name: 'Your door', gx: home.st, gy: CROSS_BY[home.cross].y, corner: true };
+    const hasDoor = !!(home && typeof home.dist === 'number');
+    return { name: 'Your door', spot: meP.spot, off: hasDoor ? home.dist : 0, hasDoor };
+  }
+  // Labeled legs for one runner: door to the start, the run, and the way home from wherever it ends.
+  // Leave time: jog at easy pace + 1:00/mi (or walk at 18:00/mi), arrive 3 minutes early, rounded down to 5 minutes
+  // because the distances are approximate.
+  function myLegs(r, meP, home) {
+    if (!meP || !SPOT[meP.spot]) return null;
+    const H = homeLoc(meP, home), Hb = Object.assign({}, H, { name: 'your door' });
+    const S = startLoc(r), Fn = finishLoc(r);
+    const go = route(H, S), back = route(Fn, Hb);
+    const there = legsOf(H, S, go), backL = legsOf(Fn, Hb, back);
+    const toStart = go ? go.mi : 0, homeLeg = back ? back.mi : 0;
+    const runRow = { label: r.finish ? S.name + ' → ' + Fn.name : S.name + ', out and back', mi: r.dist };
+    const mode = meP.travel === 'walk' ? 'walk' : 'jog';
+    const speed = mode === 'walk' ? 1080 : (meP.pace || 540) + 60;
+    const travelMin = (toStart * speed) / 60;
+    return {
+      hasDoor: !!(H.corner || H.hasDoor), corner: !!H.corner, there, back: backL, runRow, run: r.dist, toStart, homeLeg, total: toStart + r.dist + homeLeg,
+      mode, speed, travelMin, leaveAt: Math.floor((r.start - travelMin - 3) / 5) * 5,
+    };
+  }
+
+  /* ---------------- Nash bargaining for the lock ----------------
+     Each runner's gain from running together = company bonus - distance cost - pace cost.
+     Distance is counted from each runner's trail spot to the meeting place (door-to-trail miles are
+     private and the same wherever you meet). Running faster than you like costs more than running
+     slower, and the host gets a small bonus for the place they posted. The suggestion maximizes the
+     product of gains, which spreads the compromise instead of piling it on one person. */
+  const NASH = { B: 30, detour: 6, faster: 0.5, slower: 0.2, hostPref: 4 };
+  const paceCost = (pref, q) => (q < pref ? NASH.faster * (pref - q) : NASH.slower * (q - pref));
+  const reach = (p, c) => Math.abs(p.mi - c.mi) + c.off;
+  const gainsAt = (parts, c, q, baseKey) => parts.map(p => NASH.B - NASH.detour * reach(p, c) - paceCost(p.pace, q) + (p.host && c.key === baseKey ? NASH.hostPref : 0));
+  function lockCands(r) {
+    const baseMi = spotMi(r.spot);
+    // A start in the neighborhood (2116 Chestnut, Rittenhouse Square) is a deliberate meeting point, not a
+    // trail compromise, so confirming keeps it and only settles the pace.
+    if (PLACE[r.placeId]) return [{ key: 'place', mi: baseMi, off: offOf(r.place, r.placeOff) }];
+    const cands = SPOTS.filter(s => Math.abs(s.mi - baseMi) <= 1.6).map(s => ({ key: s.id, mi: s.mi, off: 0 }));
+    if (r.place) cands.unshift({ key: 'place', mi: baseMi, off: offOf(r.place, r.placeOff) });
+    return cands;
+  }
+  function nashSuggest(parts, r) {
+    if (!parts.length) return null;
+    const baseKey = r.place ? 'place' : r.spot;
+    const cands = lockCands(r);
+    const base = cands.find(c => c.key === baseKey) || cands[0];
+    if (parts.length === 1) return { key: base.key, cand: base, pace: r.pace, gains: gainsAt(parts, base, r.pace, baseKey), ok: true };
+    const ps = parts.map(p => p.pace);
+    const lo = Math.floor((Math.min.apply(null, ps) - 15) / 5) * 5;
+    const hi = Math.ceil((Math.max.apply(null, ps) + 30) / 5) * 5;
+    let best = null;
+    cands.forEach(c => {
+      for (let q = lo; q <= hi; q += 5) {
+        const g = gainsAt(parts, c, q, baseKey);
+        const ok = g.every(x => x > 0);
+        let score = g.reduce((a, x) => a + Math.log(Math.max(x, 0.25)), 0) - (ok ? 0 : 100);
+        score -= 1e-4 * (Math.abs(c.mi - base.mi) + Math.abs(q - r.pace) / 60 + (c.key === baseKey ? 0 : 0.05));
+        if (!best || score > best.score) best = { key: c.key, cand: c, pace: q, gains: g, ok, score };
+      }
+    });
+    return best;
+  }
+  function participantsOf(r, profiles) {
+    const hp = profiles[r.host];
+    const out = [{ id: r.host, mi: spotMi(hp && hp.spot ? hp.spot : r.spot), pace: r.pace, host: true }];
+    r.joiners.forEach(j => { const p = profiles[j.id]; if (p && p.spot) out.push({ id: j.id, mi: spotMi(p.spot), pace: p.pace || r.pace }); });
+    return out;
+  }
+  const lockedPlace = (r, key) => (key === 'place' ? { spot: r.spot, place: r.place, placeOff: offOf(r.place, r.placeOff), placeId: r.placeId || '' } : { spot: key, place: '', placeOff: 0, placeId: '' });
+  // Would a sample classmate plausibly say they'd be in?
+  function sampleFits(s, r) {
+    const am = r.start < 720;
+    if (am ? !s.am : !s.pm) return false;
+    const flex = r.status === 'intention' ? 20 : 0;
+    if (Math.abs(s.pace - r.pace) > 35 + flex) return false;
+    if (Math.abs(spotMi(s.spot) - spotMi(r.spot)) > 2.5) return false;
+    return true;
+  }
+
+  /* ---------------- Storage: the live shared board, or a local sandbox ---------------- */
+  const Store = {
+    mode: 'loading', me: null, pseudo: false, canWrite: false, isOwner: false, suggestedHandle: '', sandboxReason: '', cloud: false, email: '', authError: '',
+    profiles: {}, friendships: {}, runs: {}, joins: {}, config: {}, home: null, people: {},
+    loaded: { profiles: false, friendships: false, runs: false, joins: false, home: false },
+    api: null, subs: new Set(),
+    on(fn) { this.subs.add(fn); return () => this.subs.delete(fn); },
+    emit() { this.subs.forEach(fn => { try { fn(); } catch (e) { console.error(e); } }); },
+    ready() {
+      if (this.mode === 'sandbox') return true;
+      const l = this.loaded;
+      return this.mode === 'live' && l.profiles && l.friendships && l.runs && l.joins;
+    },
+  };
+
+  const Sandbox = {
+    KEY: 'in-wharton-sandbox-v1',
+    init(reason) {
+      Live.stop();
+      let s = null;
+      try { s = JSON.parse(lsGet(this.KEY) || 'null'); } catch (e) { s = null; }
+      if (!s || typeof s !== 'object') s = {};
+      Object.assign(Store, {
+        mode: 'sandbox', api: Sandbox, me: 'me-local', pseudo: false, canWrite: true, isOwner: true, sandboxReason: reason || Store.sandboxReason || '',
+        profiles: s.profiles || {}, friendships: s.friendships || {}, runs: s.runs || {}, joins: s.joins || {},
+        home: s.home || null, config: s.config || {}, people: {},
+        loaded: { profiles: true, friendships: true, runs: true, joins: true, home: true },
+      });
+      Store.emit();
+    },
+    save() {
+      lsSet(this.KEY, JSON.stringify({ profiles: Store.profiles, friendships: Store.friendships, runs: Store.runs, joins: Store.joins, home: Store.home, config: Store.config }));
+    },
+    put(coll, id, doc) { const o = Object.assign({}, Store[coll]); o[id] = doc; Store[coll] = o; this.save(); Store.emit(); },
+    patch(coll, id, p) {
+      const cur = Store[coll][id];
+      if (!cur) return Promise.reject({ code: 'invalid_argument', message: 'Document does not exist' });
+      this.put(coll, id, Object.assign({}, cur, p));
+      return Promise.resolve();
+    },
+    drop(coll, id) { const o = Object.assign({}, Store[coll]); delete o[id]; Store[coll] = o; this.save(); Store.emit(); },
+    async saveProfile(p) { this.put('profiles', Store.me, p); },
+    async saveHome(h) { Store.home = h; this.save(); Store.emit(); },
+    async setFriendship(id, d) { this.put('friendships', id, d); },
+    updateFriendship(id, p) { return this.patch('friendships', id, p); },
+    async deleteFriendship(id) { this.drop('friendships', id); },
+    async setRun(id, d) { this.put('runs', id, d); },
+    updateRun(id, p) { return this.patch('runs', id, p); },
+    async setJoin(id, d) { this.put('joins', id, d); },
+    async deleteJoin(id) { this.drop('joins', id); },
+    async setConfig(c) { Store.config = c; this.save(); Store.emit(); },
+    newRunId() { return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); },
+    reset() { try { window.localStorage.removeItem(this.KEY); } catch (e) {} this.init(Store.sandboxReason); },
+  };
+
+  function pseudoId() {
+    let id = lsGet('in-guest-id');
+    if (!id || !/^g-[a-z0-9]+$/.test(id)) { id = 'g-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); lsSet('in-guest-id', id); }
+    return id;
+  }
+
+  const Live = {
+    db: null, user: null, unsubs: [],
+    async init(db, user) {
+      this.db = db; this.user = user;
+      let uid = null, can = null, owner = false, meInfo = null;
+      if (user) {
+        try { uid = await user.id(); } catch (e) {}
+        try { can = await user.can('data.write'); } catch (e) {}
+        try { owner = await user.isOwner(); } catch (e) {}
+        try { meInfo = await user.me(); } catch (e) {}
+      }
+      let pseudo = false;
+      if (!uid) { uid = pseudoId(); pseudo = true; }
+      Object.assign(Store, {
+        mode: 'live', api: Live, me: uid, pseudo, canWrite: can !== false, isOwner: !!owner,
+        suggestedHandle: meInfo && meInfo.name ? shortName(meInfo.name) : '',
+      });
+      const since = dateKey(addDays(new Date(), -1));
+      const toMap = snap => { const o = {}; snap.docs.forEach(d => { if (d.exists) o[d.id] = d.data(); }); return o; };
+      const guard = fn => arg => { if (Store.mode === 'live') fn(arg); };
+      const onErr = what => e => {
+        console.warn('In. live ' + what, e);
+        if (e && e.code === 'revoked') { Store.canWrite = false; Store.emit(); }
+      };
+      const sub = (ref, key) => this.unsubs.push(ref.onSnapshot(guard(s => { Store[key] = toMap(s); Store.loaded[key] = true; Store.emit(); }), onErr(key)));
+      sub(db.collection('profiles'), 'profiles');
+      sub(db.collection('friendships'), 'friendships');
+      sub(db.collection('runs').where('date', '>=', since), 'runs');
+      sub(db.collection('joins').where('date', '>=', since), 'joins');
+      this.unsubs.push(db.doc('config/app').onSnapshot(guard(s => { Store.config = s.exists ? Object.assign({}, s.data()) : {}; Store.emit(); }), onErr('config')));
+      if (pseudo) {
+        let h = null;
+        try { h = JSON.parse(lsGet('in-home-' + uid) || 'null'); } catch (e) {}
+        Store.home = h; Store.loaded.home = true;
+      } else {
+        this.unsubs.push(db.doc('data/users/' + uid + '/home').onSnapshot(guard(s => { Store.home = s.exists ? Object.assign({}, s.data()) : null; Store.loaded.home = true; Store.emit(); }), onErr('home')));
+      }
+      Store.emit();
+    },
+    stop() { this.unsubs.forEach(u => { try { u(); } catch (e) {} }); this.unsubs = []; },
+    saveProfile(p) { return this.db.doc('profiles/' + Store.me).set(p); },
+    async saveHome(h) {
+      if (Store.pseudo) { lsSet('in-home-' + Store.me, JSON.stringify(h)); Store.home = h; Store.emit(); return; }
+      return this.db.doc('data/users/' + Store.me + '/home').set(h);
+    },
+    setFriendship(id, d) { return this.db.doc('friendships/' + id).set(d); },
+    updateFriendship(id, p) { return this.db.doc('friendships/' + id).update(p); },
+    deleteFriendship(id) { return this.db.doc('friendships/' + id).delete(); },
+    setRun(id, d) { return this.db.doc('runs/' + id).set(d); },
+    updateRun(id, p) { return this.db.doc('runs/' + id).update(p); },
+    setJoin(id, d) { return this.db.doc('joins/' + id).set(d); },
+    deleteJoin(id) { return this.db.doc('joins/' + id).delete(); },
+    setConfig(c) { return this.db.doc('config/app').set(c); },
+    newRunId() { return this.db.collection('runs').doc().id; },
+  };
+
+  /* ---------------- Cloud: the public app, backed by Supabase (config.js) ----------------
+     Same interface as Live and Sandbox, so every screen works unchanged. Real people's data goes to the
+     database, where row-level security decides who sees what. Anything involving the sample classmates
+     (friending one, joining a sample run) stays on this device and never touches the database. */
+  const iso = ms => new Date(ms || Date.now()).toISOString();
+  const msOf = t => (t ? Date.parse(t) || 0 : 0);
+  const RUN_COLS = { host: 'host', date: 'date', status: 'status', start: 'start', title: 'title', spot: 'spot', place: 'place', placeOff: 'place_off', placeId: 'place_id', finish: 'finish', finishSpot: 'finish_spot', finishOff: 'finish_off', finishId: 'finish_id', pace: 'pace', dist: 'dist', vis: 'vis', note: 'note', samplesIn: 'samples_in' };
+  function runToRow(d) {
+    const row = {};
+    Object.keys(RUN_COLS).forEach(k => { if (d[k] !== undefined) row[RUN_COLS[k]] = d[k]; });
+    if (d.lockedAt !== undefined) row.locked_at = d.lockedAt ? iso(d.lockedAt) : null;
+    if (d.createdAt) row.created_at = iso(d.createdAt);
+    return row;
+  }
+  function runFromRow(r) {
+    return {
+      host: r.host, date: r.date, status: r.status, start: r.start, title: r.title || '', spot: r.spot,
+      place: r.place || '', placeOff: Number(r.place_off) || 0, placeId: r.place_id || '',
+      finish: r.finish || '', finishSpot: r.finish_spot || '', finishOff: Number(r.finish_off) || 0, finishId: r.finish_id || '',
+      pace: r.pace, dist: Number(r.dist), vis: r.vis, note: r.note || '', samplesIn: r.samples_in || [],
+      createdAt: msOf(r.created_at), lockedAt: msOf(r.locked_at),
+    };
+  }
+  function prettyHandle(user) {
+    const m = (user && user.user_metadata) || {};
+    const full = m.full_name || m.name || '';
+    if (full) return shortName(full);
+    const local = String((user && user.email) || '').split('@')[0].replace(/[0-9]+/g, ' ');
+    const w = local.split(/[._\-+\s]+/).filter(Boolean);
+    if (!w.length) return '';
+    const cap = s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+    return w.length > 1 ? cap(w[0]) + ' ' + w[w.length - 1].charAt(0).toUpperCase() + '.' : cap(w[0]);
+  }
+  function cloudError(e) {
+    const code = (e && e.code) || '', msg = (e && e.message) || String(e || '');
+    if (code === '42501' || code === 'P0001' || code === 'denied') return { code: 'denied', message: msg };
+    if (/^(22|23)/.test(code)) return { code: 'invalid', message: msg };
+    if (/^PGRST30|JWT|token/i.test(code + ' ' + msg)) return { code: 'auth', message: msg };
+    return { code: 'unavailable', message: msg };
+  }
+
+  const Cloud = {
+    sb: null, cfg: null, uid: null, chan: null, poll: null, timers: {}, local: null, rows: { friendships: {}, joins: {} },
+    // What's wrong with config.js, if anything: 'config' (not filled in), 'url', 'secret' (the private key), 'lib' (supabase-js didn't load).
+    problem() {
+      const c = window.IN_CONFIG || {};
+      const url = String(c.supabaseUrl || '').trim(), key = String(c.supabaseAnonKey || '').trim();
+      if (!url || !key || /YOUR[-_]/.test(url + key)) return 'config';
+      if (!/^(https:\/\/|http:\/\/(localhost|127\.0\.0\.1)(:\d+)?)/.test(url)) return 'url';
+      let role = '';
+      try { const part = key.split('.')[1] || ''; role = JSON.parse(atob(part.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((part.length + 3) % 4))).role || ''; } catch (e) { role = ''; }
+      if (/^sb_secret_/.test(key) || role === 'service_role') return 'secret';
+      if (!window.supabase || typeof window.supabase.createClient !== 'function') return 'lib';
+      return '';
+    },
+    start() {
+      this.cfg = window.IN_CONFIG;
+      this.sb = window.supabase.createClient(String(this.cfg.supabaseUrl).trim().replace(/\/+$/, ''), String(this.cfg.supabaseAnonKey).trim(), { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+      Object.assign(Store, { mode: 'loading', cloud: true, api: Cloud });
+      const hash = new URLSearchParams(String(location.hash || '').replace(/^#/, ''));
+      if (hash.get('error_description')) Store.authError = hash.get('error_description').replace(/\+/g, ' ');
+      // Supabase warns against awaiting its own calls inside this callback, so hand off to the next tick.
+      this.sb.auth.onAuthStateChange((event, session) => { setTimeout(() => this.onSession(session), 0); });
+      Store.emit();
+    },
+    async onSession(session) {
+      if (!session || !session.user) {
+        if (Store.mode !== 'signin') { this.stop(); Object.assign(Store, { mode: 'signin', me: null, email: '', profiles: {}, friendships: {}, runs: {}, joins: {}, home: null, config: {}, loaded: { profiles: false, friendships: false, runs: false, joins: false, home: false } }); Store.emit(); }
+        return;
+      }
+      const uid = session.user.id;
+      if (this.uid === uid && Store.mode === 'live') return;
+      this.stop();
+      this.uid = uid;
+      try { this.local = JSON.parse(lsGet('in-local-' + uid) || 'null') || { friendships: {}, joins: {} }; } catch (e) { this.local = { friendships: {}, joins: {} }; }
+      if (String(location.hash).indexOf('access_token') !== -1 || /[?&]code=/.test(location.search)) { try { history.replaceState(null, '', location.pathname); } catch (e) {} }
+      Object.assign(Store, { mode: 'live', api: Cloud, me: uid, pseudo: false, canWrite: true, isOwner: false, email: session.user.email || '', suggestedHandle: prettyHandle(session.user), authError: '' });
+      await this.loadAll();
+      this.sb.rpc('is_admin').then(({ data }) => { Store.isOwner = !!data; Store.emit(); });
+      this.chan = this.sb.channel('in-board');
+      // Joins aren't broadcast (who left which run is private); the database touches the run instead,
+      // so a run change means its people may have changed too.
+      [['profiles', ['profiles']], ['friendships', ['friendships']], ['runs', ['runs', 'joins']], ['app_config', ['config']]].forEach(t => {
+        this.chan.on('postgres_changes', { event: '*', schema: 'public', table: t[0] }, () => t[1].forEach(w => this.soon(w)));
+      });
+      this.chan.subscribe();
+      this.poll = setInterval(() => { if (!document.hidden) this.loadAll(); }, 30000);
+      this.onVis = () => { if (!document.hidden) this.loadAll(); };
+      document.addEventListener('visibilitychange', this.onVis);
+    },
+    stop() {
+      if (this.chan) { try { this.sb.removeChannel(this.chan); } catch (e) {} this.chan = null; }
+      if (this.poll) { clearInterval(this.poll); this.poll = null; }
+      if (this.onVis) { document.removeEventListener('visibilitychange', this.onVis); this.onVis = null; }
+      this.uid = null;
+    },
+    async signOut() { this.stop(); await this.sb.auth.signOut(); },
+    async sendCode(email) {
+      const { error } = await this.sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: location.origin + location.pathname } });
+      if (error) throw error;
+    },
+    async verifyCode(email, token) {
+      const { error } = await this.sb.auth.verifyOtp({ email, token, type: 'email' });
+      if (error) throw error;
+    },
+    async google() {
+      const { error } = await this.sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname } });
+      if (error) throw error;
+    },
+    // ----- reading -----
+    since() { return dateKey(addDays(new Date(), -1)); },
+    async fetch(what) {
+      const sb = this.sb, me = this.uid;
+      if (what === 'profiles') {
+        const { data, error } = await sb.from('profiles').select('*');
+        if (error) throw error;
+        const o = {};
+        data.forEach(p => { o[p.id] = { handle: p.handle, spot: p.spot, pace: p.pace, travel: p.travel, vis: p.vis, updatedAt: msOf(p.updated_at) }; });
+        Store.profiles = o;
+      } else if (what === 'friendships') {
+        const { data, error } = await sb.from('friendships').select('*');
+        if (error) throw error;
+        const o = {};
+        data.forEach(f => { o[f.a + '__' + f.b] = { a: f.a, b: f.b, from: f.from_id, to: f.to_id, status: f.status, at: msOf(f.at) }; });
+        this.rows.friendships = o;
+        Store.friendships = Object.assign({}, o, this.local.friendships);
+      } else if (what === 'runs') {
+        const { data, error } = await sb.from('runs').select('*').gte('date', this.since());
+        if (error) throw error;
+        const o = {};
+        data.forEach(r => { o[r.id] = runFromRow(r); });
+        Store.runs = o;
+      } else if (what === 'joins') {
+        const { data, error } = await sb.from('joins').select('*').gte('date', this.since());
+        if (error) throw error;
+        const o = {};
+        data.forEach(j => { o[j.run_id + '__' + j.user_id] = { run: j.run_id, user: j.user_id, date: j.date, at: msOf(j.at) }; });
+        this.rows.joins = o;
+        Store.joins = Object.assign({}, o, this.local.joins);
+      } else if (what === 'config') {
+        const { data, error } = await sb.from('app_config').select('*').eq('id', 'app').maybeSingle();
+        if (error) throw error;
+        Store.config = data ? { samples: data.samples } : {};
+      } else if (what === 'home') {
+        const { data, error } = await sb.from('homes').select('*').eq('id', me).maybeSingle();
+        if (error) throw error;
+        Store.home = data ? Object.assign({}, typeof data.st === 'number' ? { st: data.st, cross: data.cross_street } : {}, data.dist != null ? { dist: Number(data.dist) } : {}) : null;
+      }
+      if (what in Store.loaded) Store.loaded[what] = true;
+    },
+    async loadAll() {
+      if (!this.uid) return;
+      const uid = this.uid;
+      const res = await Promise.allSettled(['profiles', 'friendships', 'runs', 'joins', 'config', 'home'].map(w => this.fetch(w)));
+      if (this.uid !== uid) return;
+      const bad = res.find(r => r.status === 'rejected');
+      if (bad) console.warn('In. load', bad.reason);
+      Store.emit();
+    },
+    soon(what) {
+      clearTimeout(this.timers[what]);
+      this.timers[what] = setTimeout(() => { if (this.uid) this.fetch(what).then(() => Store.emit(), e => console.warn('In. refresh', e)); }, 250);
+    },
+    async run(q, after) {
+      const { data, error } = await q;
+      if (error) throw cloudError(error);
+      if (after) this.soon(after);
+      return data;
+    },
+    // ----- local sample-classmate interactions -----
+    saveLocal() { lsSet('in-local-' + this.uid, JSON.stringify(this.local)); },
+    localPut(kind, id, doc) {
+      this.local[kind] = Object.assign({}, this.local[kind], { [id]: doc });
+      this.saveLocal();
+      Store[kind] = Object.assign({}, this.rows[kind], this.local[kind]);
+      Store.emit();
+    },
+    localDrop(kind, id) {
+      const o = Object.assign({}, this.local[kind]); delete o[id]; this.local[kind] = o;
+      this.saveLocal();
+      Store[kind] = Object.assign({}, this.rows[kind], this.local[kind]);
+      Store.emit();
+    },
+    // ----- writing (the same calls the app makes in every mode) -----
+    async saveProfile(p) {
+      await this.run(this.sb.from('profiles').upsert({ id: this.uid, handle: p.handle, spot: p.spot, pace: p.pace, travel: p.travel || 'jog', vis: p.vis || 'fof', updated_at: iso() }), 'profiles');
+      Store.profiles = Object.assign({}, Store.profiles, { [this.uid]: p }); Store.emit();
+    },
+    async saveHome(h) {
+      const corner = typeof h.st === 'number';
+      await this.run(this.sb.from('homes').upsert({ id: this.uid, st: corner ? h.st : null, cross_street: corner ? h.cross : null, dist: corner ? null : typeof h.dist === 'number' ? h.dist : null, updated_at: iso() }));
+      Store.home = h; Store.emit();
+    },
+    async setFriendship(id, d) {
+      if (isSample(d.a) || isSample(d.b)) return this.localPut('friendships', id, d);
+      await this.run(this.sb.from('friendships').upsert({ a: d.a, b: d.b, from_id: d.from, to_id: d.to, status: d.status, at: iso(d.at) }, { onConflict: 'a,b' }), 'friendships');
+    },
+    async updateFriendship(id, p) {
+      if (this.local.friendships[id]) return this.localPut('friendships', id, Object.assign({}, this.local.friendships[id], p));
+      const [a, b] = id.split('__');
+      const row = {};
+      if (p.status) row.status = p.status;
+      if (p.at) row.at = iso(p.at);
+      const data = await this.run(this.sb.from('friendships').update(row).eq('a', a).eq('b', b).select('a'), 'friendships');
+      if (!data || !data.length) throw { code: 'denied', message: 'Nothing to update' };
+    },
+    async deleteFriendship(id) {
+      if (this.local.friendships[id]) return this.localDrop('friendships', id);
+      // Declined and cancelled requests are marked removed, not deleted: Supabase broadcasts deletes
+      // to everyone listening, and who asked whom should stay between the two of them.
+      const [a, b] = id.split('__');
+      const data = await this.run(this.sb.from('friendships').update({ status: 'removed', at: iso() }).eq('a', a).eq('b', b).select('a'), 'friendships');
+      if (!data || !data.length) throw { code: 'denied', message: 'Nothing to update' };
+    },
+    async setRun(id, d) {
+      await this.run(this.sb.from('runs').upsert(Object.assign({ id }, runToRow(d))), 'runs');
+      Store.runs = Object.assign({}, Store.runs, { [id]: Object.assign({ samplesIn: [], lockedAt: 0 }, d) }); Store.emit();
+    },
+    async updateRun(id, p) {
+      const data = await this.run(this.sb.from('runs').update(runToRow(p)).eq('id', id).select('id'), 'runs');
+      if (!data || !data.length) throw { code: 'denied', message: 'Nothing to update' };
+      if (Store.runs[id]) { Store.runs = Object.assign({}, Store.runs, { [id]: Object.assign({}, Store.runs[id], p) }); Store.emit(); }
+    },
+    async setJoin(id, d) {
+      if (String(d.run).indexOf('tpl-') === 0) return this.localPut('joins', id, d);
+      await this.run(this.sb.from('joins').upsert({ run_id: d.run, user_id: this.uid, date: d.date, at: iso(d.at) }, { onConflict: 'run_id,user_id' }), 'joins');
+      Store.joins = Object.assign({}, Store.joins, { [id]: d }); Store.emit();
+    },
+    async deleteJoin(id) {
+      if (this.local.joins[id]) return this.localDrop('joins', id);
+      const run = id.slice(0, id.lastIndexOf('__'));
+      await this.run(this.sb.from('joins').delete().eq('run_id', run).eq('user_id', this.uid), 'joins');
+      const o = Object.assign({}, Store.joins); delete o[id]; Store.joins = o; Store.emit();
+    },
+    async setConfig(c) {
+      const data = await this.run(this.sb.from('app_config').update({ samples: !!c.samples, updated_at: iso() }).eq('id', 'app').select('id'), 'config');
+      if (!data || !data.length) throw { code: 'denied', message: 'Only the app admin can change this' };
+      Store.config = Object.assign({}, Store.config, { samples: !!c.samples }); Store.emit();
+    },
+    newRunId() { return window.crypto && crypto.randomUUID ? crypto.randomUUID() : 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 12); },
+  };
+
+  let peopleKey = '';
+  function resolvePeople() {
+    if (Store.mode !== 'live' || !Live.user || typeof Live.user.profiles !== 'function') return;
+    const ids = new Set(Object.keys(Store.profiles));
+    Object.values(Store.friendships).forEach(f => { if (f) { ids.add(f.a); ids.add(f.b); } });
+    Object.values(Store.joins).forEach(j => { if (j) ids.add(j.user); });
+    Object.values(Store.runs).forEach(r => { if (r) ids.add(r.host); });
+    if (Store.me) ids.add(Store.me);
+    const list = Array.from(ids).filter(id => id && !isSample(id) && id.indexOf('g-') !== 0).sort();
+    const key = list.join('|');
+    if (!list.length || key === peopleKey) return;
+    peopleKey = key;
+    Promise.resolve(Live.user.profiles(list)).then(ps => { Store.people = ps || {}; Store.emit(); }).catch(() => {});
+  }
+
+  async function boot() {
+    // With a config.js present this is the shared app: it runs on Supabase or explains what's missing,
+    // never quietly falling back to a private sandbox that nobody else can see.
+    if (window.IN_CONFIG || document.querySelector('script[src="config.js"]')) {
+      const p = Cloud.problem();
+      if (p) { Object.assign(Store, { mode: 'setup', setupProblem: p }); Store.emit(); return; }
+      Cloud.start();
+      return;
+    }
+    const c = window.claude;
+    if (!c || typeof c.use !== 'function') { Sandbox.init('standalone'); return; }
+    let db = null, user = null;
+    try { const res = await Promise.all([c.use('db'), c.use('user')]); db = res[0]; user = res[1]; } catch (e) { console.warn('In. capabilities', e); }
+    if (!db) { Sandbox.init('no-db'); return; }
+    try { await Live.init(db, user); } catch (e) { console.warn('In. live init failed', e); Sandbox.init('error'); }
+  }
+
+  async function write(op, okMsg, say) {
+    try {
+      await op();
+      if (okMsg) say(okMsg);
+      return true;
+    } catch (e) {
+      console.warn('In. write failed', e);
+      const code = e && e.code;
+      if (code === 'denied') say('That change isn’t allowed. Refresh and try again.');
+      else if (code === 'invalid') say('Something in that didn’t fit. Check the details and try again.');
+      else if (code === 'auth') say('You’ve been signed out. Sign in again to save changes.');
+      else if (Store.mode === 'live' && code === 'invalid_argument') {
+        Store.canWrite = false; Store.emit();
+        say('This board is view-only for you. Ask the owner for edit access.');
+      } else if (code === 'quota_exceeded') say('The board is full. Old runs need clearing before new ones fit.');
+      else if (code === 'resource_exhausted') say('Too many changes at once. Wait a moment and try again.');
+      else say("That didn't save. Check your connection and try again.");
+      return false;
+    }
+  }
+
+  /* ---------------- The model: everything the screen needs, derived fresh ---------------- */
+  function buildModel(now) {
+    const me = Store.me;
+    const samplesOn = !(Store.config && Store.config.samples === false);
+    const nowMs = now.getTime();
+    const todayK = dateKey(now);
+    const sinceK = dateKey(addDays(now, -1));
+    const off = id => !samplesOn && isSample(id);
+
+    const profiles = {};
+    if (samplesOn) SAMPLES.forEach(s => { profiles[s.id] = s; });
+    Object.keys(Store.profiles || {}).forEach(id => {
+      const p = Store.profiles[id];
+      if (p && !isSample(id) && SPOT[p.spot]) profiles[id] = Object.assign({}, p, { id });
+    });
+    const meP = me && profiles[me] && !profiles[me].sample ? profiles[me] : null;
+
+    const fr = new Map();
+    const link = (a, b) => { if (!fr.has(a)) fr.set(a, new Set()); fr.get(a).add(b); };
+    if (samplesOn) SAMPLE_EDGES.forEach(e => { link(e[0], e[1]); link(e[1], e[0]); });
+    const incoming = [], outgoing = [], touched = new Set();
+    let sampleAsked = false;
+    Object.keys(Store.friendships || {}).forEach(fid => {
+      const f = Store.friendships[fid];
+      if (!f || !f.a || !f.b || off(f.a) || off(f.b)) return;
+      if (f.status === 'accepted') { link(f.a, f.b); link(f.b, f.a); }
+      if (me && (f.a === me || f.b === me)) {
+        const other = f.a === me ? f.b : f.a;
+        touched.add(other);
+        if (isSample(f.from)) sampleAsked = true;
+        if (f.status === 'pending') (f.to === me ? incoming : outgoing).push({ fid, other });
+      }
+    });
+    const EMPTY = new Set();
+    const F = id => fr.get(id) || EMPTY;
+    // One sample classmate reaches out first, so the request flow shows up on day one.
+    if (samplesOn && meP && !sampleAsked) {
+      const myMi = spotMi(meP.spot);
+      const pick = SAMPLES.filter(s => !touched.has(s.id))
+        .map(s => ({ s, d: Math.abs(s.pace - meP.pace) / 20 + Math.abs(spotMi(s.spot) - myMi) }))
+        .sort((a, b) => a.d - b.d || (a.s.id < b.s.id ? -1 : 1))[0];
+      if (pick) incoming.unshift({ fid: pairId(me, pick.s.id), other: pick.s.id, virtual: true });
+    }
+
+    const runs = [];
+    Object.keys(Store.runs || {}).forEach(id => {
+      const r = Store.runs[id];
+      if (!r || !r.date || r.date < sinceK || off(r.host) || !SPOT[r.spot]) return;
+      runs.push(Object.assign({}, r, { id, sample: false }));
+    });
+    if (samplesOn) {
+      for (let i = 0; i < 7; i++) {
+        const dd = addDays(now, i), k = dateKey(dd), wd = dd.getDay();
+        TEMPLATES.forEach(t => {
+          if (t.days.indexOf(wd) === -1) return;
+          runs.push(Object.assign({ id: 'tpl-' + t.key + '~' + k, title: t.title, host: t.host, date: k, status: t.status, start: t.start, pace: t.pace, dist: t.dist, vis: t.vis, note: t.note, createdAt: 0, sample: true, regulars: t.regulars },
+            startFields(t.placeId, t.spot), finishFields(t.finishId)));
+        });
+      }
+    }
+    const joinsBy = {};
+    Object.keys(Store.joins || {}).forEach(jid => {
+      const j = Store.joins[jid];
+      if (!j || !j.run || !j.user || off(j.user)) return;
+      (joinsBy[j.run] = joinsBy[j.run] || []).push({ id: j.user, at: j.at || 0 });
+    });
+    runs.forEach(r => {
+      const tt = typeof r.title === 'string' ? r.title.trim() : '';
+      r.titleAuto = !tt;
+      r.title = tt || autoTitle(r.start);
+      r.place = r.place || '';
+      r.finish = r.finish || '';
+      r.placeId = PLACE[r.placeId] ? r.placeId : '';
+      r.finishId = typeof r.finishId === 'string' ? r.finishId : '';
+      r.placeOff = offOf(r.place, r.placeOff);
+      r.startMi = spotMi(r.spot);
+      r.lockBy = lockByFor(r.date);
+      const js = (joinsBy[r.id] || []).filter(j => j.id !== r.host && profiles[j.id]);
+      if (r.sample) (r.regulars || []).forEach(s => { if (profiles[s] && !js.some(j => j.id === s)) js.push({ id: s, at: 0, sample: true }); });
+      js.sort((a, b) => a.at - b.at);
+      r.joiners = js;
+    });
+    const canSee = (v, r) => {
+      if (r.host === v) return true;
+      if (v && r.joiners.some(j => j.id === v)) return true;
+      if (r.vis === 'wharton') return true;
+      if (!v) return false;
+      const hf = F(r.host);
+      if (hf.has(v)) return true;
+      if (r.vis === 'fof') { for (const f of F(v)) if (hf.has(f)) return true; }
+      return false;
+    };
+    if (samplesOn) {
+      runs.forEach(r => {
+        if (r.sample || r.status === 'cancelled') return;
+        // Sample classmates who were in when the host locked stay in.
+        const kept = Array.isArray(r.samplesIn) ? r.samplesIn.filter(id => profiles[id] && id !== r.host && !r.joiners.some(j => j.id === id)) : [];
+        kept.forEach(id => r.joiners.push({ id, at: r.createdAt || 0, sample: true, virtual: true }));
+        const cands = SAMPLES.filter(s => s.id !== r.host && !r.joiners.some(j => j.id === s.id) && sampleFits(s, r) && canSee(s.id, r))
+          .sort((a, b) => Math.abs(a.pace - r.pace) - Math.abs(b.pace - r.pace) || (a.id < b.id ? -1 : 1))
+          .slice(0, Math.max(0, 3 - kept.length));
+        cands.forEach((s, k) => {
+          const at = (r.createdAt || 0) + 6000 + 7000 * k;
+          if (nowMs >= at) r.joiners.push({ id: s.id, at, sample: true, virtual: true });
+        });
+      });
+    }
+    runs.forEach(r => {
+      r.faded = false; r.autoLocked = false;
+      if (r.status === 'intention' && nowMs >= r.lockBy.getTime()) {
+        if (r.sample) {
+          // Lock with the people who were in by 10 PM; later joiners don't move a locked run.
+          const atLock = Object.assign({}, r, { joiners: r.joiners.filter(j => (j.at || 0) < r.lockBy.getTime()) });
+          const sug = nashSuggest(participantsOf(atLock, profiles), r);
+          if (sug) Object.assign(r, lockedPlace(r, sug.key), { status: 'locked', pace: sug.pace, autoLocked: true });
+        } else r.faded = true;
+      }
+      r.startMi = spotMi(r.spot);
+      r.finishMi = r.finish ? spotMi(r.finishSpot || r.spot) : r.startMi;
+      r.finishOff = r.finish ? offOf(r.finish, r.finishOff) : r.placeOff;
+      r.legs = myLegs(r, meP, Store.home);
+      r.startAt = atMin(r.date, r.start);
+      r.past = nowMs > r.startAt.getTime() + 30 * 60000;
+      r.started = !r.past && nowMs >= r.startAt.getTime();
+      r.joinedByMe = !!me && r.joiners.some(j => j.id === me);
+    });
+    const F1 = me ? F(me) : EMPTY, F2 = new Set();
+    F1.forEach(f => F(f).forEach(x => { if (x !== me && !F1.has(x)) F2.add(x); }));
+    runs.forEach(r => {
+      const ppl = [r.host].concat(r.joiners.map(j => j.id)).filter(id => id !== me);
+      r.circle = ppl.some(id => F1.has(id)) ? 'friends' : ppl.some(id => F2.has(id)) ? 'fof' : 'wharton';
+    });
+
+    const days = [], byDay = {}, runById = {};
+    let hiddenTotal = 0;
+    for (let i = 0; i < 7; i++) { const k = dateKey(addDays(now, i)); byDay[k] = { key: k, i, runs: [] }; days.push(byDay[k]); }
+    runs.forEach(r => {
+      runById[r.id] = r;
+      const d = byDay[r.date];
+      if (!d || r.status === 'cancelled' || r.past) return;
+      const involved = me && (r.host === me || r.joinedByMe);
+      if (r.faded && !involved) return;
+      if (canSee(me, r)) d.runs.push(r); else hiddenTotal++;
+    });
+    days.forEach(d => d.runs.sort((a, b) => a.start - b.start || (a.status === 'locked' ? -1 : 1)));
+    // Runs you host or joined this week, next one first. Dropped runs sink below live ones.
+    const mine = me ? runs.filter(r => (r.host === me || r.joinedByMe) && r.status !== 'cancelled' && !r.past && byDay[r.date]) : [];
+    mine.sort((a, b) => (a.faded === b.faded ? 0 : a.faded ? 1 : -1) || (a.date < b.date ? -1 : a.date > b.date ? 1 : 0) || a.start - b.start);
+
+    const nameOf = id => {
+      const p = profiles[id];
+      if (p && p.handle) return p.handle;
+      const pp = Store.people[id];
+      return (pp && pp.name) || (id === me ? 'You' : 'Someone');
+    };
+    const mutuals = id => { if (!me) return []; const a = F(me), b = F(id), out = []; a.forEach(x => { if (b.has(x)) out.push(x); }); return out; };
+    const relation = id => {
+      if (!me || id === me) return 'me';
+      if (F(me).has(id)) return 'friend';
+      if (incoming.some(x => x.other === id)) return 'incoming';
+      if (outgoing.some(x => x.other === id)) return 'outgoing';
+      return 'none';
+    };
+    return {
+      mode: Store.mode, ready: Store.ready(), canWrite: Store.canWrite && Store.mode !== 'loading', isOwner: Store.isOwner,
+      homeLoaded: Store.mode === 'sandbox' || !!Store.loaded.home,
+      me, meP, home: Store.home, profiles, F, incoming, outgoing, runs, runById, days, byDay, mine, todayK, samplesOn, hiddenTotal, friendCount: F1.size,
+      nameOf, mutuals, relation, realCount: Object.keys(profiles).filter(id => !isSample(id)).length,
+    };
+  }
+
+  /* ---------------- Small pieces ---------------- */
+  const I = {
+    check: () => html`<svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7" /></svg>`,
+    plus: () => html`<svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3v10M3 8h10" /></svg>`,
+    search: () => html`<svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="7" cy="7" r="4.6" /><path d="M10.4 10.4L14 14" /></svg>`,
+    x: () => html`<svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8" /></svg>`,
+    chevron: open => html`<svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style=${open ? 'transform:rotate(180deg)' : ''}><path d="M4 6l4 4 4-4" /></svg>`,
+  };
+  const VIS_OPTS = [['friends', 'Friends'], ['fof', 'Friends of friends'], ['wharton', 'All Wharton']];
+  const VIS_HINT = { friends: 'Only your friends see it.', fof: 'Your friends and their friends see it.', wharton: 'Every Wharton student on In. sees it.' };
+  const VIS_SEEN = { friends: 'Friends of the host', fof: 'Friends of friends', wharton: 'All Wharton' };
+  const isProposed = r => r.status === 'intention' && !r.faded;
+  const countTxt = r => (1 + r.joiners.length) + (r.faded ? ' said they’d be in' : isProposed(r) ? ' would be in' : ' going');
+  const routeTxt = r => startShort(r) + (r.finish ? ' → ' + shortPlace(r.finish) : ', out and back');
+  const awayTxt = L => (L.toStart < 0.05 ? (L.corner ? 'Start: at your door' : 'Start: at your trail spot') : 'Start: ' + mi1(L.toStart) + ' mi away');
+  // Who you want to run with. A run counts as "friends" if a friend is hosting or going, and so on out.
+  const CIRCLES = [['friends', 'Friends'], ['fof', 'Friends of friends'], ['wharton', 'All Wharton']];
+  const CIRCLE_RANK = { friends: 0, fof: 1, wharton: 2 };
+  const CIRCLE_EMPTY = { friends: 'None of your friends are hosting or going ', fof: 'No friends or friends of friends are hosting or going ' };
+  function whenRef(k, todayK) { const n = dayDiff(k, todayK); return n === 0 ? 'today' : n === 1 ? 'tomorrow' : 'on ' + DOW_LONG[parseKey(k).getDay()]; }
+  const lockRef = (r, todayK) => (dateKey(r.lockBy) === todayK ? '10 PM tonight' : '10 PM ' + DOW_LONG[r.lockBy.getDay()]);
+  // "6.3 mi total · leave by 6:20 AM". Walking to and from the run is split out so the total isn't read as running miles.
+  function tripTxt(L, proposed) {
+    const extra = L.toStart + L.homeLeg;
+    const miles = L.mode === 'walk' && extra >= 0.05 ? distTxt(L.run) + ' mi run + ' + mi1(extra) + ' mi walk' : mi1(L.total) + ' mi total';
+    return miles + ' · leave ' + (proposed ? 'around ' : 'by ') + clock(L.leaveAt);
+  }
+  function stateWord(r, M) {
+    if (r.faded) return 'Dropped';
+    if (r.host === M.me) return isProposed(r) ? 'You proposed it' : 'Hosting';
+    return isProposed(r) ? 'You’d be in' : 'Joined';
+  }
+
+  function Avatar({ id, M, size }) {
+    const sz = size || 26;
+    const st = 'width:' + sz + 'px;height:' + sz + 'px;font-size:' + Math.round(sz * 0.4) + 'px;';
+    const pp = Store.mode === 'live' && !isSample(id) ? Store.people[id] : null;
+    if (pp && pp.avatarUrl && pp.avatarUrl.indexOf('data:') !== 0) return html`<img class="av" src=${pp.avatarUrl} alt="" style=${st} />`;
+    const cls = 'av' + (id === M.me ? ' me' : isSample(id) ? ' sample' : '');
+    return html`<span class=${cls} style=${st} aria-hidden="true">${initials(M.nameOf(id))}</span>`;
+  }
+  function Stack({ ids, M, size }) {
+    return html`<span class="stack" aria-hidden="true">${ids.slice(0, 4).map(id => html`<${Avatar} key=${id} id=${id} M=${M} size=${size || 24} />`)}</span>`;
+  }
+  function Name({ id, M }) {
+    return id === M.me ? 'You' : M.nameOf(id);
+  }
+  const SampleTag = () => html`<span class="sample-tag" title="Demo content, not a real classmate">Sample</span>`;
+  // "hosted by Maya R." / "proposed by Priya S." / "you're hosting"
+  function HostTxt({ r, M }) {
+    const proposed = r.status === 'intention';
+    if (r.host === M.me) return proposed ? 'you proposed it' : 'you’re hosting';
+    return html`${proposed ? 'proposed by ' : 'hosted by '}<${Name} id=${r.host} M=${M} />`;
+  }
+  function People({ r, M, size }) {
+    const ids = [r.host].concat(r.joiners.map(j => j.id));
+    const mine = M.me ? M.F(M.me) : null;
+    const pal = mine && !mine.has(r.host) && r.host !== M.me ? r.joiners.filter(j => mine.has(j.id)) : [];
+    const palTxt = pal.length ? html` · <${Name} id=${pal[0].id} M=${M} />${pal.length > 1 ? ' + ' + (pal.length - 1) + (pal.length === 2 ? ' friend' : ' friends') : ''} ${isProposed(r) ? 'would be in' : pal.length > 1 ? 'are going' : 'is going'}` : null;
+    return html`<${Stack} ids=${ids} M=${M} size=${size} /><span>${countTxt(r)} · <${HostTxt} r=${r} M=${M} />${palTxt}${isSample(r.host) ? html`<${SampleTag} />` : null}</span>`;
+  }
+
+  function Seg({ options, value, onChange, label }) {
+    return html`<div class="seg" role="group" aria-label=${label}>${options.map(o => html`<button type="button" key=${String(o[0])} aria-pressed=${value === o[0]} disabled=${!!o[2]} onClick=${() => onChange(o[0])}>${o[1]}</button>`)}</div>`;
+  }
+
+  function Stepper({ id, value, onChange, step, min, max, fmt, label }) {
+    return html`<div class="stepper" role="group" aria-label=${label}>
+      <button type="button" aria-label=${'Lower ' + label} onClick=${() => onChange(Math.max(min, Math.round((value - step) * 10) / 10))}>−</button>
+      <output id=${id} aria-live="polite">${fmt(value)}</output>
+      <button type="button" aria-label=${'Raise ' + label} onClick=${() => onChange(Math.min(max, Math.round((value + step) * 10) / 10))}>+</button>
+    </div>`;
+  }
+
+  function Sheet({ title, sub, onClose, children, bare }) {
+    const ref = useRef(null);
+    useEffect(() => {
+      const onKey = e => { if (e.key === 'Escape') onClose(); };
+      document.addEventListener('keydown', onKey);
+      const prev = document.activeElement;
+      const el = ref.current && ref.current.querySelector(bare ? '.icon-btn' : 'input, select, .seg button');
+      if (el && window.matchMedia && window.matchMedia('(min-width: 700px)').matches) { try { el.focus({ preventScroll: true }); } catch (e) {} }
+      return () => { document.removeEventListener('keydown', onKey); if (prev && prev.focus) { try { prev.focus({ preventScroll: true }); } catch (e) {} } };
+    }, []);
+    return html`<div class="overlay" onClick=${e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" ref=${ref}>
+        <div class=${'sheet-head' + (bare ? ' bare' : '')}>
+          ${bare ? html`<h2 id="sheet-title">${title}</h2>` : html`<div><h2 id="sheet-title">${title}</h2>${sub ? html`<p class="sub">${sub}</p>` : null}</div>`}
+          <button type="button" class="icon-btn" onClick=${onClose} aria-label="Close">${I.x()}</button>
+        </div>
+        ${children}
+      </div>
+    </div>`;
+  }
+
+  function TopBar({ M, onMe, onPost }) {
+    return html`<header class="top"><div class="top-in">
+      <div class="brand"><span class="mark" role="img" aria-label="In.">In<span class="dot"></span></span>${M.mode === 'sandbox' ? html`<span class="mode-chip" title="Your posts stay in this browser">Sandbox</span>` : null}<span class="brand-sub">Schuylkill River Trail · Wharton</span></div>
+      <div class="top-r">
+        ${M.canWrite ? html`<button class="btn btn-line btn-sm" onClick=${onPost}>${I.plus()}Post a run</button>` : null}
+        ${M.canWrite || M.meP ? html`<button class="me-btn" onClick=${onMe} aria-label="Your runner card">${M.meP ? html`<${Avatar} id=${M.me} M=${M} size=${34} />` : html`<span class="me-setup">Set up</span>`}</button>` : null}
+      </div>
+    </div></header>`;
+  }
+
+  function Tabs({ tab, setTab, reqCount }) {
+    const T = [['runs', 'Runs'], ['friends', 'Friends']];
+    return html`<nav class="tabs" role="tablist" aria-label="Views">${T.map(t => html`<button key=${t[0]} role="tab" class="tab" aria-selected=${tab === t[0]} onClick=${() => setTab(t[0])}>${t[1]}${t[0] === 'friends' && reqCount ? html`<span class="badge" aria-label=${reqCount + ' friend requests'}>${reqCount}</span>` : null}</button>`)}</nav>`;
+  }
+
+  function NoteLine({ M }) {
+    if (M.mode === 'live' && M.ready && !M.canWrite) {
+      return html`<p class="noteline"><span>View only. Ask the owner for edit access to post and join runs.</span><button class="linkish" onClick=${() => Sandbox.init('readonly')}>Try the sandbox</button></p>`;
+    }
+    return null;
+  }
+
+  /* Your next run: the one block on the page with a strong treatment. */
+  function YourRun({ r, M, onOpen, openLock }) {
+    const isHost = r.host === M.me;
+    const proposed = isProposed(r);
+    const when = whenRef(r.date, M.todayK);
+    let label, sub = null, cls = 'yr';
+    if (r.faded) {
+      cls += ' drop';
+      label = 'Dropped ' + when;
+      sub = (isHost ? 'You didn’t' : M.nameOf(r.host) + ' didn’t') + ' confirm it by 10 PM the night before, so it’s off.';
+    } else if (isHost) {
+      label = proposed ? 'You proposed a run ' + when : 'You’re hosting ' + when;
+      if (proposed) {
+        cls += ' tent';
+        const n = r.joiners.length;
+        sub = 'Confirm by ' + lockRef(r, M.todayK) + ' or it’s dropped. ' + (n ? n + (n === 1 ? ' person would' : ' people would') + ' be in.' : 'No one has said they’d be in yet.');
+      }
+    } else {
+      label = proposed ? 'You’d be in ' + when : 'Your run ' + when + ' · Confirmed';
+      if (proposed) { cls += ' tent'; sub = M.nameOf(r.host) + ' confirms by ' + lockRef(r, M.todayK) + '. If it’s confirmed, you’re going. If not, it’s dropped.'; }
+    }
+    if (r.started && !r.faded) label = 'Running now';
+    const t = clockParts(r.start);
+    return html`<article class=${cls} aria-label=${label}>
+      <p class="yr-k">${label}</p>
+      <p class="yr-time">${proposed ? html`<span class="yr-around">around</span> ` : null}${t.hm} <small>${t.ap}</small></p>
+      <h2 class="yr-t">${r.title}</h2>
+      <p class="yr-pace">${pace(r.pace)}/mi · ${distTxt(r.dist)} mi</p>
+      <p class="yr-l">${routeTxt(r)}</p>
+      <p class="yr-soc"><${People} r=${r} M=${M} /></p>
+      ${sub ? html`<p class="yr-sub">${sub}</p>` : null}
+      <div class="yr-foot">
+        ${r.legs && !r.faded ? html`<p class="yr-trip">${tripTxt(r.legs, proposed)}</p>` : null}
+        <div class="yr-act">
+          ${isHost && proposed && M.canWrite ? html`<button class="btn btn-inv btn-sm" onClick=${() => openLock(r)}>Confirm run</button>` : null}
+          <button class="btn btn-inv-line btn-sm" onClick=${() => onOpen(r)}>Details</button>
+        </div>
+      </div>
+    </article>`;
+  }
+
+  function YourRuns({ M, onOpen, openLock }) {
+    const mine = M.mine;
+    if (!mine.length) return null;
+    const rest = mine.slice(1);
+    return html`<section class="yours" aria-label="Your runs">
+      <${YourRun} key=${mine[0].id} r=${mine[0]} M=${M} onOpen=${onOpen} openLock=${openLock} />
+      ${rest.length ? html`<ul class="yr-more" aria-label="Your other runs">${rest.map(r => html`<li key=${r.id}><button class="yr-more-b" onClick=${() => onOpen(r)}>
+        <span class="yr-more-t">${dayDiff(r.date, M.todayK) === 0 ? 'Today' : dayDiff(r.date, M.todayK) === 1 ? 'Tmrw' : DOW[parseKey(r.date).getDay()]} ${clock(r.start)}</span>
+        <span class="yr-more-n">${r.title}</span>
+        <span class="yr-more-s">${stateWord(r, M)}</span>
+      </button></li>`)}</ul>` : null}
+    </section>`;
+  }
+
+  /* A run in the list: time and action on top, then what it is, pace, where, and who. */
+  function Row({ r, M, onOpen, act, openLock }) {
+    const isHost = r.host === M.me;
+    const proposed = isProposed(r);
+    let action = null;
+    if (r.faded) action = html`<span class="row-note">Dropped</span>`;
+    else if (isHost) action = proposed && M.canWrite ? html`<button class="btn btn-maybe btn-sm" onClick=${() => openLock(r)}>Confirm</button>` : html`<span class="state-chip">${proposed ? 'You proposed it' : 'Hosting'}</span>`;
+    else if (r.joinedByMe) action = html`<span class="state-chip in">${I.check()}${proposed ? 'You’d be in' : 'Joined'}</span>`;
+    else if (M.canWrite) {
+      action = proposed
+        ? html`<button class="btn btn-maybe btn-sm" onClick=${() => act.join(r)} aria-label=${'I’d be in: ' + r.title}>I’d be in</button>`
+        : html`<button class="btn btn-go btn-sm" onClick=${() => act.join(r)} aria-label=${'I’m in: ' + r.title}>I’m in</button>`;
+    }
+    const mine = (isHost || r.joinedByMe) && !r.faded;
+    return html`<li id=${'row-' + r.id} class=${'row' + (r.faded ? ' faded' : '') + (mine ? ' mine' : '')}>
+      <div class="row-top">
+        <p class="row-time"><b>${clock(r.start)}</b>${proposed ? html`<span class="tag">Proposed</span>` : null}</p>
+        ${action ? html`<div class="row-act">${action}</div>` : null}
+      </div>
+      <h3 class="title"><button class="row-link" onClick=${() => onOpen(r)}>${r.title}</button></h3>
+      <p class="pace">${pace(r.pace)}/mi · ${distTxt(r.dist)} mi</p>
+      <p class="where">${routeTxt(r)}${r.legs ? html` · <span class="nw">${awayTxt(r.legs)}</span>` : null}</p>
+      <p class="social"><${People} r=${r} M=${M} /></p>
+    </li>`;
+  }
+
+  function Day({ d, M, now, onOpen, act, openLock, openPost, showRule, circle, widen, first }) {
+    const [how, setHow] = useState(false);
+    const lockBy = lockByFor(d.key);
+    const tonight = d.i === 1 && now < lockBy;
+    return html`<section class="day" aria-labelledby=${'day-' + d.key}>
+      <div class="day-h"><h2 id=${'day-' + d.key}>${dayName(d.key, M.todayK)}</h2><span class="day-d">${dateTxt(d.key)}</span>${first ? html`<span class="day-sort">by start time</span>` : null}</div>
+      ${showRule ? html`<div class="rule">
+        <p>Proposed runs happen only if the host confirms by ${tonight ? html`10 PM tonight <span class="rule-left">(${dur(lockBy - now)} left)</span>` : '10 PM the night before'}. <button class="linkish" aria-expanded=${how} onClick=${() => setHow(!how)}>${how ? 'Hide' : 'How it works'}</button></p>
+        ${how ? html`<p class="rule-more">Confirming sets the exact time and start. Everyone who tapped I’d be in is then going. If the host doesn’t confirm by 10 PM, the run is dropped. Confirmed runs take I’m in right up to the start.</p>` : null}
+      </div>` : null}
+      ${d.runs.length
+        ? html`<ul class="rows">${d.runs.map(r => html`<${Row} key=${r.id} r=${r} M=${M} onOpen=${onOpen} act=${act} openLock=${openLock} />`)}</ul>`
+        : d.total
+          ? html`<p class="empty">${CIRCLE_EMPTY[circle] || 'Nothing '}${dayRef(d.key, M.todayK)} yet. <button class="linkish" onClick=${widen}>Show all Wharton</button></p>`
+          : html`<p class="empty">Nothing posted for ${dayRef(d.key, M.todayK)} yet.${M.canWrite && M.meP ? html` <button class="linkish" onClick=${() => openPost({ date: d.key })}>Post the first run</button>` : null}</p>`}
+    </section>`;
+  }
+
+  function RunList({ M, now, onOpen, act, openLock, openPost, goFriends, openProfile }) {
+    const [circle, setCircleRaw] = useState(() => { const v = lsGet('in-circle'); return CIRCLE_RANK[v] != null ? v : 'wharton'; });
+    const setCircle = v => { setCircleRaw(v); lsSet('in-circle', v); };
+    if (!M.ready) return html`<ul class="rows" style="margin-top:40px">${[0, 1, 2, 3].map(i => html`<li key=${i} class="skel-row"></li>`)}</ul>`;
+    const keep = r => r.host === M.me || r.joinedByMe || CIRCLE_RANK[r.circle] <= CIRCLE_RANK[circle];
+    const days = M.days.map(d => Object.assign({}, d, { runs: d.runs.filter(keep), total: d.runs.length })).filter(d => d.i === 1 || d.runs.length);
+    const ruleDay = days.find(d => d.runs.some(isProposed));
+    const noFriends = circle !== 'wharton' && M.meP && !M.friendCount;
+    return html`<div>
+      <${NoteLine} M=${M} />
+      ${M.canWrite && !M.meP ? html`<div class="setup"><span>Set up your runner card to post and join runs.</span><button class="btn btn-go btn-sm" onClick=${openProfile}>Set up</button></div>` : null}
+      <${YourRuns} M=${M} onOpen=${onOpen} openLock=${openLock} />
+      <div class=${'controls' + (M.mine.length ? ' after-yours' : '')}>
+        <h2 class=${M.mine.length ? 'find-l' : 'vh'}>Find a run</h2>
+        <div class="segc" role="group" aria-label="Show runs with">${CIRCLES.map(o => html`<button type="button" key=${o[0]} aria-pressed=${circle === o[0]} onClick=${() => setCircle(o[0])}>${o[1]}</button>`)}</div>
+      </div>
+      ${noFriends ? html`<p class="empty">You haven’t added friends yet. <button class="linkish" onClick=${goFriends}>Find friends</button></p>` : null}
+      ${days.map(d => html`<${Day} key=${d.key} d=${d} M=${M} now=${now} onOpen=${onOpen} act=${act} openLock=${openLock} openPost=${openPost} showRule=${!!ruleDay && ruleDay.key === d.key} circle=${circle} widen=${() => setCircle('wharton')} first=${d === days[0]} />`)}
+      ${M.hiddenTotal ? html`<p class="hidden-line">${M.hiddenTotal} more ${M.hiddenTotal === 1 ? 'run this week is' : 'runs this week are'} shared only with friends or friends of friends. ${M.meP ? html`<button class="linkish" onClick=${goFriends}>Find friends</button>` : null}</p>` : null}
+    </div>`;
+  }
+
+  /* Door-to-door miles: one line, with the legs and the leave-time math one tap away. */
+  function Trip({ L, proposed, M, act }) {
+    const [open, setOpen] = useState(false);
+    const how = L.mode === 'walk' ? 'walk' : 'jog';
+    const legRow = (g, i) => html`<div class="leg" key=${i}><span>${g.label || g.from + ' → ' + g.to}${g.on ? html`<span class="m"> · ${g.on}</span>` : null}</span><span class="n">${mi1(g.mi)}</span></div>`;
+    const mins = Math.max(1, Math.round(L.travelMin));
+    return html`<section class="trip" aria-label="Your trip">
+      <div class="trip-sum">
+        <p>${tripTxt(L, proposed)}</p>
+        <button class="btn btn-text btn-sm" aria-expanded=${open} onClick=${() => setOpen(!open)}>${open ? 'Hide the legs' : 'Show the legs'}${I.chevron(open)}</button>
+      </div>
+      ${open ? html`<div class="legs">
+        ${L.there.length ? html`<p class="leg-h">Getting there, ${how === 'walk' ? 'walking' : 'jogging'}</p>` : null}
+        ${L.there.map(legRow)}
+        <p class="leg-h">The run</p>
+        ${legRow(L.runRow, 'run')}
+        ${L.back.length ? html`<p class="leg-h">Getting home, ${how === 'walk' ? 'walking' : 'jogging'}</p>` : null}
+        ${L.back.map(legRow)}
+        <div class="leg leg-tot"><span>Total</span><span class="n">${mi1(L.total)}</span></div>
+        <p class="hint">${L.toStart < 0.05
+          ? (L.corner ? 'The run starts at your door' : 'The run starts where you meet the trail') + ', so the leave time is just a few minutes early, rounded down to the nearest 5.'
+          : 'Leave time: about ' + mins + ' min to ' + how + ' ' + mi1(L.toStart) + ' mi at ' + pace(L.speed) + '/mi, plus a few minutes to spare, rounded down to the nearest 5.'} Distances are approximate: city blocks on the street grid, miles along the trail.${L.hasDoor ? '' : ' Set your nearest corner on your runner card to count the miles from your door.'}</p>
+        ${M.canWrite && M.meP ? html`<div class="trip-mode"><span class="lbl">To and from runs</span><${Seg} label="To and from runs" value=${how} onChange=${v => act.setTravel(v)} options=${[['jog', 'Jog'], ['walk', 'Walk']]} /></div>` : null}
+      </div>` : null}
+    </section>`;
+  }
+
+  function RunDetail({ r, M, now, act, openLock, openPost }) {
+    const [confirm, setConfirm] = useState(false);
+    if (!r) return html`<div class="detail sheet-body-pad"><p class="d-state prop">Gone</p><p class="empty">This run is no longer on the board.</p></div>`;
+    if (r.status === 'cancelled') return html`<div class="detail sheet-body-pad"><p class="d-state prop">Cancelled</p><p class="empty">The host cancelled this run.</p></div>`;
+    const isHost = r.host === M.me;
+    const proposed = isProposed(r);
+    const t = clockParts(r.start);
+    const day = dayName(r.date, M.todayK) + ', ' + dateTxt(r.date);
+    let state;
+    if (r.faded) state = 'Dropped · not confirmed by 10 PM · ' + day;
+    else if (proposed) state = 'Proposed · ' + day;
+    else state = 'Confirmed · ' + day + (r.started ? ' · running now' : '');
+    let next = null;
+    if (proposed) {
+      next = isHost
+        ? 'Confirm by ' + lockRef(r, M.todayK) + ' to set the exact time and start. Everyone who said I’d be in is then going. If you don’t confirm, the run is dropped.'
+        : M.nameOf(r.host) + ' confirms by ' + lockRef(r, M.todayK) + ' and sets the exact time and start. If you said I’d be in, you’re then going. If it isn’t confirmed, the run is dropped.';
+    }
+    let actions = null;
+    if (M.canWrite) {
+      if (isHost) {
+        if (r.faded) actions = html`<button class="btn btn-go" onClick=${() => openPost({ from: r, kind: 'locked' })}>Repost it confirmed</button>`;
+        else if (confirm) {
+          actions = [
+            html`<span key="c">Cancel this run?</span>`,
+            html`<button key="y" class="btn btn-line btn-sm btn-danger" onClick=${() => { setConfirm(false); act.cancel(r); }}>Yes, cancel it</button>`,
+            html`<button key="n" class="btn btn-text btn-sm" onClick=${() => setConfirm(false)}>Keep it</button>`,
+          ];
+        } else {
+          actions = [
+            proposed ? html`<button key="l" class="btn btn-go" onClick=${() => openLock(r)}>Confirm run</button>` : null,
+            html`<button key="e" class="btn btn-line" onClick=${() => openPost({ edit: r })}>Edit</button>`,
+            html`<button key="x" class="btn btn-text" onClick=${() => setConfirm(true)}>Cancel run</button>`,
+          ];
+        }
+      } else if (!r.faded) {
+        actions = r.joinedByMe
+          ? [html`<span key="in" class="in-mark"><i></i>${proposed ? 'You’d be in' : 'You’re going'}</span>`, html`<button key="out" class="btn btn-text" onClick=${() => act.leave(r)}>Drop out</button>`]
+          : proposed
+            ? html`<button class="btn btn-maybe btn-lg" onClick=${() => act.join(r)}>I’d be in</button>`
+            : html`<button class="btn btn-go btn-lg" onClick=${() => act.join(r)}>I’m in</button>`;
+      }
+    }
+    const going = [r.host].concat(r.joiners.map(j => j.id));
+    const sp = PLACE[r.placeId], fp = PLACE[r.finishId], tf = trailFinish(r);
+    const startSub = [sp ? sp.where : r.place ? mi1(r.placeOff) + ' mi off the trail, near ' + spotName(r.spot) : 'On the trail', r.legs && !r.faded ? mi1(r.legs.toStart) + ' mi from you' : null].filter(Boolean).join(' · ');
+    const homeSub = r.legs && !r.faded ? mi1(r.legs.homeLeg) + ' mi from your door' : null;
+    const finishSub = [fp ? fp.where : tf ? 'On the trail' : mi1(r.finishOff) + ' mi off the trail, near ' + spotName(r.finishSpot || r.spot), homeSub].filter(Boolean).join(' · ');
+    return html`<article class="detail sheet-body-pad">
+      <p class=${'d-state' + (proposed || r.faded ? ' prop' : '')}>${state}${isSample(r.host) ? html`<${SampleTag} />` : null}</p>
+      <p class="d-time">${proposed ? html`<span class="d-around">around</span> ` : null}${t.hm} <small>${t.ap}</small></p>
+      <h3 class="d-title">${r.title}</h3>
+      <p class="d-pace">${pace(r.pace)}/mi · ${distTxt(r.dist)} mi</p>
+      ${next ? html`<p class="d-next">${next}</p>` : null}
+      ${actions ? html`<div class="d-actions">${actions}</div>` : null}
+      <dl class="d-rows">
+        <div><dt>${proposed ? 'Would be in' : 'Going'}</dt><dd><span class="who"><${Stack} ids=${going} M=${M} size=${24} /><span>${going.map((id, i) => html`<span key=${id}>${i ? ', ' : ''}<${Name} id=${id} M=${M} />${id === r.host ? ' (host)' : ''}</span>`)}</span></span></dd></div>
+        <div><dt>Start</dt><dd>${startLabel(r)}<span class="m">${startSub}</span></dd></div>
+        <div><dt>Finish</dt><dd>${r.finish ? html`${r.finish}<span class="m">${finishSub}</span>` : html`Back at the start<span class="m">Out and back</span>`}</dd></div>
+        ${r.note ? html`<div><dt>Note</dt><dd>${r.note}</dd></div>` : null}
+        <div><dt>Seen by</dt><dd>${VIS_SEEN[r.vis] || VIS_SEEN.fof}</dd></div>
+      </dl>
+      ${r.legs && !r.faded ? html`<${Trip} key=${r.id} L=${r.legs} proposed=${proposed} M=${M} act=${act} />` : null}
+    </article>`;
+  }
+
+  function authMsg(x) {
+    const m = String((x && x.message) || '');
+    if (/rate|seconds|too many/i.test(m)) return 'Too many tries. Wait a minute, then try again.';
+    if (/expired|invalid|otp/i.test(m)) return 'That code didn’t work. It may have expired, so send a new one.';
+    if (/provider is not enabled|unsupported provider/i.test(m)) return 'Google sign-in isn’t switched on yet. Use your email instead.';
+    if (/signups? not allowed|limited to/i.test(m)) return 'This email can’t sign up for In.';
+    if (/fetch|network/i.test(m)) return 'Can’t reach In. right now. Check your connection.';
+    return m || 'Something went wrong. Try again.';
+  }
+
+  function SignIn() {
+    const cfg = window.IN_CONFIG || {};
+    const [email, setEmail] = useState(() => lsGet('in-last-email') || '');
+    const [sent, setSent] = useState(false);
+    const [code, setCode] = useState('');
+    const [busy, setBusy] = useState(false);
+    const [err, setErr] = useState(Store.authError || '');
+    const [wait, setWait] = useState(0);
+    useEffect(() => { if (!wait) return undefined; const t = setTimeout(() => setWait(w => Math.max(0, w - 1)), 1000); return () => clearTimeout(t); }, [wait]);
+    const addr = email.trim().toLowerCase();
+    const send = async e => {
+      if (e) e.preventDefault();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addr)) { setErr('Enter your email address.'); return; }
+      setBusy(true); setErr('');
+      try { await Cloud.sendCode(addr); lsSet('in-last-email', addr); setSent(true); setCode(''); setWait(60); }
+      catch (x) { setErr(authMsg(x)); }
+      setBusy(false);
+    };
+    const verify = async e => {
+      e.preventDefault();
+      const t = code.replace(/\D/g, '');
+      if (t.length < 6) { setErr('Enter the code from the email.'); return; }
+      setBusy(true); setErr('');
+      try { await Cloud.verifyCode(addr, t); } catch (x) { setErr(authMsg(x)); setBusy(false); }
+    };
+    const google = async () => { setErr(''); try { await Cloud.google(); } catch (x) { setErr(authMsg(x)); } };
+    return html`<main class="signin">
+      <div class="signin-in">
+        <span class="mark" role="img" aria-label="In.">In<span class="dot"></span></span>
+        <p class="lede">Plan tomorrow’s run with friends on the Schuylkill River Trail. See who’s going, say I’m in, and get a leave-by time from your door.</p>
+        <section class="signin-card" aria-labelledby="signin-h">
+          ${sent ? html`
+            <h1 id="signin-h">Check your email</h1>
+            <p class="hint">We sent a sign-in code to <b>${addr}</b>. Type it here, or tap the link in the email on this device.</p>
+            <form class="form" onSubmit=${verify}>
+              <div class="field"><label for="si-code">Code</label>
+                <input id="si-code" class="code-input" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="10" value=${code} onInput=${e => { setCode(e.target.value); setErr(''); }} /></div>
+              ${err ? html`<p class="err" role="alert">${err}</p>` : null}
+              <button type="submit" class="btn btn-go btn-lg btn-block" disabled=${busy}>Sign in</button>
+            </form>
+            <p class="hint signin-alt">
+              <button type="button" class="linkish" disabled=${!!wait || busy} onClick=${() => send()}>${wait ? 'Send a new code in ' + wait + 's' : 'Send a new code'}</button>
+              <span aria-hidden="true"> · </span>
+              <button type="button" class="linkish" onClick=${() => { setSent(false); setErr(''); }}>Use a different email</button>
+            </p>`
+          : html`
+            <h1 id="signin-h">Sign in</h1>
+            ${cfg.google ? html`<button type="button" class="btn btn-line btn-lg btn-block" onClick=${google}>Continue with Google</button><p class="or">or</p>` : null}
+            <form class="form" onSubmit=${send}>
+              <div class="field"><label for="si-email">Email</label>
+                <input id="si-email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="you@example.com" value=${email} onInput=${e => { setEmail(e.target.value); setErr(''); }} /></div>
+              ${err ? html`<p class="err" role="alert">${err}</p>` : null}
+              <button type="submit" class="btn btn-go btn-lg btn-block" disabled=${busy}>Email me a sign-in code</button>
+            </form>
+            <p class="hint">New here? The same code creates your account.</p>`}
+        </section>
+        <p class="hint signin-foot">In. is a student project for Wharton runners, not affiliated with the Wharton School.</p>
+      </div>
+    </main>`;
+  }
+
+  // Shown instead of the app when config.js isn't usable, so a half-finished setup never looks like it works.
+  function SetupNotice({ problem }) {
+    const say = {
+      config: ['In. isn’t connected yet', 'Open config.js and paste in your Supabase Project URL and publishable key (README, step 3). Then reload this page.'],
+      url: ['Check the Supabase URL', 'The supabaseUrl in config.js should look like https://abcdefgh.supabase.co. Fix it, then reload this page.'],
+      secret: ['config.js has the secret key', 'Swap it for the publishable (anon) key right away, then rotate the secret key in Supabase under Project Settings, API Keys. Anyone who opened this page could have copied it.'],
+      lib: ['Couldn’t load In.', 'Check your connection and reload the page.'],
+    }[problem] || ['Couldn’t load In.', 'Reload the page.'];
+    return html`<main class="signin">
+      <div class="signin-in">
+        <span class="mark" role="img" aria-label="In.">In<span class="dot"></span></span>
+        <section class="signin-card" aria-labelledby="setup-h">
+          <h1 id="setup-h">${say[0]}</h1>
+          <p class="hint">${say[1]}</p>
+        </section>
+      </div>
+    </main>`;
+  }
+
+  function PersonRow({ id, M, children, via }) {
+    const p = M.profiles[id] || {};
+    const mut = via || M.mutuals(id);
+    const isFriend = M.relation(id) === 'friend';
+    const bits = [p.pace ? pace(p.pace) + '/mi easy' : null, isFriend && SPOT[p.spot] ? 'meets the trail at ' + SPOT[p.spot].short : null].filter(Boolean);
+    const mutTxt = mut.length === 1 ? 'Friends with ' + M.nameOf(mut[0]) : mut.length > 1 ? mut.length + ' mutual friends' : '';
+    return html`<li class="prow">
+      <${Avatar} id=${id} M=${M} size=${38} />
+      <div class="pi">
+        <div class="pn"><${Name} id=${id} M=${M} />${isSample(id) ? html`<${SampleTag} />` : null}</div>
+        <div class="pm">${bits.concat(mutTxt ? [mutTxt] : []).join(' · ')}</div>
+      </div>
+      <div class="pa">${children}</div>
+    </li>`;
+  }
+
+  function FriendsView({ M, act, openProfile }) {
+    const [q, setQ] = useState('');
+    const [confirmId, setConfirmId] = useState(null);
+    if (!M.ready) return html`<ul class="rows" style="margin-top:40px">${[0, 1, 2].map(i => html`<li key=${i} class="skel-row"></li>`)}</ul>`;
+    if (!M.meP) {
+      return html`<div class="setup"><span>Set up your runner card to add friends. Friends see your friends-only runs, and their friends see your friends-of-friends runs.</span>${M.canWrite ? html`<button class="btn btn-line btn-sm" onClick=${openProfile}>Set up</button>` : null}</div>`;
+    }
+    const me = M.me;
+    const byName = (a, b) => M.nameOf(a).localeCompare(M.nameOf(b));
+    const friends = Array.from(M.F(me)).filter(id => M.profiles[id]).sort(byName);
+    const incoming = M.incoming.filter(x => M.profiles[x.other]);
+    const outgoingBy = {};
+    M.outgoing.forEach(x => { outgoingBy[x.other] = x; });
+    const ql = q.trim().toLowerCase();
+    const others = Object.keys(M.profiles)
+      .filter(id => id !== me && (M.relation(id) === 'none' || M.relation(id) === 'outgoing'))
+      .filter(id => !ql || M.nameOf(id).toLowerCase().indexOf(ql) !== -1)
+      .map(id => ({ id, mut: M.mutuals(id) }))
+      .sort((a, b) => b.mut.length - a.mut.length || byName(a.id, b.id));
+    return html`<div>
+      ${incoming.length ? html`<section>
+        <h2 class="section-title">Requests</h2>
+        <ul class="flist">${incoming.map(x => html`<${PersonRow} key=${x.other} id=${x.other} M=${M}>
+          <button class="btn btn-go btn-sm" onClick=${() => act.accept(x)}>Accept</button>
+          <button class="btn btn-text btn-sm" onClick=${() => act.decline(x)}>Decline</button>
+        <//>`)}</ul>
+      </section>` : null}
+      <section>
+        <h2 class="section-title">Friends<span class="count">${friends.length}</span></h2>
+        ${friends.length ? html`<ul class="flist">${friends.map(id => html`<${PersonRow} key=${id} id=${id} M=${M}>
+          ${confirmId === id
+            ? [html`<button key="r" class="btn btn-line btn-sm btn-danger" onClick=${() => { setConfirmId(null); act.unfriend(id); }}>Remove</button>`, html`<button key="k" class="btn btn-text btn-sm" onClick=${() => setConfirmId(null)}>Keep</button>`]
+            : html`<button class="btn btn-text btn-sm" onClick=${() => setConfirmId(id)}>Remove</button>`}
+        <//>`)}</ul>` : html`<p class="empty">No friends yet. Add a few classmates below. Their runs, and their friends' runs, then show up on your board.</p>`}
+      </section>
+      <section>
+        <h2 class="section-title">Find classmates</h2>
+        <label class="search" for="find-q">${I.search()}<input id="find-q" type="search" placeholder="Search by name" autocomplete="off" value=${q} onInput=${e => setQ(e.target.value)} /></label>
+        ${others.length ? html`<ul class="flist">${others.map(o => html`<${PersonRow} key=${o.id} id=${o.id} M=${M} via=${o.mut}>
+          ${outgoingBy[o.id]
+            ? [html`<span key="p" class="pending">Requested</span>`, html`<button key="c" class="btn btn-text btn-sm" onClick=${() => act.cancelRequest(outgoingBy[o.id])}>Cancel</button>`]
+            : html`<button class="btn btn-line btn-sm" onClick=${() => act.request(o.id)} aria-label=${'Add ' + M.nameOf(o.id)}>${I.plus()}Add</button>`}
+        <//>`)}</ul>` : html`<p class="empty">${ql ? 'No one by that name on In. yet.' : 'You are connected with everyone on In. so far.'}</p>`}
+      </section>
+    </div>`;
+  }
+
+  function ProfileExtras({ M, act }) {
+    const [confirmReset, setConfirmReset] = useState(false);
+    const showSamples = M.mode === 'sandbox' || (M.mode === 'live' && M.isOwner);
+    return html`<div class="extras">
+      ${showSamples ? html`<div class="extra-row">
+        <div><b>Sample classmates</b><p class="hint">Ten demo runners with weekly runs, so the board is never empty.${M.mode === 'live' ? ' This switch applies to everyone.' : ''}</p></div>
+        <${Seg} label="Sample classmates" value=${M.samplesOn ? 'on' : 'off'} onChange=${v => act.setSamples(v === 'on')} options=${[['on', 'Shown'], ['off', 'Hidden']]} />
+      </div>` : null}
+      ${M.mode === 'sandbox' ? html`<div class="extra-row">
+        <div><b>Sandbox</b><p class="hint">Everything you post here stays in this browser.</p></div>
+        ${confirmReset
+          ? html`<span><button type="button" class="btn btn-line btn-sm btn-danger" onClick=${() => { setConfirmReset(false); act.resetSandbox(); }}>Erase and start over</button><button type="button" class="btn btn-text btn-sm" onClick=${() => setConfirmReset(false)}>Keep</button></span>`
+          : html`<button type="button" class="btn btn-line btn-sm" onClick=${() => setConfirmReset(true)}>Reset sandbox</button>`}
+      </div>` : null}
+      ${Store.cloud && M.mode === 'live' ? html`<div class="extra-row">
+        <div><b>Account</b><p class="hint">Signed in as ${Store.email || 'you'}.</p></div>
+        <button type="button" class="btn btn-line btn-sm" onClick=${() => Cloud.signOut().then(() => location.reload(), () => location.reload())}>Sign out</button>
+      </div>` : null}
+      <p class="hint">In. is a student project for Wharton runners, not affiliated with the Wharton School.</p>
+    </div>`;
+  }
+
+  function ProfileSheet({ M, onboarding, onClose, act }) {
+    const cur = M.meP;
+    const h = M.home || {};
+    const hasCorner = typeof h.st === 'number' && !!CROSS_BY[h.cross];
+    const [f, setF] = useState(() => {
+      const st = hasCorner ? h.st : 20, cross = hasCorner ? h.cross : 'walnut';
+      return {
+        handle: (cur && cur.handle) || Store.suggestedHandle || '',
+        where: hasCorner || typeof h.dist !== 'number' ? 'corner' : 'trail',
+        st, cross,
+        spot: (cur && cur.spot) || nearestAccess({ gx: st, gy: CROSS_BY[cross].y }).s.id,
+        spotSet: !!cur,
+        dist: typeof h.dist === 'number' ? h.dist : 0.3,
+        pace: (cur && cur.pace) || 540,
+        travel: (cur && cur.travel) || 'jog',
+      };
+    });
+    const [err, setErr] = useState('');
+    const [busy, setBusy] = useState(false);
+    const set = (k, v) => setF(o => Object.assign({}, o, { [k]: v }));
+    // Until you pick a trail spot yourself, it follows your corner to the closest access.
+    const setCorner = (k, v) => setF(o => {
+      const n = Object.assign({}, o, { [k]: v });
+      if (!o.spotSet) n.spot = nearestAccess({ gx: n.st, gy: CROSS_BY[n.cross].y }).s.id;
+      return n;
+    });
+    const submit = async e => {
+      e.preventDefault();
+      const handle = f.handle.trim();
+      if (!handle) { setErr('Add the name your running friends know you by.'); return; }
+      setBusy(true);
+      const home = f.where === 'corner' ? { st: f.st, cross: f.cross } : { dist: Math.round(f.dist * 10) / 10 };
+      const ok = await act.saveProfile({ handle: handle.slice(0, 24), spot: f.spot, pace: f.pace, travel: f.travel, vis: (cur && cur.vis) || 'fof', updatedAt: Date.now() }, home);
+      setBusy(false);
+      if (ok) onClose();
+    };
+    const toGrid = f.where === 'corner' && SPOT[f.spot] && typeof SPOT[f.spot].gx === 'number' ? gridD({ gx: f.st, gy: CROSS_BY[f.cross].y }, SPOT[f.spot]) : null;
+    return html`<${Sheet} title=${onboarding ? 'Set up your runner card' : 'Your runner card'} sub=${onboarding ? 'Roughly where you live, where you meet the river, and your easy pace.' : null} onClose=${onClose}>
+      <form class="form" onSubmit=${submit}>
+        <div class="field"><label for="pf-name">Name on In.</label><input id="pf-name" type="text" maxlength="24" autocomplete="off" placeholder="First name and last initial" value=${f.handle} onInput=${e => { set('handle', e.target.value); setErr(''); }} /></div>
+        ${f.where === 'corner' ? html`<div class="field"><label for="pf-st">Your nearest corner</label>
+          <div class="corner">
+            <select id="pf-st" aria-label="Numbered street" value=${f.st} onChange=${e => setCorner('st', Number(e.target.value))}>${STREETS.map(n => html`<option key=${n} value=${n}>${ordinal(n)}</option>`)}</select>
+            <span aria-hidden="true">&</span>
+            <select id="pf-cross" aria-label="Cross street" value=${f.cross} onChange=${e => setCorner('cross', e.target.value)}>${CROSS.map(c => html`<option key=${c.id} value=${c.id}>${c.name}</option>`)}</select>
+          </div>
+          <span class="hint">Only you see this. It sets your miles to each start, whether that's 2116 Chestnut or the trail. In. never asks for your address. <button type="button" class="linkish" onClick=${() => set('where', 'trail')}>I don't live in Center City or University City</button></span></div>`
+        : html`<div class="field"><label for="pf-dist">Door to trail: ${f.dist.toFixed(1)} mi</label>
+          <input id="pf-dist" type="range" min="0.1" max="1" step="0.1" value=${f.dist} onInput=${e => set('dist', Number(e.target.value))} />
+          <span class="hint">How far you go from your door to your trail spot. Only you see it. <button type="button" class="linkish" onClick=${() => set('where', 'corner')}>Use my nearest corner instead</button></span></div>`}
+        <div class="field"><label for="pf-spot">Where you meet the trail</label>
+          <select id="pf-spot" value=${f.spot} onChange=${e => setF(o => Object.assign({}, o, { spot: e.target.value, spotSet: true }))}>${SPOTS.map(s => html`<option key=${s.id} value=${s.id}>${s.name}</option>`)}</select>
+          <span class="hint">Friends see this spot.${toGrid != null ? ' About ' + mi1(toGrid) + ' mi from your corner.' : ''}</span></div>
+        <div class="field"><span class="lbl">Easy pace</span><${Stepper} id="pf-pace" label="pace" value=${f.pace} min=${300} max=${780} step=${5} fmt=${v => pace(v) + ' /mi'} onChange=${v => set('pace', v)} /></div>
+        <div class="field"><span class="lbl">Getting to and from runs</span><${Seg} label="Getting to and from runs" value=${f.travel} onChange=${v => set('travel', v)} options=${[['jog', 'Jog'], ['walk', 'Walk']]} />
+          <span class="hint">${f.travel === 'walk' ? 'Leave times assume you walk at 18:00/mi.' : 'Leave times assume you jog at your easy pace plus 1:00/mi, so ' + pace(f.pace + 60) + '/mi.'}</span></div>
+        ${err ? html`<p class="err">${err}</p>` : null}
+        <div class="sheet-actions">
+          <button type="button" class="btn btn-text" onClick=${onClose}>${onboarding ? 'Just browse' : 'Close'}</button>
+          ${M.canWrite ? html`<button type="submit" class="btn btn-go btn-lg" disabled=${busy}>${onboarding ? 'Save and start' : 'Save'}</button>` : null}
+        </div>
+      </form>
+      <${ProfileExtras} M=${M} act=${act} />
+    <//>`;
+  }
+
+  const TIME_OPTS = [];
+  for (let t = 300; t <= 1260; t += 15) TIME_OPTS.push(t);
+
+  function PostSheet({ M, now, opts, onClose, act }) {
+    const o = opts || {};
+    const editing = o.edit || null;
+    const base = editing || o.from || null;
+    const [f, setF] = useState(() => {
+      const tmr = dateKey(addDays(now, 1));
+      let date = o.date || (base ? base.date : tmr);
+      if (date < M.todayK) date = tmr;
+      const kind = o.kind || (editing ? (editing.status === 'locked' ? 'locked' : 'intention') : now < lockByFor(date) ? 'intention' : 'locked');
+      const mySpot = M.meP ? M.meP.spot : 'walnut';
+      return {
+        kind, date,
+        title: base && !base.titleAuto ? base.title || '' : '',
+        start: base ? base.start : 390,
+        placeId: base && PLACE[base.placeId] ? base.placeId : '',
+        custom: !!(base && base.place && !PLACE[base.placeId]), place: base && base.place && !PLACE[base.placeId] ? base.place : '', spot: base ? base.spot : mySpot,
+        placeOff: base && base.place && !PLACE[base.placeId] ? offOf(base.place, base.placeOff) : 0.2,
+        finishMode: base && base.finish ? 'else' : 'back',
+        finishPick: !(base && base.finish) ? '' : PLACE[base.finishId] ? 'p:' + base.finishId : trailFinish(base) ? 't:' + trailFinish(base) : '__custom',
+        finish: base && base.finish && !PLACE[base.finishId] && !trailFinish(base) ? base.finish : '', finishSpot: base ? base.finishSpot || base.spot : mySpot,
+        finishOff: base && base.finish ? offOf(base.finish, base.finishOff) : 0.2,
+        pace: base ? base.pace : M.meP ? M.meP.pace : 540,
+        dist: base ? base.dist : 5,
+        vis: base ? base.vis || 'fof' : (M.meP && M.meP.vis) || 'fof',
+        note: base && base.note ? base.note : '',
+      };
+    });
+    const [busy, setBusy] = useState(false);
+    const [tried, setTried] = useState(false);
+    const set = (k, v) => setF(p => Object.assign({}, p, { [k]: v }));
+    const intentionOpen = now < lockByFor(f.date);
+    const startAt = atMin(f.date, f.start);
+    const problems = [];
+    if (f.kind === 'intention' && !intentionOpen) problems.push('Proposals for ' + dayRef(f.date, M.todayK) + ' closed at 10 PM the night before. Post it confirmed.');
+    if (startAt - now < 10 * 60000) problems.push('Pick a start at least 10 minutes from now.');
+    if (tried && f.custom && !f.place.trim()) problems.push('Name the start, like a coffee shop or Huntsman Hall.');
+    const elsewhere = f.finishMode === 'else';
+    if (tried && elsewhere && !f.finishPick) problems.push('Pick where the run ends, or make it out and back.');
+    if (tried && elsewhere && f.finishPick === '__custom' && !f.finish.trim()) problems.push('Name the finish, or make it out and back.');
+    const lonely = M.me && M.F(M.me).size === 0 && f.vis !== 'wharton';
+    const days = [];
+    for (let i = 0; i < 7; i++) days.push(dateKey(addDays(now, i)));
+    const timeOpts = TIME_OPTS.indexOf(f.start) === -1 ? TIME_OPTS.concat([f.start]).sort((a, b) => a - b) : TIME_OPTS;
+    const pickDay = k => setF(p => Object.assign({}, p, { date: k, kind: p.kind === 'intention' && now >= lockByFor(k) ? 'locked' : p.kind }));
+    const isInt = f.kind === 'intention';
+    const submit = async e => {
+      e.preventDefault();
+      setTried(true);
+      const missing = (f.custom && !f.place.trim()) || (elsewhere && (!f.finishPick || (f.finishPick === '__custom' && !f.finish.trim())));
+      if (problems.length || missing || busy) return;
+      const where = f.custom ? { spot: f.spot, place: f.place.trim().slice(0, 60), placeOff: f.placeOff, placeId: '' } : startFields(f.placeId, f.spot);
+      let fin = finishFields('');
+      if (elsewhere && f.finishPick === '__custom') fin = { finish: f.finish.trim().slice(0, 60), finishSpot: f.finishSpot, finishOff: f.finishOff, finishId: '' };
+      else if (elsewhere && f.finishPick.indexOf('p:') === 0) fin = finishFields(f.finishPick.slice(2));
+      else if (elsewhere && f.finishPick.indexOf('t:') === 0) fin = finishFields('trail:' + f.finishPick.slice(2));
+      const doc = Object.assign({
+        date: f.date, status: f.kind, start: f.start, title: (f.title.trim() || autoTitle(f.start)).slice(0, 48),
+        pace: f.pace, dist: f.dist, vis: f.vis, note: f.note.trim().slice(0, 90),
+      }, where, fin);
+      setBusy(true);
+      const ok = editing ? await act.editRun(editing, doc) : await act.createRun(doc);
+      setBusy(false);
+      if (ok) onClose();
+    };
+    return html`<${Sheet} title=${editing ? 'Edit run' : 'Post a run'} onClose=${onClose}>
+      <form class="form" onSubmit=${submit}>
+        <div class="field"><label for="ps-title">What's the run?<span class="opt">optional</span></label>
+          <input id="ps-title" type="text" maxlength="48" placeholder=${autoTitle(f.start)} value=${f.title} onInput=${e => set('title', e.target.value)} /></div>
+        <div class="field"><span class="lbl">Proposed or confirmed</span>
+          <${Seg} label="Proposed or confirmed" value=${f.kind} onChange=${v => set('kind', v)} options=${[['intention', 'Proposed', !intentionOpen], ['locked', 'Confirmed']]} />
+          <span class="hint">${isInt ? 'A rough plan. People tap I’d be in. You confirm the exact time and start by 10 PM the night before, or the run is dropped.' : intentionOpen ? 'Exact time and start. People tap I’m in.' : 'Proposals for ' + dayRef(f.date, M.todayK) + ' closed at 10 PM, so this goes up confirmed.'}</span></div>
+        <div class="field"><span class="lbl">Day</span>
+          <div class="daypick" role="group" aria-label="Day">${days.map((k, i) => { const d = parseKey(k); return html`<button type="button" key=${k} class="daychip" aria-pressed=${f.date === k} onClick=${() => pickDay(k)}>${i === 0 ? 'Today' : i === 1 ? 'Tmrw' : DOW[d.getDay()]}<small>${MON[d.getMonth()]} ${d.getDate()}</small></button>`; })}</div></div>
+        <div class="field"><label for="ps-time">${isInt ? 'Around' : 'Start time'}</label>
+          <select id="ps-time" value=${f.start} onChange=${e => set('start', Number(e.target.value))}>${timeOpts.map(t => html`<option key=${t} value=${t} disabled=${atMin(f.date, t) - now < 10 * 60000}>${clock(t)}</option>`)}</select></div>
+        <div class="field"><label for="ps-spot">Start</label>
+          <select id="ps-spot" value=${f.custom ? '__custom' : f.placeId ? 'p:' + f.placeId : f.spot} onChange=${e => {
+            const v = e.target.value;
+            if (v === '__custom') setF(p => Object.assign({}, p, { custom: true, placeId: '' }));
+            else if (v.indexOf('p:') === 0) setF(p => Object.assign({}, p, { custom: false, placeId: v.slice(2) }));
+            else setF(p => Object.assign({}, p, { custom: false, placeId: '', spot: v }));
+          }}>
+            <optgroup label="On the trail">${SPOTS.map(s => html`<option key=${s.id} value=${s.id}>${s.name}</option>`)}</optgroup>
+            <optgroup label="In the neighborhood">${PLACES.filter(pl => pl.kind === 'meet').map(pl => html`<option key=${pl.id} value=${'p:' + pl.id}>${pl.name} (${pl.where})</option>`)}</optgroup>
+            <optgroup label="Coffee and food">${PLACES.filter(pl => pl.kind === 'food').map(pl => html`<option key=${pl.id} value=${'p:' + pl.id}>${pl.name} (${pl.where})</option>`)}</optgroup>
+            <option value="__custom">Somewhere else…</option>
+          </select>
+          ${f.custom ? html`<div class="sub-field">
+            <div class="field"><label for="ps-place">Place</label><input id="ps-place" type="text" maxlength="60" placeholder="Huntsman Hall steps" value=${f.place} onInput=${e => set('place', e.target.value)} /></div>
+            <div class="field"><label for="ps-place-spot">Closest trail spot</label><select id="ps-place-spot" value=${f.spot} onChange=${e => set('spot', e.target.value)}>${SPOTS.map(s => html`<option key=${s.id} value=${s.id}>${s.name}</option>`)}</select></div>
+            <div class="field"><span class="lbl">Distance from the trail</span><${Stepper} id="ps-place-off" label="distance from the trail" value=${f.placeOff} min=${0} max=${1.5} step=${0.1} fmt=${v => mi1(v) + ' mi'} onChange=${v => set('placeOff', v)} /><span class="hint">Added to everyone's miles to the start.</span></div>
+          </div>` : null}</div>
+        <div class="field"><span class="lbl">Finish</span>
+          <${Seg} label="Finish" value=${f.finishMode} onChange=${v => set('finishMode', v)} options=${[['back', 'Out and back'], ['else', 'Ends somewhere else']]} />
+          ${elsewhere ? html`<div class="sub-field">
+            <div class="field"><label for="ps-finish-pick">Where it ends</label>
+              <select id="ps-finish-pick" value=${f.finishPick} onChange=${e => set('finishPick', e.target.value)}>
+                <option value="" disabled>Pick a place</option>
+                <optgroup label="Coffee and food">${PLACES.filter(pl => pl.kind === 'food').map(pl => html`<option key=${pl.id} value=${'p:' + pl.id}>${pl.name} (${pl.where})</option>`)}</optgroup>
+                <optgroup label="In the neighborhood">${PLACES.filter(pl => pl.kind === 'meet').map(pl => html`<option key=${pl.id} value=${'p:' + pl.id}>${pl.name} (${pl.where})</option>`)}</optgroup>
+                <optgroup label="On the trail">${SPOTS.map(sp => html`<option key=${sp.id} value=${'t:' + sp.id}>${sp.name}</option>`)}</optgroup>
+                <option value="__custom">Somewhere else…</option>
+              </select></div>
+            ${f.finishPick === '__custom' ? html`
+              <div class="field"><label for="ps-finish">Place</label><input id="ps-finish" type="text" maxlength="60" placeholder="Name of the café or spot" value=${f.finish} onInput=${e => set('finish', e.target.value)} /></div>
+              <div class="field"><label for="ps-finish-spot">Closest trail spot</label><select id="ps-finish-spot" value=${f.finishSpot} onChange=${e => set('finishSpot', e.target.value)}>${SPOTS.map(sp => html`<option key=${sp.id} value=${sp.id}>${sp.name}</option>`)}</select></div>
+              <div class="field"><span class="lbl">Distance from the trail</span><${Stepper} id="ps-finish-off" label="finish distance from the trail" value=${f.finishOff} min=${0} max=${1.5} step=${0.1} fmt=${v => mi1(v) + ' mi'} onChange=${v => set('finishOff', v)} /></div>` : null}
+            <span class="hint">Everyone's miles home count from here.</span>
+          </div>` : html`<span class="hint">Ends where it starts.</span>`}</div>
+        <div class="row2">
+          <div class="field"><span class="lbl">Pace</span><${Stepper} id="ps-pace" label="pace" value=${f.pace} min=${300} max=${780} step=${5} fmt=${v => pace(v) + ' /mi'} onChange=${v => set('pace', v)} /></div>
+          <div class="field"><span class="lbl">Run distance</span><${Stepper} id="ps-dist" label="distance" value=${f.dist} min=${1} max=${20} step=${0.5} fmt=${v => distTxt(v) + ' mi'} onChange=${v => set('dist', v)} /></div>
+        </div>
+        <div class="field"><span class="lbl">Who can see it</span><${Seg} label="Who can see it" value=${f.vis} onChange=${v => set('vis', v)} options=${VIS_OPTS} />
+          <span class="hint">${VIS_HINT[f.vis]}</span>
+          ${lonely ? html`<span class="warnline">You have no friends on In. yet, so nobody else will see this. Add friends first or post it to All Wharton.</span>` : null}</div>
+        <div class="field"><label for="ps-note">Anything else<span class="opt">optional</span></label>
+          <input id="ps-note" type="text" maxlength="90" placeholder="Strides at the end, coffee after" value=${f.note} onInput=${e => set('note', e.target.value)} /></div>
+        ${problems.map(p => html`<p key=${p} class="err">${p}</p>`)}
+        <div class="sheet-actions">
+          <button type="button" class="btn btn-text" onClick=${onClose}>Cancel</button>
+          <button type="submit" class="btn btn-go btn-lg" disabled=${busy}>${editing ? 'Save changes' : isInt ? 'Propose run' : 'Post run'}</button>
+        </div>
+      </form>
+    <//>`;
+  }
+
+  function LockSheet({ M, runId, onClose, act }) {
+    const run = M.runById[runId];
+    const joinKey = run ? run.joiners.map(j => j.id).join(',') : '';
+    const parts = useMemo(() => (run ? participantsOf(run, M.profiles) : []), [runId, joinKey]);
+    const sug = useMemo(() => (run ? nashSuggest(parts, run) : null), [parts]);
+    const [choice, setChoice] = useState(null);
+    const [busy, setBusy] = useState(false);
+    if (!run || !sug || run.status !== 'intention' || run.faded) {
+      return html`<${Sheet} title="Confirm this run" onClose=${onClose}>
+        <p class="sheet-body-pad">This run can't be confirmed anymore. Proposed runs have to be confirmed by 10 PM the night before.</p>
+      <//>`;
+    }
+    const c = choice || { start: run.start, key: sug.key, pace: sug.pace };
+    const set = (k, v) => setChoice(Object.assign({}, c, { [k]: v }));
+    const candOf = k => (k === 'place' ? { key: 'place', mi: spotMi(run.spot), off: offOf(run.place, run.placeOff) } : { key: k, mi: spotMi(k), off: 0 });
+    const cand = candOf(c.key);
+    const gains = gainsAt(parts, cand, c.pace, run.place ? 'place' : run.spot);
+    const keyName = k => (k === 'place' ? run.place : spotName(k));
+    const onSug = c.key === sug.key && c.pace === sug.pace && c.start === run.start;
+    const alone = parts.length === 1;
+    const times = [];
+    for (let t = run.start - 30; t <= run.start + 30; t += 5) times.push(t);
+    const who = p => (p.id === M.me ? 'You' : M.nameOf(p.id));
+    const submit = async e => {
+      e.preventDefault();
+      if (busy) return;
+      setBusy(true);
+      const ok = await act.lock(run, c);
+      setBusy(false);
+      if (ok) onClose();
+    };
+    const sub = 'Confirming sets the exact time, start and pace. ' + (alone ? 'No one has said they’d be in yet.' : 'The ' + (parts.length - 1) + (parts.length === 2 ? ' person' : ' people') + ' who said I’d be in are then going.');
+    return html`<${Sheet} title=${'Confirm ' + run.title} sub=${sub} onClose=${onClose}>
+      <div class="sug">
+        <p class="sug-k">Suggested</p>
+        <p class="sug-v">${keyName(sug.key)} at ${pace(sug.pace)}/mi</p>
+        <p class="hint">${alone ? 'With just you, the suggestion is your plan as posted.' : 'Picked so the compromise is shared: it maximizes the product of everyone’s gains. Running faster than you like counts for more than running slower.'}</p>
+      </div>
+      <ul class="plist">${parts.map((p, i) => {
+        const dp = c.pace - p.pace;
+        const det = reach(p, cand);
+        return html`<li key=${p.id}>
+          <${Avatar} id=${p.id} M=${M} size=${28} />
+          <span class="pl-n">${who(p)}${p.host ? ' (host)' : ''}</span>
+          <span class="pl-m">${det < 0.05 ? 'starts at their trail spot' : mi1(det) + ' mi from their trail spot'} · ${dp === 0 ? 'their pace' : Math.abs(dp) + 's/mi ' + (dp > 0 ? 'slower' : 'faster')}</span>
+          ${gains[i] <= 0 ? html`<span class="pl-w">may skip</span>` : null}
+        </li>`;
+      })}</ul>
+      <p class="hint" style="margin:0 0 16px">Miles count from each runner's trail spot. Door-to-trail miles are private and the same wherever you meet, so they're left out.</p>
+      <form class="form" onSubmit=${submit}>
+        <div class="row2">
+          <div class="field"><label for="lk-time">Start time</label>
+            <select id="lk-time" value=${c.start} onChange=${e => set('start', Number(e.target.value))}>${times.map(t => html`<option key=${t} value=${t}>${clock(t)}</option>`)}</select></div>
+          <div class="field"><label for="lk-spot">Start</label>
+            <select id="lk-spot" value=${c.key} onChange=${e => set('key', e.target.value)}>
+              ${run.place ? html`<option value="place">${shortPlace(run.place)}${sug.key === 'place' ? ' (suggested)' : ''}</option>` : null}
+              ${SPOTS.map(s => html`<option key=${s.id} value=${s.id}>${s.name}${s.id === sug.key ? ' (suggested)' : ''}</option>`)}
+            </select></div>
+        </div>
+        <div class="field"><span class="lbl">Pace</span><${Stepper} id="lk-pace" label="pace" value=${c.pace} min=${300} max=${780} step=${5} fmt=${v => pace(v) + ' /mi'} onChange=${v => set('pace', v)} /></div>
+        ${!onSug ? html`<p class="hint">You changed the plan. <button type="button" class="linkish" onClick=${() => setChoice(null)}>Go back to the suggestion</button></p>` : null}
+        <div class="sheet-actions">
+          <button type="button" class="btn btn-text" onClick=${onClose}>Not yet</button>
+          <button type="submit" class="btn btn-go btn-lg" disabled=${busy}>Confirm run</button>
+        </div>
+      </form>
+    <//>`;
+  }
+
+  function Footer({ M }) {
+    return html`<footer class="foot">
+      ${M && M.mode === 'live' && M.ready ? html`<p>Live board, ${M.realCount} ${M.realCount === 1 ? 'runner' : 'runners'} so far.${M.samplesOn ? ' Runs marked Sample are demo content.' : ''}</p>` : null}
+      ${M && M.mode === 'sandbox' ? html`<p>Sandbox: your posts stay in this browser.${M.samplesOn ? ' Runs marked Sample are demo content.' : ''}</p>` : null}
+      <p>One trail: the Schuylkill River Trail from Grays Ferry Crescent to Manayunk. Distances are approximate: city blocks around Rittenhouse and Penn, miles along the trail.</p>
+      <p>In. is a student project for Wharton runners, not affiliated with the Wharton School.</p>
+    </footer>`;
+  }
+
+  function makeActions(ctx) {
+    const say = ctx.say, getM = ctx.getM;
+    const api = () => Store.api;
+    const pairDoc = (x, y, from, to, status) => ({ a: x < y ? x : y, b: x < y ? y : x, from, to, status, at: Date.now() });
+    return {
+      async saveProfile(p, home) {
+        if (!(await write(() => api().saveProfile(p), null, say))) return false;
+        await write(() => api().saveHome(home), null, say);
+        say('Runner card saved.');
+        return true;
+      },
+      async setTravel(mode) {
+        const M = getM();
+        if (!M.meP || M.meP.travel === mode) return;
+        const p = Object.assign({}, M.meP, { travel: mode, updatedAt: Date.now() });
+        delete p.id;
+        await write(() => api().saveProfile(p), mode === 'walk' ? 'Leave times now assume you walk to runs.' : 'Leave times now assume you jog to runs.', say);
+      },
+      async join(r) {
+        const M = getM();
+        if (!M.meP) { ctx.openProfile(true); return; }
+        const me = Store.me;
+        // You can only be in one place at a time: runs overlap if their windows (plus 30 min to get between them) touch.
+        const span = x => [x.start - 30, x.start + (x.dist * x.pace) / 60 + 30];
+        const [a0, a1] = span(r);
+        const clash = M.runs.filter(x => x.id !== r.id && x.date === r.date && x.status !== 'cancelled' && !x.faded && !x.past && (x.host === me || x.joinedByMe))
+          .filter(x => { const [b0, b1] = span(x); return a0 < b1 && b0 < a1; });
+        const hosting = clash.find(x => x.host === me);
+        if (hosting) { say('You’re hosting ' + hosting.title + ' at ' + clock(hosting.start) + ', which overlaps. Cancel it first to join this one.'); return; }
+        for (const x of clash) { if (!(await write(() => api().deleteJoin(x.id + '__' + me), null, say))) return; }
+        const swapped = clash.length ? ' You’re out of ' + clash.map(x => x.title).join(' and ') + ', which overlapped.' : '';
+        const ok = await write(() => api().setJoin(r.id + '__' + me, { run: r.id, user: me, date: r.date, at: Date.now() }),
+          (isProposed(r) ? 'You’d be in. ' + M.nameOf(r.host) + ' confirms by 10 PM the night before.' : 'You’re going. It’s at the top of your runs.') + swapped, say);
+        if (ok) ctx.afterJoin();
+      },
+      async leave(r) { await write(() => api().deleteJoin(r.id + '__' + Store.me), 'You dropped out of ' + r.title + '.', say); },
+      async createRun(doc) {
+        const id = api().newRunId();
+        const full = Object.assign({}, doc, { host: Store.me, createdAt: Date.now(), lockedAt: doc.status === 'locked' ? Date.now() : 0 });
+        const ok = await write(() => api().setRun(id, full), doc.status === 'intention' ? 'Proposed. Confirm it by 10 PM the night before.' : 'Posted. It’s in your runs at the top.', say);
+        if (ok) ctx.afterJoin();
+        return ok;
+      },
+      async editRun(r, doc) {
+        const patch = Object.assign({}, doc);
+        if (doc.status === 'locked' && r.status !== 'locked') patch.lockedAt = Date.now();
+        return write(() => api().updateRun(r.id, patch), 'Run updated.', say);
+      },
+      async lock(r, c) {
+        const samplesIn = r.joiners.filter(j => j.virtual).map(j => j.id);
+        const where = lockedPlace(r, c.key);
+        return write(() => api().updateRun(r.id, { status: 'locked', start: c.start, spot: where.spot, place: where.place, placeOff: where.placeOff, placeId: where.placeId, pace: c.pace, lockedAt: Date.now(), samplesIn }), 'Confirmed. Everyone who said they’d be in is going.', say);
+      },
+      async cancel(r) { await write(() => api().updateRun(r.id, { status: 'cancelled' }), 'Run cancelled.', say); },
+      async request(id) {
+        const M = getM(), me = Store.me;
+        const sample = isSample(id);
+        await write(() => api().setFriendship(pairId(me, id), pairDoc(me, id, me, id, sample ? 'accepted' : 'pending')),
+          sample ? 'You and ' + M.nameOf(id) + ' are friends. Their runs, and their friends’ runs, can now show on your board.' : 'Request sent to ' + M.nameOf(id) + '.', say);
+      },
+      async accept(x) {
+        const M = getM(), me = Store.me;
+        const op = x.virtual ? () => api().setFriendship(x.fid, pairDoc(me, x.other, x.other, me, 'accepted')) : () => api().updateFriendship(x.fid, { status: 'accepted', at: Date.now() });
+        await write(op, 'You and ' + M.nameOf(x.other) + ' are friends. Their runs, and their friends’ runs, can now show on your board.', say);
+      },
+      async decline(x) {
+        const me = Store.me;
+        const op = x.virtual ? () => api().setFriendship(x.fid, pairDoc(me, x.other, x.other, me, 'declined')) : () => api().deleteFriendship(x.fid);
+        await write(op, 'Request declined.', say);
+      },
+      async unfriend(id) { await write(() => api().updateFriendship(pairId(Store.me, id), { status: 'removed', at: Date.now() }), 'Removed from your friends.', say); },
+      async cancelRequest(x) { await write(() => api().deleteFriendship(x.fid), 'Request cancelled.', say); },
+      async setSamples(on) {
+        await write(() => api().setConfig({ samples: !!on }), on ? 'Sample classmates are on the board.' : 'Sample classmates are hidden' + (Store.mode === 'live' ? ' for everyone.' : '.'), say);
+      },
+      resetSandbox() { Sandbox.reset(); say('Sandbox reset.'); },
+    };
+  }
+
+  function App() {
+    const [ver, setVer] = useState(0);
+    // Subscribe, then catch up on anything the store did before this effect ran (the sandbox boots synchronously).
+    useEffect(() => { const off = Store.on(() => setVer(v => v + 1)); setVer(v => v + 1); return off; }, []);
+    const [now, setNow] = useState(() => new Date());
+    useEffect(() => { const t = setInterval(() => setNow(new Date()), 5000); return () => clearInterval(t); }, []);
+    const M = useMemo(() => buildModel(now), [now, ver]);
+    const Mref = useRef(M);
+    Mref.current = M;
+    const [tab, setTabRaw] = useState(() => (lsGet('in-tab') === 'friends' ? 'friends' : 'runs'));
+    const setTab = useCallback(t => { setTabRaw(t); lsSet('in-tab', t); }, []);
+    const [sheet, setSheet] = useState(null);
+    const [toast, setToast] = useState(null);
+    const say = useCallback(msg => setToast({ msg, k: Date.now() + Math.random() }), []);
+    useEffect(() => { if (!toast) return undefined; const t = setTimeout(() => setToast(null), 3800); return () => clearTimeout(t); }, [toast]);
+    useEffect(() => { document.body.classList.toggle('sheet-open', !!sheet); }, [sheet]);
+    useEffect(() => { resolvePeople(); }, [ver]);
+    const close = useCallback(() => setSheet(null), []);
+    const openProfile = useCallback(onb => setSheet({ type: 'profile', onboarding: !!onb }), []);
+    const openPost = useCallback(opts => {
+      const m = Mref.current;
+      if (!m.canWrite) return;
+      if (!m.meP) { setSheet({ type: 'profile', onboarding: true }); return; }
+      setSheet({ type: 'post', opts: opts || null });
+    }, []);
+    const openLock = useCallback(r => setSheet({ type: 'lock', runId: r.id }), []);
+    const onOpen = useCallback(r => setSheet({ type: 'run', runId: r.id }), []);
+    const act = useMemo(() => makeActions({
+      say, getM: () => Mref.current, openProfile,
+      // After joining or posting, the page reorganizes around the commitment, so bring its top into view.
+      afterJoin: () => {
+        setTab('runs');
+        window.requestAnimationFrame(() => { try { window.scrollTo({ top: 0, behavior: reduceMotion() ? 'auto' : 'smooth' }); } catch (e) { window.scrollTo(0, 0); } });
+      },
+    }), []);
+
+    const asked = useRef(false);
+    useEffect(() => {
+      if (asked.current || !M.ready || !M.homeLoaded || !M.canWrite || !M.me || M.meP) return;
+      asked.current = true;
+      setSheet(s => s || { type: 'profile', onboarding: true });
+    }, [M.ready, M.homeLoaded, M.canWrite, M.me, !!M.meP]);
+
+    const seen = useRef(null);
+    useEffect(() => {
+      if (!M.ready || !M.me) return;
+      const cur = new Map();
+      M.runs.forEach(r => { if (r.host === M.me && !r.sample) cur.set(r.id, r.joiners.map(j => j.id)); });
+      const prev = seen.current;
+      seen.current = cur;
+      if (!prev) return;
+      cur.forEach((ids, rid) => {
+        const p = prev.get(rid);
+        if (!p) return;
+        const fresh = ids.filter(id => p.indexOf(id) === -1);
+        if (!fresh.length) return;
+        const r = M.runById[rid];
+        say(M.nameOf(fresh[0]) + (fresh.length > 1 ? ' and ' + (fresh.length - 1) + ' more' : '') + (isProposed(r) ? ' would be in' : ' is going') + ' for ' + r.title + ' ' + whenRef(r.date, M.todayK) + '.');
+      });
+    }, [M]);
+
+    const sheetRun = sheet && sheet.type === 'run' ? M.runById[sheet.runId] : null;
+    if (M.mode === 'signin') return html`<${SignIn} />`;
+    if (M.mode === 'setup') return html`<${SetupNotice} problem=${Store.setupProblem} />`;
+
+    return html`
+      <${TopBar} M=${M} onMe=${() => openProfile(!M.meP)} onPost=${() => openPost()} />
+      <div class="wrap">
+        <main>
+          <${Tabs} tab=${tab} setTab=${setTab} reqCount=${M.meP ? M.incoming.length : 0} />
+          ${tab === 'friends'
+            ? html`<${FriendsView} M=${M} act=${act} openProfile=${() => openProfile(true)} />`
+            : html`<${RunList} M=${M} now=${now} onOpen=${onOpen} act=${act} openLock=${openLock} openPost=${openPost} goFriends=${() => setTab('friends')} openProfile=${() => openProfile(true)} />`}
+          <${Footer} M=${M} />
+        </main>
+      </div>
+      ${sheet && sheet.type === 'run' ? html`<${Sheet} title="Run details" bare=${true} onClose=${close}><${RunDetail} r=${sheetRun} M=${M} now=${now} act=${act} openLock=${r => setSheet({ type: 'lock', runId: r.id })} openPost=${o => { setSheet(null); openPost(o); }} /><//>` : null}
+      ${sheet && sheet.type === 'profile' ? html`<${ProfileSheet} M=${M} onboarding=${sheet.onboarding} onClose=${close} act=${act} />` : null}
+      ${sheet && sheet.type === 'post' ? html`<${PostSheet} M=${M} now=${now} opts=${sheet.opts} onClose=${close} act=${act} />` : null}
+      ${sheet && sheet.type === 'lock' ? html`<${LockSheet} M=${M} runId=${sheet.runId} onClose=${close} act=${act} />` : null}
+      <div class="toast-wrap" role="status" aria-live="polite">${toast ? html`<div class="toast" key=${toast.k}>${toast.msg}</div>` : null}</div>
+    `;
+  }
+
+  root.textContent = '';
+  render(html`<${App} />`, root);
+  boot();
+})();
+</script>
+</body>
+</html>
