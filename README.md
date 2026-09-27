@@ -21,6 +21,7 @@ Live at **https://jason-traum.github.io/in/**
 
 ## Beta
 
-- Up to three Philly icons (Ben Franklin, Jalen Hurts, and friends) say they're in on All Wharton runs. They're always marked Bot, never post runs, never count as people, and switch off by themselves once 20 people have runner cards. The admin can switch them off sooner from the runner card.
+- Up to three famous names (Ben Franklin, Jalen Hurts, LeBron James, Will Smith, and friends) say they're in on All Wharton runs, shown with their full names. They're always marked Bot, never post runs, never count as people, and switch off by themselves once 20 people have runner cards. The admin can switch them off sooner from the runner card.
+- On a phone, tap I'm in or Maybe on any run. Once you've answered, tap your answer to switch it, and tap Chat to talk it over.
 - If a host drops out, the run stays up with a note, and anyone who can see it can take over as host.
 - Leave and home times assume you walk to and from runs at 20:00/mi, unless your runner card says you jog.

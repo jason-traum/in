@@ -9,6 +9,8 @@
 <meta property="og:description" content="Plan tomorrow's run with friends on the Schuylkill River Trail.">
 <meta name="theme-color" content="#1E5F55">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="In.">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -34,8 +36,13 @@
       secondary (--ink-2), never faint.
    7. Keep the space above the first run short: header, tabs, one compact audience selector, a small day label,
       one-sentence confirmation rule with "How it works". Explain sorting once.
-   8. Sample content carries a compact "Sample" tag. No dotted names, no explanatory paragraphs above the feed.
-   9. Check at 320 and 390 px with a deliberately long title. No sideways scroll.
+   8. Beta bots carry a compact "Bot" tag and a full famous name. No explanatory paragraphs above the feed.
+   9. Check at 320, 375 and 390 px with a deliberately long title, in light and dark. No sideways scroll.
+  10. Phone first (approved Sep 27, 2026): almost everyone uses In. on an iPhone. Anything you can tap looks
+      tappable: a filled or outlined button, or a chip with a chevron. Plain text is never a button, except a
+      link inside a sentence. Taps are at least 40px tall. Spacing stays compact so a run card fits at a glance.
+  11. Your answer on a run is one clear switch: I'm in / Maybe / Not going. Chat is always one tap from a run:
+      a chat button on every run card and on your run, and a Chat tab in the run's details.
    ============================================================================================ */
 :root{
   --bg:#EAF2EE;--surface:#FFFFFF;--ink:#15302A;--ink-2:#34493F;--muted:#5A6B63;--hair:#D6E3DC;--fill:#E1EBE6;
@@ -61,7 +68,9 @@
 }
 *,*::before,*::after{box-sizing:border-box}
 html,body{background:var(--bg)}
-body{margin:0;color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 body.sheet-open{overflow:hidden}
 button{font:inherit;color:inherit;cursor:pointer}
 button:disabled{cursor:not-allowed;opacity:.45}
@@ -75,10 +84,10 @@ ul{list-style:none;margin:0;padding:0}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 /* header */
-.top{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--hair)}
-.top-in{max-width:680px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.top{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--hair);padding-top:env(safe-area-inset-top,0px)}
+.top-in{max-width:680px;margin:0 auto;padding:8px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .brand{display:flex;align-items:baseline;gap:12px;min-width:0}
-.mark{font-family:var(--f-display);font-weight:700;font-size:36px;line-height:1;letter-spacing:-.01em;display:inline-flex;align-items:baseline}
+.mark{font-family:var(--f-display);font-weight:700;font-size:32px;line-height:1;letter-spacing:-.01em;display:inline-flex;align-items:baseline}
 .mark .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--green);margin-left:3px}
 .brand-sub{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mode-chip{align-self:center;margin-left:-4px;padding:2px 8px;border-radius:999px;background:var(--green-soft);color:var(--green-text);font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
@@ -95,19 +104,20 @@ ul{list-style:none;margin:0;padding:0}
 .btn-in:hover{background:color-mix(in srgb,var(--green) 20%,var(--surface))}
 .btn-maybe{border-color:var(--green);color:var(--green-text);background:var(--surface)}
 .btn-maybe:hover{background:var(--green-soft)}
-.btn-line{border-color:var(--hair);background:var(--surface);color:var(--ink)}
+.btn-line{border-color:color-mix(in srgb,var(--ink) 28%,var(--hair));background:var(--surface);color:var(--ink)}
+.btn:active,.state-chip.pick:active,.chat-btn:active,.rsvp-b:active,.d-tabs button:active{transform:scale(.97)}
 .btn-line:hover{border-color:var(--ink)}
 .btn-text{padding-inline:6px;color:var(--ink-2);font-weight:500}
 .btn-text:hover{color:var(--ink);text-decoration:underline;text-underline-offset:3px}
 .btn-danger{color:var(--warm)}
-.btn-sm{min-height:36px;padding:7px 14px;font-size:13.5px}
+.btn-sm{min-height:38px;padding:7px 14px;font-size:13.5px}
 .btn-lg{min-height:48px;font-size:16px;padding-inline:22px}
 .linkish{background:none;border:0;padding:0;color:var(--green-text);font-weight:600;text-decoration:underline;text-underline-offset:3px;font-size:inherit}
 
 /* page */
-.wrap{max-width:680px;margin:0 auto;padding:0 16px 96px}
-.tabs{display:flex;gap:24px;margin-top:4px;border-bottom:1px solid var(--hair)}
-.tab{background:none;border:0;padding:8px 0 10px;font-weight:600;font-size:15px;color:var(--muted);border-bottom:2.5px solid transparent;margin-bottom:-1px;display:inline-flex;gap:6px;align-items:center}
+.wrap{max-width:680px;margin:0 auto;padding:0 16px calc(72px + env(safe-area-inset-bottom,0px))}
+.tabs{display:flex;gap:24px;margin-top:2px;border-bottom:1px solid var(--hair)}
+.tab{background:none;border:0;padding:9px 0 9px;font-weight:600;font-size:15px;color:var(--muted);border-bottom:2.5px solid transparent;margin-bottom:-1px;display:inline-flex;gap:6px;align-items:center}
 .tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--green)}
 .tab:hover{color:var(--ink)}
 .badge{background:var(--green);color:var(--on-green);font-size:11px;font-weight:700;min-width:18px;height:18px;border-radius:999px;display:inline-grid;place-items:center;padding:0 5px;line-height:1}
@@ -116,26 +126,26 @@ ul{list-style:none;margin:0;padding:0}
 .setup span{flex:1 1 220px}
 
 /* your run: the one strong block on the page */
-.yours{margin-top:16px;display:grid;gap:6px}
-.yr{background:var(--green);color:var(--on-green);border-radius:16px;padding:16px 18px 14px;display:grid;gap:2px;animation:yr-in .3s ease-out}
+.yours{margin-top:12px;display:grid;gap:6px}
+.yr{background:var(--green);color:var(--on-green);border-radius:16px;padding:14px 16px 12px;display:grid;gap:1px;animation:yr-in .3s ease-out}
 @keyframes yr-in{from{opacity:0;transform:translateY(6px)}}
 .yr-k{font-size:13px;font-weight:600;color:var(--on-green-2)}
-.yr-time{font-family:var(--f-display);font-weight:700;font-size:40px;line-height:1.05;font-variant-numeric:tabular-nums;margin-top:2px}
-.yr-time small{font-size:22px;font-weight:600}
+.yr-time{font-family:var(--f-display);font-weight:700;font-size:36px;line-height:1.05;font-variant-numeric:tabular-nums;margin-top:2px}
+.yr-time small{font-size:20px;font-weight:600}
 .yr-around{font-family:var(--f-body);font-size:15px;font-weight:500;margin-right:2px}
-.yr-t{font-size:19px;font-weight:600;line-height:1.3;overflow-wrap:anywhere;margin-top:2px}
+.yr-t{font-size:18px;font-weight:600;line-height:1.3;overflow-wrap:anywhere;margin-top:1px}
 .yr-pace{font-size:15.5px;font-weight:500;font-variant-numeric:tabular-nums;margin-top:3px}
 .yr-l{font-size:14px;color:var(--on-green-2);overflow-wrap:anywhere}
-.yr-soc{display:flex;align-items:center;gap:8px;font-size:14px;margin-top:8px}
+.yr-soc{display:flex;align-items:center;gap:8px;font-size:14px;margin-top:6px}
 .yr .stack .av{outline-color:var(--green)}
 .yr .av{background:var(--on-green-2);color:var(--green)}
 .yr .av.me{background:var(--on-green);color:var(--green)}
 .yr .av.sample{background:var(--green);color:var(--on-green);box-shadow:inset 0 0 0 1.5px var(--on-green-2)}
 .yr-sub{font-size:13.5px;color:var(--on-green-2);margin-top:6px;max-width:56ch}
-.yr-foot{display:flex;justify-content:space-between;align-items:center;gap:8px 12px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.24);border-top-color:color-mix(in srgb,var(--on-green) 24%,transparent)}
+.yr-foot{display:flex;justify-content:space-between;align-items:center;gap:10px 12px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.24);border-top-color:color-mix(in srgb,var(--on-green) 24%,transparent)}
 .yr-trip{font-size:14.5px;font-weight:600}
 .yr-trip-m,.trip-m{display:block;font-size:12.5px;font-weight:500;opacity:.85;margin-top:2px}
-.yr-act{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.yr-act{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;align-items:center}
 .btn-inv{background:var(--on-green);color:var(--green)}
 .btn-inv-line{border-color:var(--on-green-2);color:var(--on-green)}
 .btn-inv-line:hover{background:color-mix(in srgb,var(--on-green) 12%,transparent)}
@@ -163,20 +173,20 @@ ul{list-style:none;margin:0;padding:0}
 .yr-more-n{font-weight:500;overflow-wrap:anywhere}
 .yr-more-s{font-size:12.5px;color:var(--green-text);font-weight:600;white-space:nowrap}
 .controls{margin-top:12px}
-.controls.after-yours{margin-top:24px}
-.find-l{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8px}
+.controls.after-yours{margin-top:18px}
+.find-l{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px}
 .segc{display:flex;gap:2px;padding:3px;background:var(--surface);border:1px solid var(--hair);border-radius:999px;box-shadow:var(--shadow)}
-.segc button{flex:1 1 auto;min-height:32px;padding:0 12px;border:0;border-radius:999px;background:none;color:var(--ink-2);font-size:13px;font-weight:600;white-space:nowrap}
+.segc button{flex:1 1 auto;min-height:36px;padding:0 12px;border:0;border-radius:999px;background:none;color:var(--ink-2);font-size:13px;font-weight:600;white-space:nowrap}
 .segc button[aria-pressed="true"]{background:var(--green);color:var(--on-green)}
 .segc button:not([aria-pressed="true"]):hover{background:var(--fill)}
 @media (max-width:360px){.segc button{padding:0 7px;font-size:12.5px}}
-.controls + .day,.controls + .empty + .day{margin-top:16px}
+.controls + .day,.controls + .empty + .day{margin-top:14px}
 .corner{display:flex;align-items:center;gap:8px}
 .corner select{flex:1 1 0;min-width:0}
 .corner span{color:var(--muted);font-weight:600}
 
 /* run list: each run on its own white surface */
-.day{margin-top:22px}
+.day{margin-top:18px}
 .day-h{display:flex;align-items:baseline;gap:4px 8px;flex-wrap:wrap}
 .day-h h2{font-size:15px;font-weight:700;line-height:1.3}
 .day-d{font-size:14px;color:var(--muted)}
@@ -184,30 +194,40 @@ ul{list-style:none;margin:0;padding:0}
 .rule{margin-top:3px;font-size:13.5px;color:var(--ink-2);max-width:62ch}
 .rule-left{color:var(--muted)}
 .rule-more{margin-top:8px;padding:10px 12px;border-radius:10px;background:var(--fill);color:var(--ink-2)}
-.rows{display:grid;gap:10px;margin-top:10px}
-.row{position:relative;display:grid;gap:1px;padding:12px 16px 14px;background:var(--surface);border:1px solid var(--hair);border-radius:14px;box-shadow:var(--shadow);scroll-margin-top:90px}
+.rows{display:grid;gap:8px;margin-top:8px}
+.row{position:relative;display:grid;gap:1px;padding:10px 14px 11px;background:var(--surface);border:1px solid var(--hair);border-radius:14px;box-shadow:var(--shadow);scroll-margin-top:90px}
 .row.mine{border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
 .row.faded{opacity:.6}
-.row-top{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:40px}
+.row-top{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:38px}
 .row-time{display:flex;align-items:baseline;gap:10px;min-width:0;flex-wrap:wrap}
-.row-time b{font-family:var(--f-display);font-weight:600;font-size:25px;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.row-time b{font-family:var(--f-display);font-weight:600;font-size:23px;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
 .tag{font-size:12.5px;font-weight:700;color:var(--warm);letter-spacing:.02em}
 .row-act{position:relative;z-index:1;flex:none;display:flex;align-items:center;gap:2px}
 .row-act .btn-text{padding-inline:10px}
-.row-act .btn{min-height:40px;padding-inline:16px}
-.title{font-size:16.5px;font-weight:600;line-height:1.3;overflow-wrap:anywhere;margin-top:2px}
+.row-act .btn{min-height:38px;padding-inline:14px}
+.title{font-size:16px;font-weight:600;line-height:1.3;overflow-wrap:anywhere;margin-top:1px}
 .row-link{background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
 .row-link::after{content:"";position:absolute;inset:0;border-radius:14px}
 .row-link:focus-visible{outline:none}
 .row-link:focus-visible::after{outline:2px solid var(--green);outline-offset:2px}
 @media (hover:hover){.row:hover .row-link{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1.5px}}
-.pace{font-size:15.5px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink)}
+.pace{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink)}
 .where{font-size:13.5px;color:var(--ink-2);overflow-wrap:anywhere}
-.social{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-2);margin-top:7px}
-.social > span:last-child,.yr-soc > span:last-child{flex:1 1 auto;min-width:0}
+.social{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-2);margin-top:6px}
+.social .soc-t,.yr-soc .soc-t{flex:1 1 auto;min-width:0;text-wrap:pretty}
 .nw{white-space:nowrap}
 .state-chip{display:inline-flex;align-items:center;gap:5px;min-height:34px;padding:0 12px;border-radius:999px;background:var(--fill);color:var(--ink-2);font-size:13.5px;font-weight:700;white-space:nowrap}
 .state-chip.in{background:var(--green-soft);color:var(--green-text)}
+/* Your answer on a board row: a chip with a chevron, so it reads as tappable */
+.state-chip.pick{border:1.5px solid var(--hair);cursor:pointer;padding:0 10px 0 12px;min-height:38px;gap:6px}
+.state-chip.pick.in{border-color:var(--green)}
+.state-chip.pick .ic:last-child{opacity:.8}
+/* chat button on run cards: bubble + count, green dot when there's something new */
+.chat-btn{position:relative;z-index:1;flex:none;display:inline-flex;align-items:center;gap:5px;min-height:34px;padding:0 11px;border-radius:999px;border:1.5px solid color-mix(in srgb,var(--ink) 22%,var(--hair));background:var(--surface);color:var(--ink-2);font-size:13px;font-weight:700}
+.chat-btn.new{border-color:var(--green);color:var(--green-text)}
+.chat-btn.inv{min-height:38px;border-color:var(--on-green-2);background:transparent;color:var(--on-green)}
+.yr.tent .chat-btn.inv,.yr.drop .chat-btn.inv{border-color:var(--green);color:var(--green-text)}
+.dot-new{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--warm);margin-left:1px}
 .row-note{font-size:13px;color:var(--muted);padding:8px 2px;white-space:nowrap}
 .empty{font-size:14px;color:var(--muted);margin-top:10px}
 .hidden-line{font-size:13.5px;color:var(--muted);margin-top:28px;max-width:62ch}
@@ -224,23 +244,38 @@ ul{list-style:none;margin:0;padding:0}
 .sheet .stack .av{outline-color:var(--surface)}
 
 /* run detail */
-.detail{display:grid;gap:14px}
+.detail{display:grid;gap:12px}
 .d-state{font-size:13px;font-weight:600;color:var(--green-text)}
 .d-state.prop{color:var(--warm)}
-.d-title{font-size:22px;font-weight:600;line-height:1.25;overflow-wrap:anywhere;margin-top:-6px}
-.d-time{font-family:var(--f-display);font-weight:700;font-size:44px;line-height:1;font-variant-numeric:tabular-nums;margin-top:-2px}
+.d-title{font-size:20px;font-weight:600;line-height:1.25;overflow-wrap:anywhere;margin-top:-6px}
+.d-time{font-family:var(--f-display);font-weight:700;font-size:40px;line-height:1;font-variant-numeric:tabular-nums;margin-top:-2px}
 .d-time small{font-size:22px;font-weight:600}
 .d-around{font-family:var(--f-body);font-size:15px;font-weight:500;color:var(--muted);margin-right:2px}
 .d-pace{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:-6px}
 .d-next{font-size:14px;color:var(--ink-2);max-width:60ch}
 .d-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.rsvp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:4px;width:100%;background:var(--fill);border-radius:14px}
+.rsvp-b{min-height:46px;border:0;border-radius:11px;background:var(--surface);color:var(--ink);font-weight:700;font-size:15px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 6px;box-shadow:var(--shadow);white-space:nowrap}
+.rsvp-in{color:var(--green-text)}
+.rsvp-b.on.rsvp-in{background:var(--green);color:var(--on-green)}
+.rsvp-b.on.rsvp-maybe{background:var(--green-soft);color:var(--green-text);box-shadow:inset 0 0 0 1.5px var(--green)}
+.rsvp-b.on.rsvp-out{background:var(--ink);color:var(--bg)}
+@media (max-width:350px){.rsvp-b{font-size:13.5px}}
+.rsvp-sheet{display:grid;gap:14px}
+.rsvp-more{display:flex;gap:10px;flex-wrap:wrap}
+.d-tabs{display:flex;gap:6px;border-bottom:1px solid var(--hair);margin-top:2px}
+.d-tabs button{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:9px 12px 10px;margin-bottom:-1px;border-bottom:2.5px solid transparent;font-weight:700;font-size:15px;color:var(--muted);min-height:44px}
+.d-tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--green)}
+.d-tab-n{font-size:12px;font-weight:700;background:var(--fill);color:var(--ink-2);border-radius:999px;padding:1px 7px}
+.d-body{display:grid;gap:12px}
+.d-body .d-rows{border-top:0}
 .in-mark{display:inline-flex;align-items:center;gap:7px;font-weight:600;color:var(--green-text);min-height:40px}
 .in-mark i{width:10px;height:10px;border-radius:50%;background:var(--green)}
 .in-mark.maybe{color:var(--ink-2)}
 .in-mark.maybe i{background:transparent;box-shadow:inset 0 0 0 2px var(--muted)}
-.chat{display:grid;gap:10px;border-top:1px solid var(--hair);padding-top:14px}
+.chat{display:grid;gap:12px}
 .chat-h{margin:0;font-size:15px;font-weight:700}
-.chat-list{list-style:none;margin:0;padding:0;display:grid;gap:12px;max-height:320px;overflow:auto}
+.chat-list{list-style:none;margin:0;padding:0;display:grid;gap:12px;max-height:45vh;max-height:45dvh;overflow:auto;overscroll-behavior:contain}
 .msg{display:flex;gap:10px;align-items:flex-start}
 .msg-b{min-width:0;flex:1}
 .msg-h{margin:0;font-size:12.5px;color:var(--muted)}
@@ -252,7 +287,7 @@ ul{list-style:none;margin:0;padding:0}
 .chat-form textarea:focus{border-color:var(--green);outline:none}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 .d-rows{display:grid;border-top:1px solid var(--hair)}
-.d-rows > div{display:grid;grid-template-columns:84px minmax(0,1fr);gap:10px;padding:10px 0;border-bottom:1px solid var(--hair);align-items:baseline}
+.d-rows > div{display:grid;grid-template-columns:84px minmax(0,1fr);gap:10px;padding:9px 0;border-bottom:1px solid var(--hair);align-items:baseline}
 .d-rows dt{font-size:13px;color:var(--muted)}
 .d-rows dd{font-size:14.5px;min-width:0;overflow-wrap:anywhere}
 .d-rows .m{display:block;font-size:12.5px;color:var(--muted)}
@@ -288,17 +323,17 @@ ul{list-style:none;margin:0;padding:0}
 
 /* sheets and forms */
 .overlay{position:fixed;inset:0;z-index:50;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center}
-.sheet{position:relative;background:var(--surface);color:var(--ink);width:100%;max-width:560px;max-height:92vh;max-height:92dvh;overflow:auto;border-radius:16px 16px 0 0;padding:16px 16px 0;overscroll-behavior:contain}
+.sheet{position:relative;background:var(--surface);color:var(--ink);width:100%;max-width:560px;max-height:92vh;max-height:92dvh;overflow:auto;-webkit-overflow-scrolling:touch;border-radius:16px 16px 0 0;padding:14px 16px 0;overscroll-behavior:contain}
 @media (min-width:700px){.overlay{align-items:center;padding:24px}.sheet{border-radius:14px;padding:22px 24px 0}}
-.sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}
-.sheet-head h2{font-family:var(--f-display);font-weight:700;font-size:28px;line-height:1.05;overflow-wrap:anywhere}
+.sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
+.sheet-head h2{font-family:var(--f-display);font-weight:700;font-size:26px;line-height:1.05;overflow-wrap:anywhere}
 .sheet-head .sub{font-size:14px;color:var(--muted);margin-top:6px;max-width:46ch}
 .sheet-head.bare{position:absolute;top:14px;right:16px;margin:0;z-index:2}
 .sheet-head.bare h2{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .sheet-head.bare + .detail{padding-top:6px}
 .sheet-head.bare + .detail .d-state{padding-right:48px;min-height:24px}
-.sheet-body-pad{padding-bottom:22px}
-.icon-btn{border:1px solid var(--hair);background:var(--surface);border-radius:999px;width:38px;height:38px;display:grid;place-items:center;flex:none}
+.sheet-body-pad{padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.icon-btn{border:1.5px solid color-mix(in srgb,var(--ink) 22%,var(--hair));background:var(--surface);border-radius:999px;width:40px;height:40px;display:grid;place-items:center;flex:none}
 .icon-btn:hover{border-color:var(--ink)}
 .form{display:grid;gap:18px}
 .field{display:grid;gap:7px;min-width:0}
@@ -474,21 +509,22 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     return 1;
   }
 
-  /* ---------------- Beta bots: Philly icons, always shown by full name with a Bot tag, who say they're in on real runs.
+  /* ---------------- Beta bots: famous names (mostly Philly), always shown in full with a Bot tag, who say they're in on real runs.
      They never host, never send friend requests, never show up in Friends, are never written to storage,
      and switch off by themselves once BOTS_UNTIL real people have runner cards. ---------------- */
   const BOTS_UNTIL = 20;
+  // Listed most famous first: when more bots fit a run than it needs, the biggest names say they're in.
   const SAMPLES = [
-    { id: 'sample-maya', handle: 'Ben Franklin', spot: 'walnut', pace: 525, am: true, pm: false },
-    { id: 'sample-dev', handle: 'Jalen Hurts', spot: 'market', pace: 470, am: true, pm: true },
-    { id: 'sample-priya', handle: 'Betsy Ross', spot: 'south', pace: 555, am: true, pm: false },
-    { id: 'sample-tomas', handle: 'Rocky Balboa', spot: 'art-museum', pace: 435, am: true, pm: false },
-    { id: 'sample-hannah', handle: 'Grace Kelly', spot: 'christian', pace: 500, am: false, pm: true },
-    { id: 'sample-sam', handle: 'William Penn', spot: 'walnut', pace: 580, am: true, pm: true },
-    { id: 'sample-ines', handle: 'Marian Anderson', spot: 'boathouse', pace: 485, am: true, pm: false },
-    { id: 'sample-marcus', handle: 'Wilt Chamberlain', spot: 'paines', pace: 510, am: true, pm: true },
-    { id: 'sample-aisha', handle: 'John Coltrane', spot: 'market', pace: 540, am: true, pm: false },
-    { id: 'sample-leo', handle: 'Joe Frazier', spot: 'south', pace: 460, am: false, pm: true },
+    { id: 'sample-maya', handle: 'Ben Franklin', spot: 'walnut', pace: 540, am: true, pm: true },
+    { id: 'sample-dev', handle: 'Jalen Hurts', spot: 'market', pace: 480, am: true, pm: true },
+    { id: 'sample-marcus', handle: 'LeBron James', spot: 'paines', pace: 500, am: true, pm: true },
+    { id: 'sample-hannah', handle: 'Will Smith', spot: 'christian', pace: 515, am: true, pm: true },
+    { id: 'sample-tomas', handle: 'Rocky Balboa', spot: 'art-museum', pace: 450, am: true, pm: true },
+    { id: 'sample-sam', handle: 'Bradley Cooper', spot: 'walnut', pace: 570, am: true, pm: true },
+    { id: 'sample-ines', handle: 'Kevin Hart', spot: 'boathouse', pace: 525, am: true, pm: true },
+    { id: 'sample-priya', handle: 'Betsy Ross', spot: 'south', pace: 600, am: true, pm: true },
+    { id: 'sample-aisha', handle: 'Jason Kelce', spot: 'market', pace: 615, am: true, pm: true },
+    { id: 'sample-leo', handle: 'Joel Embiid', spot: 'south', pace: 555, am: true, pm: true },
   ].map(s => Object.assign(s, { sample: true, vis: 'fof' }));
   const SAMPLE_EDGES = [
     ['sample-maya', 'sample-dev'], ['sample-maya', 'sample-priya'], ['sample-maya', 'sample-sam'], ['sample-maya', 'sample-aisha'],
@@ -679,7 +715,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
   /* ---------------- Storage: the live shared board, or a local sandbox ---------------- */
   const Store = {
     mode: 'loading', me: null, pseudo: false, canWrite: false, isOwner: false, suggestedHandle: '', sandboxReason: '', cloud: false, email: '', authError: '',
-    profiles: {}, friendships: {}, runs: {}, joins: {}, config: {}, home: null, people: {}, thread: null,
+    profiles: {}, friendships: {}, runs: {}, joins: {}, config: {}, home: null, people: {}, thread: null, msgs: {},
     loaded: { profiles: false, friendships: false, runs: false, joins: false, home: false },
     api: null, subs: new Set(),
     on(fn) { this.subs.add(fn); return () => this.subs.delete(fn); },
@@ -688,6 +724,20 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       if (this.mode === 'sandbox') return true;
       const l = this.loaded;
       return this.mode === 'live' && l.profiles && l.friendships && l.runs && l.joins;
+    },
+  };
+
+  // When you last looked at each run's chat, so new messages can show a dot. Per device, only for you.
+  const Seen = {
+    map: null,
+    load() { if (!this.map) { try { this.map = JSON.parse(lsGet('in-seen') || '{}') || {}; } catch (e) { this.map = {}; } } return this.map; },
+    get(id) { return this.load()[id] || 0; },
+    mark(id) {
+      const m = this.load();
+      m[id] = Date.now();
+      const keys = Object.keys(m);
+      if (keys.length > 300) keys.sort((a, b) => m[a] - m[b]).slice(0, keys.length - 300).forEach(k => { delete m[k]; });
+      lsSet('in-seen', JSON.stringify(m));
     },
   };
 
@@ -862,7 +912,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     },
     async onSession(session) {
       if (!session || !session.user) {
-        if (Store.mode !== 'signin') { this.stop(); Object.assign(Store, { mode: 'signin', me: null, email: '', profiles: {}, friendships: {}, runs: {}, joins: {}, home: null, config: {}, loaded: { profiles: false, friendships: false, runs: false, joins: false, home: false } }); Store.emit(); }
+        if (Store.mode !== 'signin') { this.stop(); Object.assign(Store, { mode: 'signin', me: null, email: '', profiles: {}, friendships: {}, runs: {}, joins: {}, home: null, config: {}, msgs: {}, loaded: { profiles: false, friendships: false, runs: false, joins: false, home: false } }); Store.emit(); }
         return;
       }
       const uid = session.user.id;
@@ -881,6 +931,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         this.chan.on('postgres_changes', { event: '*', schema: 'public', table: t[0] }, () => t[1].forEach(w => this.soon(w)));
       });
       this.chan.on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => {
+        this.soon('msgs');
         if (!this.thread) return;
         clearTimeout(this.timers.thread);
         this.timers.thread = setTimeout(() => this.loadThread(), 250);
@@ -940,6 +991,13 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         data.forEach(j => { o[j.run_id + '__' + j.user_id] = { run: j.run_id, user: j.user_id, date: j.date, at: msOf(j.at), kind: j.kind || 'in' }; });
         this.rows.joins = o;
         Store.joins = Object.assign({}, o, this.local.joins);
+      } else if (what === 'msgs') {
+        // Just who wrote when, for the chat buttons' counts and new-message dots.
+        const { data, error } = await sb.from('messages').select('run_id,user_id,at').gte('at', iso(Date.now() - 9 * 86400000)).limit(3000);
+        if (error) throw error;
+        const o = {};
+        data.forEach(m => { const x = o[m.run_id] || (o[m.run_id] = { n: 0, lastOther: 0 }); x.n++; if (m.user_id !== me) x.lastOther = Math.max(x.lastOther, msOf(m.at)); });
+        Store.msgs = o;
       } else if (what === 'config') {
         const { data, error } = await sb.from('app_config').select('*').eq('id', 'app').maybeSingle();
         if (error) throw error;
@@ -954,7 +1012,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     async loadAll() {
       if (!this.uid) return;
       const uid = this.uid;
-      const res = await Promise.allSettled(['profiles', 'friendships', 'runs', 'joins', 'config', 'home'].map(w => this.fetch(w)));
+      const res = await Promise.allSettled(['profiles', 'friendships', 'runs', 'joins', 'config', 'home', 'msgs'].map(w => this.fetch(w)));
       if (this.uid !== uid) return;
       const bad = res.find(r => r.status === 'rejected');
       if (bad) {
@@ -1070,6 +1128,8 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       if (this.thread !== runId) return;
       if (error) { console.warn('In. chat', error); return; }
       Store.thread = { runId, loaded: true, items: data.map(m => ({ id: m.id, user: m.user_id, body: m.body, at: msOf(m.at) })) };
+      const lastOther = data.reduce((t, m) => (m.user_id !== this.uid ? Math.max(t, msOf(m.at)) : t), 0);
+      Store.msgs = Object.assign({}, Store.msgs, { [runId]: { n: data.length, lastOther } });
       Store.emit();
     },
     async sendMessage(runId, body) {
@@ -1216,8 +1276,8 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         // Sample classmates who were in when the host locked stay in.
         const kept = Array.isArray(r.samplesIn) ? r.samplesIn.filter(id => profiles[id] && id !== r.host && !r.joiners.some(j => j.id === id)) : [];
         kept.forEach(id => r.joiners.push({ id, at: r.createdAt || 0, sample: true, virtual: true }));
+        // Biggest names first among the bots whose pace and spot fit the run.
         const cands = SAMPLES.filter(s => s.id !== r.host && !r.joiners.some(j => j.id === s.id) && sampleFits(s, r) && canSee(s.id, r))
-          .sort((a, b) => Math.abs(a.pace - r.pace) - Math.abs(b.pace - r.pace) || (a.id < b.id ? -1 : 1))
           .slice(0, Math.max(0, 3 - kept.length));
         cands.forEach((s, k) => {
           const at = (r.createdAt || 0) + 6000 + 7000 * k;
@@ -1244,6 +1304,9 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       r.started = !r.past && nowMs >= r.startAt.getTime();
       r.joinedByMe = !!me && r.joiners.some(j => j.id === me);
       r.maybeByMe = !!me && r.maybes.some(j => j.id === me);
+      const mm = (Store.msgs || {})[r.id];
+      r.msgCount = mm ? mm.n : 0;
+      r.unread = !!(mm && mm.lastOther > Seen.get(r.id));
     });
     const F1 = me ? F(me) : EMPTY, F2 = new Set();
     F1.forEach(f => F(f).forEach(x => { if (x !== me && !F1.has(x)) F2.add(x); }));
@@ -1275,7 +1338,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       return (pp && pp.name) || (id === me ? 'You' : 'Someone');
     };
     // Bots keep their handle; people show as first name and last initial.
-    const nameOf = id => (isSample(id) ? fullNameOf(id) : shortName(fullNameOf(id)));
+    const nameOf = id => (isSample(id) ? fullNameOf(id) : shortName(fullNameOf(id)).replace(' ', '\u00a0'));
     const mutuals = id => { if (!me) return []; const a = F(me), b = F(id), out = []; a.forEach(x => { if (b.has(x)) out.push(x); }); return out; };
     const relation = id => {
       if (!me || id === me) return 'me';
@@ -1294,6 +1357,8 @@ input[type=email]:focus{border-color:var(--green);outline:none}
 
   /* ---------------- Small pieces ---------------- */
   const I = {
+    chat: () => html`<svg class="ic" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M2.5 3h11v8H7.2L4.4 13.4V11H2.5z" /></svg>`,
+    down: () => html`<svg class="ic" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4" /></svg>`,
     check: () => html`<svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7" /></svg>`,
     plus: () => html`<svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3v10M3 8h10" /></svg>`,
     search: () => html`<svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="7" cy="7" r="4.6" /><path d="M10.4 10.4L14 14" /></svg>`,
@@ -1308,7 +1373,9 @@ input[type=email]:focus{border-color:var(--green);outline:none}
   const countTxt = r => {
     const bots = r.joiners.filter(j => isSample(j.id)).length;
     const real = (r.host ? 1 : 0) + r.joiners.length - bots;
-    return real + (r.faded ? ' said they’d be in' : isProposed(r) ? ' would be in' : ' going') + (bots ? ' + ' + bots + (bots === 1 ? ' bot' : ' bots') : '');
+    const botTxt = bots + (bots === 1 ? ' bot' : ' bots');
+    if (!real) return bots ? botTxt : 'No one yet';
+    return real + (r.faded ? ' said they’d be in' : isProposed(r) ? ' would be in' : ' going') + (bots ? ' + ' + botTxt : '');
   };
   const routeTxt = r => startShort(r) + (r.finish ? ' → ' + shortPlace(r.finish) : ', out and back');
   const awayTxt = L => (L.toStart < 0.05 ? (L.corner ? 'Start: at your door' : 'Start: at your trail spot') : 'Start: ' + mi1(L.toStart) + ' mi away');
@@ -1344,8 +1411,8 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     const cls = 'av' + (id === M.me ? ' me' : isSample(id) ? ' sample' : '');
     return html`<span class=${cls} style=${st} aria-hidden="true">${initials(M.nameOf(id))}</span>`;
   }
-  function Stack({ ids, M, size }) {
-    return html`<span class="stack" aria-hidden="true">${ids.slice(0, 4).map(id => html`<${Avatar} key=${id} id=${id} M=${M} size=${size || 24} />`)}</span>`;
+  function Stack({ ids, M, size, max }) {
+    return html`<span class="stack" aria-hidden="true">${ids.slice(0, max || 4).map(id => html`<${Avatar} key=${id} id=${id} M=${M} size=${size || 24} />`)}</span>`;
   }
   function Name({ id, M, full }) {
     return id === M.me ? 'You' : full ? M.fullNameOf(id) : M.nameOf(id);
@@ -1366,7 +1433,45 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     const pal = mine && !mine.has(r.host) && r.host !== M.me ? r.joiners.filter(j => mine.has(j.id)) : [];
     const palTxt = pal.length ? html` · <${Name} id=${pal[0].id} M=${M} />${pal.length > 1 ? ' + ' + (pal.length - 1) + (pal.length === 2 ? ' friend' : ' friends') : ''} ${isProposed(r) ? 'would be in' : pal.length > 1 ? 'are going' : 'is going'}` : null;
     const maybeTxt = r.maybes && r.maybes.length ? ' · ' + r.maybes.length + ' maybe' : '';
-    return html`<${Stack} ids=${ids} M=${M} size=${size} /><span>${countTxt(r)}${maybeTxt} · <${HostTxt} r=${r} M=${M} />${palTxt}</span>`;
+    return html`<${Stack} ids=${ids} M=${M} size=${size || 22} max=${3} /><span class="soc-t">${countTxt(r)}${maybeTxt} · <${HostTxt} r=${r} M=${M} />${palTxt}</span>`;
+  }
+
+  // The chat button on a run card: a bubble, the message count, and a dot when there's something new.
+  function ChatBtn({ r, onOpen, inv }) {
+    if (!Store.cloud) return null;
+    const label = r.msgCount ? r.msgCount + (r.msgCount === 1 ? ' message' : ' messages') + (r.unread ? ', new' : '') : 'Chat';
+    return html`<button type="button" class=${'chat-btn' + (inv ? ' inv' : '') + (r.unread ? ' new' : '')} onClick=${e => { e.stopPropagation(); onOpen(r, 'chat'); }} aria-label=${'Chat about ' + r.title + ': ' + label}>
+      ${I.chat()}<span>${r.msgCount ? r.msgCount : 'Chat'}</span>${r.unread ? html`<i class="dot-new" aria-hidden="true"></i>` : null}
+    </button>`;
+  }
+
+  // Your answer on a run: I'm in / Maybe / Not going, one tap to switch.
+  function RsvpSeg({ r, act }) {
+    const proposed = isProposed(r);
+    const cur = r.joinedByMe ? 'in' : r.maybeByMe ? 'maybe' : '';
+    const pick = v => {
+      if (v === cur) return;
+      if (v === 'in') act.join(r);
+      else if (v === 'maybe') act.join(r, 'maybe');
+      else if (cur) act.leave(r);
+    };
+    const opts = [['in', proposed ? 'I’d be in' : 'I’m in'], ['maybe', 'Maybe'], ['out', 'Not going']];
+    return html`<div class="rsvp" role="radiogroup" aria-label="Are you going?">${opts.map(o => html`<button type="button" key=${o[0]} role="radio" aria-checked=${cur === o[0]} class=${'rsvp-b rsvp-' + o[0] + (cur === o[0] ? ' on' : '')} onClick=${() => pick(o[0])}>${cur === o[0] ? I.check() : null}${o[1]}</button>`)}</div>`;
+  }
+
+  // Tapping your Joined / Maybe chip on the board opens this: switch your answer, or go to the run.
+  function RsvpSheet({ r, M, act, onClose, openRun }) {
+    if (!r) return null;
+    const a = { join: (x, k) => { onClose(); return act.join(x, k); }, leave: x => { onClose(); return act.leave(x); } };
+    return html`<${Sheet} title=${r.title} sub=${dayName(r.date, M.todayK) + ' at ' + clock(r.start) + ' · ' + pace(r.pace) + '/mi · ' + distTxt(r.dist) + ' mi'} onClose=${onClose}>
+      <div class="rsvp-sheet sheet-body-pad">
+        <${RsvpSeg} r=${r} act=${a} />
+        <div class="rsvp-more">
+          <button type="button" class="btn btn-line" onClick=${() => openRun('details')}>Details</button>
+          ${Store.cloud ? html`<button type="button" class="btn btn-line" onClick=${() => openRun('chat')}>${I.chat()}Chat${r.msgCount ? ' · ' + r.msgCount : ''}</button>` : null}
+        </div>
+      </div>
+    <//>`;
   }
 
   function Seg({ options, value, onChange, label }) {
@@ -1461,6 +1566,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         ${r.legs && !r.faded ? html`<p class="yr-trip">${tripTimes(r.legs, proposed)}<span class="yr-trip-m">${tripMiles(r.legs)}</span></p>` : null}
         <div class="yr-act">
           ${isHost && proposed && M.canWrite ? html`<button class="btn btn-inv btn-sm" onClick=${() => openLock(r)}>Confirm run</button>` : null}
+          <${ChatBtn} r=${r} onOpen=${onOpen} inv=${true} />
           <button class="btn btn-inv-line btn-sm" onClick=${() => onOpen(r)}>Details</button>
         </div>
       </div>
@@ -1482,17 +1588,20 @@ input[type=email]:focus{border-color:var(--green);outline:none}
   }
 
   /* A run in the list: time and action on top, then what it is, pace, where, and who. */
-  function Row({ r, M, onOpen, act, openLock }) {
+  function Row({ r, M, onOpen, act, openLock, openRsvp }) {
     const isHost = r.host === M.me;
     const proposed = isProposed(r);
     let action = null;
     if (r.faded) action = html`<span class="row-note">Dropped</span>`;
     else if (isHost) action = proposed && M.canWrite ? html`<button class="btn btn-maybe btn-sm" onClick=${() => openLock(r)}>Confirm</button>` : html`<span class="state-chip">${proposed ? 'You proposed it' : 'Hosting'}</span>`;
-    else if (r.joinedByMe) action = html`<span class="state-chip in">${I.check()}${proposed ? 'You’d be in' : 'Joined'}</span>`;
-    else if (r.maybeByMe) action = html`<span class="state-chip">Maybe</span>`;
-    else if (M.canWrite) {
+    else if (r.joinedByMe || r.maybeByMe) {
+      // Your answer is a chip with a chevron: tap it to switch between I'm in, Maybe and Not going.
+      action = M.canWrite
+        ? html`<button type="button" class=${'state-chip pick' + (r.joinedByMe ? ' in' : '')} onClick=${() => openRsvp(r)} aria-label=${'Change your answer for ' + r.title}>${r.joinedByMe ? I.check() : null}${r.joinedByMe ? (proposed ? 'You’d be in' : 'Joined') : 'Maybe'}${I.down()}</button>`
+        : html`<span class=${'state-chip' + (r.joinedByMe ? ' in' : '')}>${r.joinedByMe ? 'Joined' : 'Maybe'}</span>`;
+    } else if (M.canWrite) {
       action = [
-        html`<button key="m" class="btn btn-text btn-sm" onClick=${() => act.join(r, 'maybe')} aria-label=${'Maybe: ' + r.title}>Maybe</button>`,
+        html`<button key="m" class="btn btn-line btn-sm" onClick=${() => act.join(r, 'maybe')} aria-label=${'Maybe: ' + r.title}>Maybe</button>`,
         proposed
           ? html`<button key="i" class="btn btn-maybe btn-sm" onClick=${() => act.join(r)} aria-label=${'I’d be in: ' + r.title}>I’d be in</button>`
           : html`<button key="i" class="btn btn-go btn-sm" onClick=${() => act.join(r)} aria-label=${'I’m in: ' + r.title}>I’m in</button>`,
@@ -1507,11 +1616,11 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       <h3 class="title"><button class="row-link" onClick=${() => onOpen(r)}>${r.title}</button></h3>
       <p class="pace">${pace(r.pace)}/mi · ${distTxt(r.dist)} mi</p>
       <p class="where">${routeTxt(r)}${r.legs ? html` · <span class="nw">${awayTxt(r.legs)}</span>` : null}</p>
-      <p class="social"><${People} r=${r} M=${M} /></p>
+      <div class="social"><${People} r=${r} M=${M} /><${ChatBtn} r=${r} onOpen=${onOpen} /></div>
     </li>`;
   }
 
-  function Day({ d, M, now, onOpen, act, openLock, openPost, showRule, circle, widen, first }) {
+  function Day({ d, M, now, onOpen, act, openLock, openRsvp, openPost, showRule, circle, widen, first }) {
     const [how, setHow] = useState(false);
     const lockBy = lockByFor(d.key);
     const tonight = d.i === 1 && now < lockBy;
@@ -1522,14 +1631,14 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         ${how ? html`<p class="rule-more">Confirming sets the exact time and start. Everyone who tapped I’d be in is then going. If the host doesn’t confirm by 10 PM, the run is dropped. Confirmed runs take I’m in right up to the start.</p>` : null}
       </div>` : null}
       ${d.runs.length
-        ? html`<ul class="rows">${d.runs.map(r => html`<${Row} key=${r.id} r=${r} M=${M} onOpen=${onOpen} act=${act} openLock=${openLock} />`)}</ul>`
+        ? html`<ul class="rows">${d.runs.map(r => html`<${Row} key=${r.id} r=${r} M=${M} onOpen=${onOpen} act=${act} openLock=${openLock} openRsvp=${openRsvp} />`)}</ul>`
         : d.total
           ? html`<p class="empty">${CIRCLE_EMPTY[circle] || 'Nothing '}${dayRef(d.key, M.todayK)} yet. <button class="linkish" onClick=${widen}>Show all Wharton</button></p>`
           : html`<p class="empty">Nothing posted for ${dayRef(d.key, M.todayK)} yet.${M.canWrite && M.meP ? html` <button class="linkish" onClick=${() => openPost({ date: d.key })}>Post the first run</button>` : null}</p>`}
     </section>`;
   }
 
-  function RunList({ M, now, onOpen, act, openLock, openPost, goFriends, openProfile }) {
+  function RunList({ M, now, onOpen, act, openLock, openRsvp, openPost, goFriends, openProfile }) {
     const [circle, setCircleRaw] = useState(() => { const v = lsGet('in-circle'); return CIRCLE_RANK[v] != null ? v : 'wharton'; });
     const setCircle = v => { setCircleRaw(v); lsSet('in-circle', v); };
     if (!M.ready) return html`<ul class="rows" style="margin-top:40px">${[0, 1, 2, 3].map(i => html`<li key=${i} class="skel-row"></li>`)}</ul>`;
@@ -1546,7 +1655,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         <div class="segc" role="group" aria-label="Show runs with">${CIRCLES.map(o => html`<button type="button" key=${o[0]} aria-pressed=${circle === o[0]} onClick=${() => setCircle(o[0])}>${o[1]}</button>`)}</div>
       </div>
       ${noFriends ? html`<p class="empty">You haven’t added friends yet. <button class="linkish" onClick=${goFriends}>Find friends</button></p>` : null}
-      ${days.map(d => html`<${Day} key=${d.key} d=${d} M=${M} now=${now} onOpen=${onOpen} act=${act} openLock=${openLock} openPost=${openPost} showRule=${!!ruleDay && ruleDay.key === d.key} circle=${circle} widen=${() => setCircle('wharton')} first=${d === days[0]} />`)}
+      ${days.map(d => html`<${Day} key=${d.key} d=${d} M=${M} now=${now} onOpen=${onOpen} act=${act} openLock=${openLock} openRsvp=${openRsvp} openPost=${openPost} showRule=${!!ruleDay && ruleDay.key === d.key} circle=${circle} widen=${() => setCircle('wharton')} first=${d === days[0]} />`)}
       ${M.hiddenTotal ? html`<p class="hidden-line">${M.hiddenTotal} more ${M.hiddenTotal === 1 ? 'run this week is' : 'runs this week are'} shared only with friends or friends of friends. ${M.meP ? html`<button class="linkish" onClick=${goFriends}>Find friends</button>` : null}</p>` : null}
     </div>`;
   }
@@ -1560,7 +1669,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     return html`<section class="trip" aria-label="Your trip">
       <div class="trip-sum">
         <p>${tripTimes(L, proposed)}<span class="trip-m">${tripMiles(L)}</span></p>
-        <button class="btn btn-text btn-sm" aria-expanded=${open} onClick=${() => setOpen(!open)}>${open ? 'Hide the legs' : 'Show the legs'}${I.chevron(open)}</button>
+        <button class="btn btn-line btn-sm" aria-expanded=${open} onClick=${() => setOpen(!open)}>${open ? 'Hide the legs' : 'Show the legs'}${I.chevron(open)}</button>
       </div>
       ${open ? html`<div class="legs">
         ${L.there.length ? html`<p class="leg-h">Getting there, ${how === 'walk' ? 'walking' : 'jogging'}</p>` : null}
@@ -1578,8 +1687,10 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     </section>`;
   }
 
-  function RunDetail({ r, M, now, act, openLock, openPost }) {
+  function RunDetail({ r, M, now, act, openLock, openPost, initialTab }) {
     const [ask, setAsk] = useState(null);  // 'cancel' or 'leave' while the host confirms
+    const hasChat = Store.cloud && M.mode === 'live';
+    const [tab, setTab] = useState(hasChat && initialTab === 'chat' ? 'chat' : 'details');
     if (!r) return html`<div class="detail sheet-body-pad"><p class="d-state prop">Gone</p><p class="empty">This run is no longer on the board.</p></div>`;
     if (r.status === 'cancelled') return html`<div class="detail sheet-body-pad"><p class="d-state prop">Cancelled</p><p class="empty">The host cancelled this run.</p></div>`;
     const isHost = r.host === M.me;
@@ -1606,13 +1717,13 @@ input[type=email]:focus{border-color:var(--green);outline:none}
           actions = [
             html`<span key="c">Cancel this run?</span>`,
             html`<button key="y" class="btn btn-line btn-sm btn-danger" onClick=${() => { setAsk(null); act.cancel(r); }}>Yes, cancel it</button>`,
-            html`<button key="n" class="btn btn-text btn-sm" onClick=${() => setAsk(null)}>Keep it</button>`,
+            html`<button key="n" class="btn btn-line btn-sm" onClick=${() => setAsk(null)}>Keep it</button>`,
           ];
         } else if (ask === 'leave') {
           actions = [
             html`<span key="c">Drop out as host? The run stays up and anyone going can take over.</span>`,
             html`<button key="y" class="btn btn-line btn-sm" onClick=${() => { setAsk(null); act.stepDown(r); }}>Yes, drop out</button>`,
-            html`<button key="n" class="btn btn-text btn-sm" onClick=${() => setAsk(null)}>Keep hosting</button>`,
+            html`<button key="n" class="btn btn-line btn-sm" onClick=${() => setAsk(null)}>Keep hosting</button>`,
           ];
         } else {
           // Hosts can drop out once someone else is in (or a maybe); on their own, cancelling is the way out.
@@ -1620,29 +1731,16 @@ input[type=email]:focus{border-color:var(--green);outline:none}
           actions = [
             proposed ? html`<button key="l" class="btn btn-go" onClick=${() => openLock(r)}>Confirm run</button>` : null,
             html`<button key="e" class="btn btn-line" onClick=${() => openPost({ edit: r })}>Edit</button>`,
-            others ? html`<button key="d" class="btn btn-text" onClick=${() => setAsk('leave')}>Drop out</button>` : null,
-            html`<button key="x" class="btn btn-text" onClick=${() => setAsk('cancel')}>Cancel run</button>`,
+            others ? html`<button key="d" class="btn btn-line" onClick=${() => setAsk('leave')}>Drop out</button>` : null,
+            html`<button key="x" class="btn btn-line btn-danger" onClick=${() => setAsk('cancel')}>Cancel run</button>`,
           ];
         }
       } else if (!r.faded) {
-        const take = !r.host ? html`<button key="t" class="btn btn-go" onClick=${() => act.takeOver(r)}>Take over as host</button>` : null;
-        const inBtn = proposed
-          ? html`<button key="i" class=${'btn btn-maybe' + (take ? '' : ' btn-lg')} onClick=${() => act.join(r)}>I’d be in</button>`
-          : html`<button key="i" class=${take ? 'btn btn-line' : 'btn btn-go btn-lg'} onClick=${() => act.join(r)}>I’m in</button>`;
-        if (r.joinedByMe) {
-          actions = [
-            html`<span key="in" class="in-mark"><i></i>${proposed ? 'You’d be in' : 'You’re going'}</span>`, take,
-            html`<button key="m" class="btn btn-text" onClick=${() => act.join(r, 'maybe')}>Change to maybe</button>`,
-            html`<button key="out" class="btn btn-text" onClick=${() => act.leave(r)}>Drop out</button>`,
-          ];
-        } else if (r.maybeByMe) {
-          actions = [
-            html`<span key="mb" class="in-mark maybe"><i></i>You’re a maybe</span>`, take, inBtn,
-            html`<button key="out" class="btn btn-text" onClick=${() => act.leave(r)}>Not going</button>`,
-          ];
-        } else {
-          actions = [take, inBtn, html`<button key="m" class="btn btn-text" onClick=${() => act.join(r, 'maybe')}>Maybe</button>`];
-        }
+        // One switch for your answer; taking over a run with no host sits under it.
+        actions = [
+          html`<${RsvpSeg} key="rsvp" r=${r} act=${act} />`,
+          !r.host ? html`<button key="t" class="btn btn-go" onClick=${() => act.takeOver(r)}>Take over as host</button>` : null,
+        ];
       }
     }
     const going = [r.host].concat(r.joiners.map(j => j.id)).filter(Boolean);
@@ -1657,6 +1755,11 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       <p class="d-pace">${pace(r.pace)}/mi · ${distTxt(r.dist)} mi</p>
       ${next ? html`<p class="d-next">${next}</p>` : null}
       ${actions ? html`<div class="d-actions">${actions}</div>` : null}
+      ${hasChat ? html`<div class="d-tabs" role="tablist" aria-label="Run">
+        <button type="button" role="tab" aria-selected=${tab === 'details'} onClick=${() => setTab('details')}>Details</button>
+        <button type="button" role="tab" aria-selected=${tab === 'chat'} onClick=${() => setTab('chat')}>${I.chat()}Chat${r.msgCount ? html`<span class="d-tab-n">${r.msgCount}</span>` : null}${r.unread && tab !== 'chat' ? html`<i class="dot-new" aria-label="new messages"></i>` : null}</button>
+      </div>` : null}
+      ${tab === 'chat' && hasChat ? html`<${Chat} key=${'chat-' + r.id} r=${r} M=${M} act=${act} />` : html`<div class="d-body">
       <dl class="d-rows">
         <div><dt>${proposed ? 'Would be in' : 'Going'}</dt><dd>${going.length ? html`<span class="who"><${Stack} ids=${going} M=${M} size=${24} /><span>${going.map((id, i) => html`<span key=${id}>${i ? ', ' : ''}<${Name} id=${id} M=${M} full=${true} />${id === r.host ? ' (host)' : ''}${isSample(id) ? html`<${BotTag} />` : null}</span>`)}</span></span>` : 'No one yet'}</dd></div>
         ${r.maybes.length ? html`<div><dt>Maybe</dt><dd>${r.maybes.map((j, i) => html`<span key=${j.id}>${i ? ', ' : ''}<${Name} id=${j.id} M=${M} full=${true} /></span>`)}</dd></div>` : null}
@@ -1666,7 +1769,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         <div><dt>Seen by</dt><dd>${VIS_SEEN[r.vis] || VIS_SEEN.fof}</dd></div>
       </dl>
       ${r.legs && !r.faded ? html`<${Trip} key=${r.id} L=${r.legs} proposed=${proposed} M=${M} act=${act} />` : null}
-      ${Store.cloud && M.mode === 'live' ? html`<${Chat} key=${'chat-' + r.id} r=${r} M=${M} act=${act} />` : null}
+      </div>`}
     </article>`;
   }
 
@@ -1685,6 +1788,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     const th = Store.thread && Store.thread.runId === r.id ? Store.thread : null;
     const items = th ? th.items : [];
     useEffect(() => { const el = listRef.current; if (el) el.scrollTop = el.scrollHeight; }, [items.length]);
+    useEffect(() => { if (th && th.loaded) Seen.mark(r.id); }, [th && th.loaded, items.length]);
     const send = async e => {
       e.preventDefault();
       const body = text.trim();
@@ -1695,7 +1799,6 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       if (ok) setText('');
     };
     return html`<section class="chat" aria-label="Chat">
-      <h4 class="chat-h">Chat</h4>
       ${!th || !th.loaded
         ? html`<p class="hint">Loading messages…</p>`
         : items.length
@@ -1706,7 +1809,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
                 <p class="msg-text">${m.body}</p>
               </div>
             </li>`)}</ol>`
-          : html`<p class="hint">No messages yet. Ask about the plan, or say you’re running late.</p>`}
+          : html`<p class="hint">No messages yet. Everyone who can see this run can read the chat. Ask about the plan, or say you’re running late.</p>`}
       ${M.canWrite && M.meP ? html`<form class="chat-form" onSubmit=${send}>
         <label class="sr-only" for=${'chat-' + r.id}>Message</label>
         <textarea id=${'chat-' + r.id} rows="2" maxlength="500" placeholder="Message everyone on this run" value=${text} onInput=${e => setText(e.target.value)}></textarea>
@@ -1845,15 +1948,15 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         <h2 class="section-title">Requests</h2>
         <ul class="flist">${incoming.map(x => html`<${PersonRow} key=${x.other} id=${x.other} M=${M}>
           <button class="btn btn-go btn-sm" onClick=${() => act.accept(x)}>Accept</button>
-          <button class="btn btn-text btn-sm" onClick=${() => act.decline(x)}>Decline</button>
+          <button class="btn btn-line btn-sm" onClick=${() => act.decline(x)}>Decline</button>
         <//>`)}</ul>
       </section>` : null}
       <section>
         <h2 class="section-title">Friends<span class="count">${friends.length}</span></h2>
         ${friends.length ? html`<ul class="flist">${friends.map(id => html`<${PersonRow} key=${id} id=${id} M=${M}>
           ${confirmId === id
-            ? [html`<button key="r" class="btn btn-line btn-sm btn-danger" onClick=${() => { setConfirmId(null); act.unfriend(id); }}>Remove</button>`, html`<button key="k" class="btn btn-text btn-sm" onClick=${() => setConfirmId(null)}>Keep</button>`]
-            : html`<button class="btn btn-text btn-sm" onClick=${() => setConfirmId(id)}>Remove</button>`}
+            ? [html`<button key="r" class="btn btn-line btn-sm btn-danger" onClick=${() => { setConfirmId(null); act.unfriend(id); }}>Remove</button>`, html`<button key="k" class="btn btn-line btn-sm" onClick=${() => setConfirmId(null)}>Keep</button>`]
+            : html`<button class="btn btn-line btn-sm" onClick=${() => setConfirmId(id)}>Remove</button>`}
         <//>`)}</ul>` : html`<p class="empty">No friends yet. Add a few classmates below. Their runs, and their friends' runs, then show up on your board.</p>`}
       </section>
       <section>
@@ -1861,7 +1964,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         <label class="search" for="find-q">${I.search()}<input id="find-q" type="search" placeholder="Search by name" autocomplete="off" value=${q} onInput=${e => setQ(e.target.value)} /></label>
         ${others.length ? html`<ul class="flist">${others.map(o => html`<${PersonRow} key=${o.id} id=${o.id} M=${M} via=${o.mut}>
           ${outgoingBy[o.id]
-            ? [html`<span key="p" class="pending">Requested</span>`, html`<button key="c" class="btn btn-text btn-sm" onClick=${() => act.cancelRequest(outgoingBy[o.id])}>Cancel</button>`]
+            ? [html`<span key="p" class="pending">Requested</span>`, html`<button key="c" class="btn btn-line btn-sm" onClick=${() => act.cancelRequest(outgoingBy[o.id])}>Cancel</button>`]
             : html`<button class="btn btn-line btn-sm" onClick=${() => act.request(o.id)} aria-label=${'Add ' + M.fullNameOf(o.id)}>${I.plus()}Add</button>`}
         <//>`)}</ul>` : html`<p class="empty">${ql ? 'No one by that name on In. yet.' : M.realCount <= 1 ? 'No one else is on In. yet. Send friends the link and they’ll show up here.' : 'You’re connected with everyone on In. so far.'}</p>`}
       </section>
@@ -1873,7 +1976,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     const showSamples = M.mode === 'sandbox' || (M.mode === 'live' && M.isOwner);
     return html`<div class="extras">
       ${showSamples ? html`<div class="extra-row">
-        <div><b>Beta bots</b><p class="hint">Up to three Philly icons say they’re in on All Wharton runs, each marked Bot. They never post runs or count as people, and they switch off by themselves once ${BOTS_UNTIL} people are on In.${M.mode === 'live' ? ' This switch applies to everyone.' : ''}</p></div>
+        <div><b>Beta bots</b><p class="hint">Up to three famous names say they’re in on All Wharton runs, each marked Bot. They never post runs or count as people, and they switch off by themselves once ${BOTS_UNTIL} people are on In.${M.mode === 'live' ? ' This switch applies to everyone.' : ''}</p></div>
         <${Seg} label="Beta bots" value=${M.samplesOn ? 'on' : 'off'} onChange=${v => act.setSamples(v === 'on')} options=${[['on', 'On'], ['off', 'Off']]} />
       </div>` : null}
       ${M.mode === 'sandbox' ? html`<div class="extra-row">
@@ -1949,7 +2052,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
           <span class="hint">${f.travel === 'jog' ? 'Leave and home times assume you jog at your easy pace plus 1:00/mi, so ' + pace(f.pace + 60) + '/mi.' : 'Leave and home times assume you walk to and from runs at 20:00/mi.'}</span></div>
         ${err ? html`<p class="err">${err}</p>` : null}
         <div class="sheet-actions">
-          <button type="button" class="btn btn-text" onClick=${onClose}>${onboarding ? 'Just browse' : 'Close'}</button>
+          <button type="button" class="btn btn-line" onClick=${onClose}>${onboarding ? 'Just browse' : 'Close'}</button>
           ${M.canWrite ? html`<button type="submit" class="btn btn-go btn-lg" disabled=${busy}>${onboarding ? 'Save and start' : 'Save'}</button>` : null}
         </div>
       </form>
@@ -2080,7 +2183,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
           <input id="ps-note" type="text" maxlength="90" placeholder="Strides at the end, coffee after" value=${f.note} onInput=${e => set('note', e.target.value)} /></div>
         ${problems.map(p => html`<p key=${p} class="err">${p}</p>`)}
         <div class="sheet-actions">
-          <button type="button" class="btn btn-text" onClick=${onClose}>Cancel</button>
+          <button type="button" class="btn btn-line" onClick=${onClose}>Cancel</button>
           <button type="submit" class="btn btn-go btn-lg" disabled=${busy}>${editing ? 'Save changes' : isInt ? 'Propose run' : 'Post run'}</button>
         </div>
       </form>
@@ -2150,7 +2253,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         <div class="field"><span class="lbl">Pace</span><${Stepper} id="lk-pace" label="pace" value=${c.pace} min=${300} max=${780} step=${5} fmt=${v => pace(v) + ' /mi'} onChange=${v => set('pace', v)} /></div>
         ${!onSug ? html`<p class="hint">You changed the plan. <button type="button" class="linkish" onClick=${() => setChoice(null)}>Go back to the suggestion</button></p>` : null}
         <div class="sheet-actions">
-          <button type="button" class="btn btn-text" onClick=${onClose}>Not yet</button>
+          <button type="button" class="btn btn-line" onClick=${onClose}>Not yet</button>
           <button type="submit" class="btn btn-go btn-lg" disabled=${busy}>Confirm run</button>
         </div>
       </form>
@@ -2284,7 +2387,8 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       setSheet({ type: 'post', opts: opts || null });
     }, []);
     const openLock = useCallback(r => setSheet({ type: 'lock', runId: r.id }), []);
-    const onOpen = useCallback(r => setSheet({ type: 'run', runId: r.id }), []);
+    const onOpen = useCallback((r, tab) => setSheet({ type: 'run', runId: r.id, tab: tab === 'chat' ? 'chat' : 'details' }), []);
+    const openRsvp = useCallback(r => setSheet({ type: 'rsvp', runId: r.id }), []);
     const act = useMemo(() => makeActions({
       say, getM: () => Mref.current, openProfile,
       // After joining or posting, the page reorganizes around the commitment, so bring its top into view.
@@ -2330,11 +2434,12 @@ input[type=email]:focus{border-color:var(--green);outline:none}
           <${Tabs} tab=${tab} setTab=${setTab} reqCount=${M.meP ? M.incoming.length : 0} />
           ${tab === 'friends'
             ? html`<${FriendsView} M=${M} act=${act} openProfile=${() => openProfile(true)} />`
-            : html`<${RunList} M=${M} now=${now} onOpen=${onOpen} act=${act} openLock=${openLock} openPost=${openPost} goFriends=${() => setTab('friends')} openProfile=${() => openProfile(true)} />`}
+            : html`<${RunList} M=${M} now=${now} onOpen=${onOpen} act=${act} openLock=${openLock} openRsvp=${openRsvp} openPost=${openPost} goFriends=${() => setTab('friends')} openProfile=${() => openProfile(true)} />`}
           <${Footer} M=${M} />
         </main>
       </div>
-      ${sheet && sheet.type === 'run' ? html`<${Sheet} title="Run details" bare=${true} onClose=${close}><${RunDetail} r=${sheetRun} M=${M} now=${now} act=${act} openLock=${r => setSheet({ type: 'lock', runId: r.id })} openPost=${o => { setSheet(null); openPost(o); }} /><//>` : null}
+      ${sheet && sheet.type === 'run' ? html`<${Sheet} title="Run details" bare=${true} onClose=${close}><${RunDetail} key=${sheet.runId + sheet.tab} r=${sheetRun} M=${M} now=${now} act=${act} initialTab=${sheet.tab} openLock=${r => setSheet({ type: 'lock', runId: r.id })} openPost=${o => { setSheet(null); openPost(o); }} /><//>` : null}
+      ${sheet && sheet.type === 'rsvp' ? html`<${RsvpSheet} r=${M.runById[sheet.runId]} M=${M} act=${act} onClose=${close} openRun=${t => setSheet({ type: 'run', runId: sheet.runId, tab: t })} />` : null}
       ${sheet && sheet.type === 'profile' ? html`<${ProfileSheet} M=${M} onboarding=${sheet.onboarding} onClose=${close} act=${act} />` : null}
       ${sheet && sheet.type === 'post' ? html`<${PostSheet} M=${M} now=${now} opts=${sheet.opts} onClose=${close} act=${act} />` : null}
       ${sheet && sheet.type === 'lock' ? html`<${LockSheet} M=${M} runId=${sheet.runId} onClose=${close} act=${act} />` : null}
