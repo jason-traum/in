@@ -15,5 +15,12 @@ Live at **https://jason-traum.github.io/in/**
 
 - Your nearest corner is readable only by you.
 - Runner cards (name, trail spot, pace) and who's friends with whom are visible to signed-in people, since that's how Friends of friends works. Emails aren't shown.
-- Runs follow their setting (Friends, Friends of friends, All Wharton), and people who joined a run can always see it.
+- Runs follow their setting (Friends, Friends of friends, All Wharton), and people who joined a run (or said maybe) can always see it.
+- A run's chat is visible to everyone who can see that run.
 - Signed-out visitors see only the sign-in screen.
+
+## Beta
+
+- Up to three Philly icons (Ben Franklin, Jalen Hurts, and friends) say they're in on All Wharton runs. They're always marked Bot, never post runs, never count as people, and switch off by themselves once 20 people have runner cards. The admin can switch them off sooner from the runner card.
+- If a host drops out, the run stays up with a note, and anyone who can see it can take over as host.
+- Leave and home times assume you walk to and from runs at 20:00/mi, unless your runner card says you jog.

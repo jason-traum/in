@@ -134,6 +134,7 @@ ul{list-style:none;margin:0;padding:0}
 .yr-sub{font-size:13.5px;color:var(--on-green-2);margin-top:6px;max-width:56ch}
 .yr-foot{display:flex;justify-content:space-between;align-items:center;gap:8px 12px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.24);border-top-color:color-mix(in srgb,var(--on-green) 24%,transparent)}
 .yr-trip{font-size:14.5px;font-weight:600}
+.yr-trip-m,.trip-m{display:block;font-size:12.5px;font-weight:500;opacity:.85;margin-top:2px}
 .yr-act{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
 .btn-inv{background:var(--on-green);color:var(--green)}
 .btn-inv-line{border-color:var(--on-green-2);color:var(--on-green)}
@@ -191,7 +192,8 @@ ul{list-style:none;margin:0;padding:0}
 .row-time{display:flex;align-items:baseline;gap:10px;min-width:0;flex-wrap:wrap}
 .row-time b{font-family:var(--f-display);font-weight:600;font-size:25px;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
 .tag{font-size:12.5px;font-weight:700;color:var(--warm);letter-spacing:.02em}
-.row-act{position:relative;z-index:1;flex:none;display:flex}
+.row-act{position:relative;z-index:1;flex:none;display:flex;align-items:center;gap:2px}
+.row-act .btn-text{padding-inline:10px}
 .row-act .btn{min-height:40px;padding-inline:16px}
 .title{font-size:16.5px;font-weight:600;line-height:1.3;overflow-wrap:anywhere;margin-top:2px}
 .row-link{background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
@@ -234,6 +236,21 @@ ul{list-style:none;margin:0;padding:0}
 .d-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .in-mark{display:inline-flex;align-items:center;gap:7px;font-weight:600;color:var(--green-text);min-height:40px}
 .in-mark i{width:10px;height:10px;border-radius:50%;background:var(--green)}
+.in-mark.maybe{color:var(--ink-2)}
+.in-mark.maybe i{background:transparent;box-shadow:inset 0 0 0 2px var(--muted)}
+.chat{display:grid;gap:10px;border-top:1px solid var(--hair);padding-top:14px}
+.chat-h{margin:0;font-size:15px;font-weight:700}
+.chat-list{list-style:none;margin:0;padding:0;display:grid;gap:12px;max-height:320px;overflow:auto}
+.msg{display:flex;gap:10px;align-items:flex-start}
+.msg-b{min-width:0;flex:1}
+.msg-h{margin:0;font-size:12.5px;color:var(--muted)}
+.msg-h b{color:var(--ink);font-size:13.5px;margin-right:4px}
+.msg-x{font-size:12.5px;margin-left:8px}
+.msg-text{margin:2px 0 0;font-size:14.5px;white-space:pre-wrap;overflow-wrap:anywhere}
+.chat-form{display:flex;gap:8px;align-items:flex-end}
+.chat-form textarea{flex:1;min-width:0;font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--hair);border-radius:10px;padding:10px 12px;resize:vertical;min-height:46px}
+.chat-form textarea:focus{border-color:var(--green);outline:none}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 .d-rows{display:grid;border-top:1px solid var(--hair)}
 .d-rows > div{display:grid;grid-template-columns:84px minmax(0,1fr);gap:10px;padding:10px 0;border-bottom:1px solid var(--hair);align-items:baseline}
 .d-rows dt{font-size:13px;color:var(--muted)}
@@ -457,43 +474,26 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     return 1;
   }
 
-  /* ---------------- Sample classmates: demo content, never written to storage ---------------- */
+  /* ---------------- Beta bots: Philly icons, always shown by full name with a Bot tag, who say they're in on real runs.
+     They never host, never send friend requests, never show up in Friends, are never written to storage,
+     and switch off by themselves once BOTS_UNTIL real people have runner cards. ---------------- */
+  const BOTS_UNTIL = 20;
   const SAMPLES = [
-    { id: 'sample-maya', handle: 'Maya R.', spot: 'walnut', pace: 525, am: true, pm: false },
-    { id: 'sample-dev', handle: 'Dev K.', spot: 'market', pace: 470, am: true, pm: true },
-    { id: 'sample-priya', handle: 'Priya S.', spot: 'south', pace: 555, am: true, pm: false },
-    { id: 'sample-tomas', handle: 'Tomás A.', spot: 'art-museum', pace: 435, am: true, pm: false },
-    { id: 'sample-hannah', handle: 'Hannah L.', spot: 'christian', pace: 500, am: false, pm: true },
-    { id: 'sample-sam', handle: 'Sam O.', spot: 'walnut', pace: 580, am: true, pm: true },
-    { id: 'sample-ines', handle: 'Inés V.', spot: 'boathouse', pace: 485, am: true, pm: false },
-    { id: 'sample-marcus', handle: 'Marcus B.', spot: 'paines', pace: 510, am: true, pm: true },
-    { id: 'sample-aisha', handle: 'Aisha N.', spot: 'market', pace: 540, am: true, pm: false },
-    { id: 'sample-leo', handle: 'Leo W.', spot: 'south', pace: 460, am: false, pm: true },
+    { id: 'sample-maya', handle: 'Ben Franklin', spot: 'walnut', pace: 525, am: true, pm: false },
+    { id: 'sample-dev', handle: 'Jalen Hurts', spot: 'market', pace: 470, am: true, pm: true },
+    { id: 'sample-priya', handle: 'Betsy Ross', spot: 'south', pace: 555, am: true, pm: false },
+    { id: 'sample-tomas', handle: 'Rocky Balboa', spot: 'art-museum', pace: 435, am: true, pm: false },
+    { id: 'sample-hannah', handle: 'Grace Kelly', spot: 'christian', pace: 500, am: false, pm: true },
+    { id: 'sample-sam', handle: 'William Penn', spot: 'walnut', pace: 580, am: true, pm: true },
+    { id: 'sample-ines', handle: 'Marian Anderson', spot: 'boathouse', pace: 485, am: true, pm: false },
+    { id: 'sample-marcus', handle: 'Wilt Chamberlain', spot: 'paines', pace: 510, am: true, pm: true },
+    { id: 'sample-aisha', handle: 'John Coltrane', spot: 'market', pace: 540, am: true, pm: false },
+    { id: 'sample-leo', handle: 'Joe Frazier', spot: 'south', pace: 460, am: false, pm: true },
   ].map(s => Object.assign(s, { sample: true, vis: 'fof' }));
   const SAMPLE_EDGES = [
     ['sample-maya', 'sample-dev'], ['sample-maya', 'sample-priya'], ['sample-maya', 'sample-sam'], ['sample-maya', 'sample-aisha'],
     ['sample-dev', 'sample-tomas'], ['sample-dev', 'sample-leo'], ['sample-priya', 'sample-hannah'], ['sample-tomas', 'sample-ines'],
     ['sample-tomas', 'sample-leo'], ['sample-hannah', 'sample-marcus'], ['sample-ines', 'sample-marcus'],
-  ];
-  // Weekly habits. days: 0 = Sunday. Most go out and back from where they start; placeId starts in the
-  // neighborhood, finishId ends somewhere else (usually food or coffee).
-  const TEMPLATES = [
-    { key: 'maya-am', title: 'Easy miles + coffee', host: 'sample-maya', days: [1, 3, 5], status: 'locked', start: 390, spot: 'walnut', finishId: 'rival-bros', pace: 525, dist: 5, vis: 'fof', note: 'Easy five, then coffee. Back in time for an 8:30 class.', regulars: ['sample-sam', 'sample-aisha'] },
-    { key: 'maya-long', title: 'Sunday long run to the Falls', host: 'sample-maya', days: [0], status: 'locked', start: 480, spot: 'walnut', pace: 540, dist: 10, vis: 'wharton', note: 'Long run to the Falls Bridge and back. Anyone near 9:00 is welcome.', regulars: ['sample-priya', 'sample-sam'] },
-    { key: 'priya-am', title: 'Shakeout before Stats', host: 'sample-priya', days: [1, 4], status: 'intention', start: 420, placeId: 'rittenhouse', finishId: 'la-colombe', pace: 555, dist: 4, vis: 'wharton', note: 'Down to the river and back up for coffee. Flexible on where we start.', regulars: ['sample-maya'] },
-    { key: 'dev-am', title: 'Steady six from Huntsman', host: 'sample-dev', days: [2, 4], status: 'locked', start: 375, placeId: 'huntsman', pace: 470, dist: 6, vis: 'friends', note: 'Meet at Huntsman, jog down Walnut to the river. Steady six.', regulars: ['sample-leo'] },
-    { key: 'dev-long', title: 'Long run past the Falls Bridge', host: 'sample-dev', days: [6], status: 'locked', start: 450, spot: 'market', pace: 480, dist: 12, vis: 'fof', note: 'Long run past the Falls Bridge. Water stop at Lloyd Hall.', regulars: ['sample-tomas'] },
-    { key: 'tomas-tue', title: 'Kelly Drive to the Falls, steady', host: 'sample-tomas', days: [2], status: 'locked', start: 360, spot: 'art-museum', pace: 435, dist: 8, vis: 'wharton', note: 'Kelly Drive to the Falls Bridge. Steady, not a race.', regulars: ['sample-leo', 'sample-dev'] },
-    { key: 'tomas-sat', title: 'Out to Manayunk and back', host: 'sample-tomas', days: [6], status: 'locked', start: 420, spot: 'art-museum', pace: 450, dist: 13, vis: 'wharton', note: 'Out to Manayunk and back. Bring a gel.', regulars: ['sample-ines'] },
-    { key: 'hannah-pm', title: 'Sunset five after class', host: 'sample-hannah', days: [0, 3], status: 'intention', start: 1065, spot: 'christian', pace: 500, dist: 5, vis: 'fof', note: 'After-class five. Sunset over the boardwalk.', regulars: ['sample-marcus'] },
-    { key: 'sam-easy', title: 'Truly easy three', host: 'sample-sam', days: [1, 2, 5], status: 'locked', start: 435, placeId: '2116-chestnut', pace: 580, dist: 3, vis: 'wharton', note: 'Meet in the lobby. Talking pace the whole way.', regulars: ['sample-maya'] },
-    { key: 'ines-am', title: 'Out before the crews', host: 'sample-ines', days: [1, 3], status: 'locked', start: 360, spot: 'boathouse', pace: 485, dist: 5, vis: 'friends', note: 'Out past Strawberry Mansion and back before the crews are out.', regulars: ['sample-tomas'] },
-    { key: 'marcus-thu', title: 'Easy six before class', host: 'sample-marcus', days: [4], status: 'intention', start: 405, spot: 'paines', pace: 510, dist: 6, vis: 'wharton', note: 'Six easy. Open to anyone around 8:30.', regulars: ['sample-aisha'] },
-    { key: 'marcus-sun', title: 'Sunday eight + coffee on the steps', host: 'sample-marcus', days: [0], status: 'intention', start: 480, spot: 'paines', pace: 510, dist: 8, vis: 'wharton', note: 'Sunday eight, coffee on the Art Museum steps after.', regulars: ['sample-ines'] },
-    { key: 'aisha-wed', title: 'Four easy miles, new runners welcome', host: 'sample-aisha', days: [3], status: 'intention', start: 450, spot: 'market', pace: 540, dist: 4, vis: 'wharton', note: 'Four easy miles. New runners welcome.', regulars: [] },
-    { key: 'aisha-sat', title: 'Saturday social miles, then brunch', host: 'sample-aisha', days: [6], status: 'intention', start: 510, spot: 'market', finishId: 'ants-pants', pace: 540, dist: 8, vis: 'fof', note: 'Saturday social miles, then brunch.', regulars: ['sample-maya'] },
-    { key: 'hannah-sun', title: 'Easy six, then brunch at Parc', host: 'sample-hannah', days: [0], status: 'locked', start: 540, placeId: 'fitler', finishId: 'parc', pace: 525, dist: 6, vis: 'wharton', note: 'Fitler Square to the river, out and back along it, then up to Parc.', regulars: ['sample-priya', 'sample-marcus'] },
-    { key: 'leo-pm', title: 'Evening six with a fast finish', host: 'sample-leo', days: [1, 3, 5], status: 'intention', start: 1080, spot: 'south', pace: 460, dist: 6, vis: 'friends', note: 'Evening six, pick it up for the last two.', regulars: ['sample-dev'] },
   ];
   const isSample = id => typeof id === 'string' && id.indexOf('sample-') === 0;
   const pairId = (a, b) => (a < b ? a + '__' + b : b + '__' + a);
@@ -596,6 +596,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
   // Labeled legs for one runner: door to the start, the run, and the way home from wherever it ends.
   // Leave time: jog at easy pace + 1:00/mi (or walk at 18:00/mi), arrive 3 minutes early, rounded down to 5 minutes
   // because the distances are approximate.
+  const WALK_PACE = 1200;  // seconds per mile: a 20:00/mi walk
   function myLegs(r, meP, home) {
     if (!meP || !SPOT[meP.spot]) return null;
     const H = homeLoc(meP, home), Hb = Object.assign({}, H, { name: 'your door' });
@@ -604,12 +605,17 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     const there = legsOf(H, S, go), backL = legsOf(Fn, Hb, back);
     const toStart = go ? go.mi : 0, homeLeg = back ? back.mi : 0;
     const runRow = { label: r.finish ? S.name + ' → ' + Fn.name : S.name + ', out and back', mi: r.dist };
-    const mode = meP.travel === 'walk' ? 'walk' : 'jog';
-    const speed = mode === 'walk' ? 1080 : (meP.pace || 540) + 60;
+    // Getting to and from runs: walking at 20:00/mi unless you've said you jog (easy pace + 1:00/mi).
+    const mode = meP.travel === 'jog' ? 'jog' : 'walk';
+    const speed = mode === 'walk' ? WALK_PACE : (meP.pace || 540) + 60;
     const travelMin = (toStart * speed) / 60;
+    const runMin = (r.dist * r.pace) / 60;
+    const homeMin = (homeLeg * speed) / 60;
     return {
       hasDoor: !!(H.corner || H.hasDoor), corner: !!H.corner, there, back: backL, runRow, run: r.dist, toStart, homeLeg, total: toStart + r.dist + homeLeg,
-      mode, speed, travelMin, leaveAt: Math.floor((r.start - travelMin - 3) / 5) * 5,
+      mode, speed, travelMin, runMin, homeMin,
+      leaveAt: Math.floor((r.start - travelMin - 3) / 5) * 5,
+      homeAt: Math.ceil((r.start + runMin + homeMin) / 5) * 5,
     };
   }
 
@@ -673,7 +679,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
   /* ---------------- Storage: the live shared board, or a local sandbox ---------------- */
   const Store = {
     mode: 'loading', me: null, pseudo: false, canWrite: false, isOwner: false, suggestedHandle: '', sandboxReason: '', cloud: false, email: '', authError: '',
-    profiles: {}, friendships: {}, runs: {}, joins: {}, config: {}, home: null, people: {},
+    profiles: {}, friendships: {}, runs: {}, joins: {}, config: {}, home: null, people: {}, thread: null,
     loaded: { profiles: false, friendships: false, runs: false, joins: false, home: false },
     api: null, subs: new Set(),
     on(fn) { this.subs.add(fn); return () => this.subs.delete(fn); },
@@ -720,6 +726,8 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     updateRun(id, p) { return this.patch('runs', id, p); },
     async setJoin(id, d) { this.put('joins', id, d); },
     async deleteJoin(id) { this.drop('joins', id); },
+    async stepDown(id) { const r = Store.runs[id]; if (r) this.put('runs', id, Object.assign({}, r, { host: null, leftBy: Store.me, leftAt: Date.now() })); },
+    async takeOver(id) { const r = Store.runs[id]; if (r) { this.put('runs', id, Object.assign({}, r, { host: Store.me })); this.drop('joins', id + '__' + Store.me); } },
     async setConfig(c) { Store.config = c; this.save(); Store.emit(); },
     newRunId() { return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); },
     reset() { try { window.localStorage.removeItem(this.KEY); } catch (e) {} this.init(Store.sandboxReason); },
@@ -807,18 +815,18 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       place: r.place || '', placeOff: Number(r.place_off) || 0, placeId: r.place_id || '',
       finish: r.finish || '', finishSpot: r.finish_spot || '', finishOff: Number(r.finish_off) || 0, finishId: r.finish_id || '',
       pace: r.pace, dist: Number(r.dist), vis: r.vis, note: r.note || '', samplesIn: r.samples_in || [],
-      createdAt: msOf(r.created_at), lockedAt: msOf(r.locked_at),
+      createdAt: msOf(r.created_at), lockedAt: msOf(r.locked_at), leftBy: r.left_by || '', leftAt: msOf(r.left_at),
     };
   }
   function prettyHandle(user) {
     const m = (user && user.user_metadata) || {};
     const full = m.full_name || m.name || '';
-    if (full) return shortName(full);
+    if (full) return String(full).trim().replace(/\s+/g, ' ').slice(0, 40);
     const local = String((user && user.email) || '').split('@')[0].replace(/[0-9]+/g, ' ');
     const w = local.split(/[._\-+\s]+/).filter(Boolean);
     if (!w.length) return '';
     const cap = s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
-    return w.length > 1 ? cap(w[0]) + ' ' + w[w.length - 1].charAt(0).toUpperCase() + '.' : cap(w[0]);
+    return w.map(cap).join(' ').slice(0, 40);
   }
   function cloudError(e) {
     const code = (e && e.code) || '', msg = (e && e.message) || String(e || '');
@@ -872,12 +880,18 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       [['profiles', ['profiles']], ['friendships', ['friendships']], ['runs', ['runs', 'joins']], ['app_config', ['config']]].forEach(t => {
         this.chan.on('postgres_changes', { event: '*', schema: 'public', table: t[0] }, () => t[1].forEach(w => this.soon(w)));
       });
+      this.chan.on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => {
+        if (!this.thread) return;
+        clearTimeout(this.timers.thread);
+        this.timers.thread = setTimeout(() => this.loadThread(), 250);
+      });
       this.chan.subscribe();
       this.poll = setInterval(() => { if (!document.hidden) this.loadAll(); }, 30000);
       this.onVis = () => { if (!document.hidden) this.loadAll(); };
       document.addEventListener('visibilitychange', this.onVis);
     },
     stop() {
+      this.closeThread();
       if (this.chan) { try { this.sb.removeChannel(this.chan); } catch (e) {} this.chan = null; }
       if (this.poll) { clearInterval(this.poll); this.poll = null; }
       if (this.onVis) { document.removeEventListener('visibilitychange', this.onVis); this.onVis = null; }
@@ -923,7 +937,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         const { data, error } = await sb.from('joins').select('*').gte('date', this.since());
         if (error) throw error;
         const o = {};
-        data.forEach(j => { o[j.run_id + '__' + j.user_id] = { run: j.run_id, user: j.user_id, date: j.date, at: msOf(j.at) }; });
+        data.forEach(j => { o[j.run_id + '__' + j.user_id] = { run: j.run_id, user: j.user_id, date: j.date, at: msOf(j.at), kind: j.kind || 'in' }; });
         this.rows.joins = o;
         Store.joins = Object.assign({}, o, this.local.joins);
       } else if (what === 'config') {
@@ -972,7 +986,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     },
     // ----- writing (the same calls the app makes in every mode) -----
     async saveProfile(p) {
-      await this.run(this.sb.from('profiles').upsert({ id: this.uid, handle: p.handle, spot: p.spot, pace: p.pace, travel: p.travel || 'jog', vis: p.vis || 'fof', updated_at: iso() }), 'profiles');
+      await this.run(this.sb.from('profiles').upsert({ id: this.uid, handle: p.handle, spot: p.spot, pace: p.pace, travel: p.travel || 'walk', vis: p.vis || 'fof', updated_at: iso() }), 'profiles');
       Store.profiles = Object.assign({}, Store.profiles, { [this.uid]: p }); Store.emit();
     },
     async saveHome(h) {
@@ -1012,7 +1026,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     },
     async setJoin(id, d) {
       if (String(d.run).indexOf('tpl-') === 0) return this.localPut('joins', id, d);
-      await this.run(this.sb.from('joins').upsert({ run_id: d.run, user_id: this.uid, date: d.date, at: iso(d.at) }, { onConflict: 'run_id,user_id' }), 'joins');
+      await this.run(this.sb.from('joins').upsert({ run_id: d.run, user_id: this.uid, date: d.date, at: iso(d.at), kind: d.kind === 'maybe' ? 'maybe' : 'in' }, { onConflict: 'run_id,user_id' }), 'joins');
       Store.joins = Object.assign({}, Store.joins, { [id]: d }); Store.emit();
     },
     async deleteJoin(id) {
@@ -1027,6 +1041,41 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       Store.config = Object.assign({}, Store.config, { samples: !!c.samples }); Store.emit();
     },
     newRunId() { return window.crypto && crypto.randomUUID ? crypto.randomUUID() : 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 12); },
+    // ----- hosts dropping out and taking over (the database checks who may) -----
+    async stepDown(id) { await this.run(this.sb.rpc('step_down', { p_run: id }), 'runs'); },
+    async takeOver(id) { await this.run(this.sb.rpc('take_over', { p_run: id }), 'runs'); this.soon('joins'); },
+    // ----- chat on a run: only the open run's messages are loaded -----
+    thread: null, threadPoll: null,
+    openThread(runId) {
+      if (this.thread === runId) return;
+      this.closeThread();
+      this.thread = runId;
+      Store.thread = { runId, items: [], loaded: false };
+      this.loadThread();
+      this.threadPoll = setInterval(() => { if (!document.hidden) this.loadThread(); }, 15000);
+    },
+    closeThread() {
+      if (this.threadPoll) { clearInterval(this.threadPoll); this.threadPoll = null; }
+      this.thread = null;
+      Store.thread = null;
+    },
+    async loadThread() {
+      const runId = this.thread;
+      if (!runId || !this.sb) return;
+      const { data, error } = await this.sb.from('messages').select('id,user_id,body,at').eq('run_id', runId).order('at', { ascending: true }).limit(300);
+      if (this.thread !== runId) return;
+      if (error) { console.warn('In. chat', error); return; }
+      Store.thread = { runId, loaded: true, items: data.map(m => ({ id: m.id, user: m.user_id, body: m.body, at: msOf(m.at) })) };
+      Store.emit();
+    },
+    async sendMessage(runId, body) {
+      await this.run(this.sb.from('messages').insert({ run_id: runId, user_id: this.uid, body }));
+      if (this.thread === runId) await this.loadThread();
+    },
+    async deleteMessage(id) {
+      await this.run(this.sb.from('messages').delete().eq('id', id).eq('user_id', this.uid));
+      await this.loadThread();
+    },
   };
 
   let peopleKey = '';
@@ -1085,7 +1134,8 @@ input[type=email]:focus{border-color:var(--green);outline:none}
   /* ---------------- The model: everything the screen needs, derived fresh ---------------- */
   function buildModel(now) {
     const me = Store.me;
-    const samplesOn = !(Store.config && Store.config.samples === false);
+    const realRunners = Object.keys(Store.profiles || {}).filter(id => !isSample(id)).length;
+    const samplesOn = !(Store.config && Store.config.samples === false) && realRunners < BOTS_UNTIL;
     const nowMs = now.getTime();
     const todayK = dateKey(now);
     const sinceK = dateKey(addDays(now, -1));
@@ -1103,28 +1153,18 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     const link = (a, b) => { if (!fr.has(a)) fr.set(a, new Set()); fr.get(a).add(b); };
     if (samplesOn) SAMPLE_EDGES.forEach(e => { link(e[0], e[1]); link(e[1], e[0]); });
     const incoming = [], outgoing = [], touched = new Set();
-    let sampleAsked = false;
     Object.keys(Store.friendships || {}).forEach(fid => {
       const f = Store.friendships[fid];
-      if (!f || !f.a || !f.b || off(f.a) || off(f.b)) return;
+      if (!f || !f.a || !f.b || isSample(f.a) || isSample(f.b)) return;
       if (f.status === 'accepted') { link(f.a, f.b); link(f.b, f.a); }
       if (me && (f.a === me || f.b === me)) {
         const other = f.a === me ? f.b : f.a;
         touched.add(other);
-        if (isSample(f.from)) sampleAsked = true;
         if (f.status === 'pending') (f.to === me ? incoming : outgoing).push({ fid, other });
       }
     });
     const EMPTY = new Set();
     const F = id => fr.get(id) || EMPTY;
-    // One sample classmate reaches out first, so the request flow shows up on day one.
-    if (samplesOn && meP && !sampleAsked) {
-      const myMi = spotMi(meP.spot);
-      const pick = SAMPLES.filter(s => !touched.has(s.id))
-        .map(s => ({ s, d: Math.abs(s.pace - meP.pace) / 20 + Math.abs(spotMi(s.spot) - myMi) }))
-        .sort((a, b) => a.d - b.d || (a.s.id < b.s.id ? -1 : 1))[0];
-      if (pick) incoming.unshift({ fid: pairId(me, pick.s.id), other: pick.s.id, virtual: true });
-    }
 
     const runs = [];
     Object.keys(Store.runs || {}).forEach(id => {
@@ -1132,21 +1172,11 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       if (!r || !r.date || r.date < sinceK || off(r.host) || !SPOT[r.spot]) return;
       runs.push(Object.assign({}, r, { id, sample: false }));
     });
-    if (samplesOn) {
-      for (let i = 0; i < 7; i++) {
-        const dd = addDays(now, i), k = dateKey(dd), wd = dd.getDay();
-        TEMPLATES.forEach(t => {
-          if (t.days.indexOf(wd) === -1) return;
-          runs.push(Object.assign({ id: 'tpl-' + t.key + '~' + k, title: t.title, host: t.host, date: k, status: t.status, start: t.start, pace: t.pace, dist: t.dist, vis: t.vis, note: t.note, createdAt: 0, sample: true, regulars: t.regulars },
-            startFields(t.placeId, t.spot), finishFields(t.finishId)));
-        });
-      }
-    }
     const joinsBy = {};
     Object.keys(Store.joins || {}).forEach(jid => {
       const j = Store.joins[jid];
       if (!j || !j.run || !j.user || off(j.user)) return;
-      (joinsBy[j.run] = joinsBy[j.run] || []).push({ id: j.user, at: j.at || 0 });
+      (joinsBy[j.run] = joinsBy[j.run] || []).push({ id: j.user, at: j.at || 0, kind: j.kind === 'maybe' ? 'maybe' : 'in' });
     });
     runs.forEach(r => {
       const tt = typeof r.title === 'string' ? r.title.trim() : '';
@@ -1160,16 +1190,18 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       r.startMi = spotMi(r.spot);
       r.lockBy = lockByFor(r.date);
       const js = (joinsBy[r.id] || []).filter(j => j.id !== r.host && profiles[j.id]);
-      if (r.sample) (r.regulars || []).forEach(s => { if (profiles[s] && !js.some(j => j.id === s)) js.push({ id: s, at: 0, sample: true }); });
       js.sort((a, b) => a.at - b.at);
-      r.joiners = js;
+      // joiners are the people who are in; maybes are interested but not committed.
+      r.joiners = js.filter(j => j.kind !== 'maybe');
+      r.maybes = js.filter(j => j.kind === 'maybe');
     });
     const canSee = (v, r) => {
-      if (r.host === v) return true;
-      if (v && r.joiners.some(j => j.id === v)) return true;
+      const org = r.host || r.leftBy || null;  // a run whose host dropped out keeps that host's audience
+      if (org && org === v) return true;
+      if (v && (r.joiners.some(j => j.id === v) || r.maybes.some(j => j.id === v))) return true;
       if (r.vis === 'wharton') return true;
-      if (!v) return false;
-      const hf = F(r.host);
+      if (!v || !org) return false;
+      const hf = F(org);
       if (hf.has(v)) return true;
       if (r.vis === 'fof') { for (const f of F(v)) if (hf.has(f)) return true; }
       return false;
@@ -1207,11 +1239,12 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       r.past = nowMs > r.startAt.getTime() + 30 * 60000;
       r.started = !r.past && nowMs >= r.startAt.getTime();
       r.joinedByMe = !!me && r.joiners.some(j => j.id === me);
+      r.maybeByMe = !!me && r.maybes.some(j => j.id === me);
     });
     const F1 = me ? F(me) : EMPTY, F2 = new Set();
     F1.forEach(f => F(f).forEach(x => { if (x !== me && !F1.has(x)) F2.add(x); }));
     runs.forEach(r => {
-      const ppl = [r.host].concat(r.joiners.map(j => j.id)).filter(id => id !== me);
+      const ppl = [r.host].concat(r.joiners.map(j => j.id), r.maybes.map(j => j.id)).filter(id => id && id !== me && !isSample(id));
       r.circle = ppl.some(id => F1.has(id)) ? 'friends' : ppl.some(id => F2.has(id)) ? 'fof' : 'wharton';
     });
 
@@ -1222,7 +1255,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       runById[r.id] = r;
       const d = byDay[r.date];
       if (!d || r.status === 'cancelled' || r.past) return;
-      const involved = me && (r.host === me || r.joinedByMe);
+      const involved = me && (r.host === me || r.joinedByMe || r.maybeByMe);
       if (r.faded && !involved) return;
       if (canSee(me, r)) d.runs.push(r); else hiddenTotal++;
     });
@@ -1231,12 +1264,14 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     const mine = me ? runs.filter(r => (r.host === me || r.joinedByMe) && r.status !== 'cancelled' && !r.past && byDay[r.date]) : [];
     mine.sort((a, b) => (a.faded === b.faded ? 0 : a.faded ? 1 : -1) || (a.date < b.date ? -1 : a.date > b.date ? 1 : 0) || a.start - b.start);
 
-    const nameOf = id => {
+    const fullNameOf = id => {
       const p = profiles[id];
       if (p && p.handle) return p.handle;
       const pp = Store.people[id];
       return (pp && pp.name) || (id === me ? 'You' : 'Someone');
     };
+    // Bots keep their handle; people show as first name and last initial.
+    const nameOf = id => (isSample(id) ? fullNameOf(id) : shortName(fullNameOf(id)));
     const mutuals = id => { if (!me) return []; const a = F(me), b = F(id), out = []; a.forEach(x => { if (b.has(x)) out.push(x); }); return out; };
     const relation = id => {
       if (!me || id === me) return 'me';
@@ -1249,7 +1284,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       mode: Store.mode, ready: Store.ready(), canWrite: Store.canWrite && Store.mode !== 'loading', isOwner: Store.isOwner,
       homeLoaded: Store.mode === 'sandbox' || !!Store.loaded.home,
       me, meP, home: Store.home, profiles, F, incoming, outgoing, runs, runById, days, byDay, mine, todayK, samplesOn, hiddenTotal, friendCount: F1.size,
-      nameOf, mutuals, relation, realCount: Object.keys(profiles).filter(id => !isSample(id)).length,
+      nameOf, fullNameOf, mutuals, relation, realCount: Object.keys(profiles).filter(id => !isSample(id)).length,
     };
   }
 
@@ -1265,7 +1300,12 @@ input[type=email]:focus{border-color:var(--green);outline:none}
   const VIS_HINT = { friends: 'Only your friends see it.', fof: 'Your friends and their friends see it.', wharton: 'Every Wharton student on In. sees it.' };
   const VIS_SEEN = { friends: 'Friends of the host', fof: 'Friends of friends', wharton: 'All Wharton' };
   const isProposed = r => r.status === 'intention' && !r.faded;
-  const countTxt = r => (1 + r.joiners.length) + (r.faded ? ' said they’d be in' : isProposed(r) ? ' would be in' : ' going');
+  // "2 going + 1 bot": bots never count as people.
+  const countTxt = r => {
+    const bots = r.joiners.filter(j => isSample(j.id)).length;
+    const real = (r.host ? 1 : 0) + r.joiners.length - bots;
+    return real + (r.faded ? ' said they’d be in' : isProposed(r) ? ' would be in' : ' going') + (bots ? ' + ' + bots + (bots === 1 ? ' bot' : ' bots') : '');
+  };
   const routeTxt = r => startShort(r) + (r.finish ? ' → ' + shortPlace(r.finish) : ', out and back');
   const awayTxt = L => (L.toStart < 0.05 ? (L.corner ? 'Start: at your door' : 'Start: at your trail spot') : 'Start: ' + mi1(L.toStart) + ' mi away');
   // Who you want to run with. A run counts as "friends" if a friend is hosting or going, and so on out.
@@ -1274,11 +1314,17 @@ input[type=email]:focus{border-color:var(--green);outline:none}
   const CIRCLE_EMPTY = { friends: 'None of your friends are hosting or going ', fof: 'No friends or friends of friends are hosting or going ' };
   function whenRef(k, todayK) { const n = dayDiff(k, todayK); return n === 0 ? 'today' : n === 1 ? 'tomorrow' : 'on ' + DOW_LONG[parseKey(k).getDay()]; }
   const lockRef = (r, todayK) => (dateKey(r.lockBy) === todayK ? '10 PM tonight' : '10 PM ' + DOW_LONG[r.lockBy.getDay()]);
-  // "6.3 mi total · leave by 6:20 AM". Walking to and from the run is split out so the total isn't read as running miles.
-  function tripTxt(L, proposed) {
+  // "Leave by 6:20 AM · home by 7:35 AM". Clock times can pass midnight on late runs, so wrap them.
+  const clockW = m => clock(((Math.round(m) % 1440) + 1440) % 1440);
+  function tripTimes(L, proposed) {
+    const w = proposed ? 'around ' : 'by ';
+    return 'Leave ' + w + clockW(L.leaveAt) + ' · home ' + w + clockW(L.homeAt);
+  }
+  // "5 mi run + 0.6 mi walk": walking is split out so the total isn't read as running miles.
+  function tripMiles(L) {
     const extra = L.toStart + L.homeLeg;
-    const miles = L.mode === 'walk' && extra >= 0.05 ? distTxt(L.run) + ' mi run + ' + mi1(extra) + ' mi walk' : mi1(L.total) + ' mi total';
-    return miles + ' · leave ' + (proposed ? 'around ' : 'by ') + clock(L.leaveAt);
+    if (extra < 0.05) return distTxt(L.run) + ' mi, door to door';
+    return distTxt(L.run) + ' mi run + ' + mi1(extra) + ' mi ' + (L.mode === 'walk' ? 'walk' : 'jog');
   }
   function stateWord(r, M) {
     if (r.faded) return 'Dropped';
@@ -1297,22 +1343,26 @@ input[type=email]:focus{border-color:var(--green);outline:none}
   function Stack({ ids, M, size }) {
     return html`<span class="stack" aria-hidden="true">${ids.slice(0, 4).map(id => html`<${Avatar} key=${id} id=${id} M=${M} size=${size || 24} />`)}</span>`;
   }
-  function Name({ id, M }) {
-    return id === M.me ? 'You' : M.nameOf(id);
+  function Name({ id, M, full }) {
+    return id === M.me ? 'You' : full ? M.fullNameOf(id) : M.nameOf(id);
   }
-  const SampleTag = () => html`<span class="sample-tag" title="Demo content, not a real classmate">Sample</span>`;
+  const BotTag = () => html`<span class="sample-tag" title="Not a real person. Bots fill out runs during the beta.">Bot</span>`;
   // "hosted by Maya R." / "proposed by Priya S." / "you're hosting"
+  // "Jason T. dropped out as host."
+  const leftTxt = (r, M) => (r.leftBy === M.me ? 'You' : r.leftBy ? M.nameOf(r.leftBy) : 'The host') + ' dropped out as host.';
   function HostTxt({ r, M }) {
     const proposed = r.status === 'intention';
+    if (!r.host) return 'needs a host';
     if (r.host === M.me) return proposed ? 'you proposed it' : 'you’re hosting';
     return html`${proposed ? 'proposed by ' : 'hosted by '}<${Name} id=${r.host} M=${M} />`;
   }
   function People({ r, M, size }) {
-    const ids = [r.host].concat(r.joiners.map(j => j.id));
+    const ids = [r.host].concat(r.joiners.map(j => j.id)).filter(Boolean);
     const mine = M.me ? M.F(M.me) : null;
     const pal = mine && !mine.has(r.host) && r.host !== M.me ? r.joiners.filter(j => mine.has(j.id)) : [];
     const palTxt = pal.length ? html` · <${Name} id=${pal[0].id} M=${M} />${pal.length > 1 ? ' + ' + (pal.length - 1) + (pal.length === 2 ? ' friend' : ' friends') : ''} ${isProposed(r) ? 'would be in' : pal.length > 1 ? 'are going' : 'is going'}` : null;
-    return html`<${Stack} ids=${ids} M=${M} size=${size} /><span>${countTxt(r)} · <${HostTxt} r=${r} M=${M} />${palTxt}${isSample(r.host) ? html`<${SampleTag} />` : null}</span>`;
+    const maybeTxt = r.maybes && r.maybes.length ? ' · ' + r.maybes.length + ' maybe' : '';
+    return html`<${Stack} ids=${ids} M=${M} size=${size} /><span>${countTxt(r)}${maybeTxt} · <${HostTxt} r=${r} M=${M} />${palTxt}</span>`;
   }
 
   function Seg({ options, value, onChange, label }) {
@@ -1379,7 +1429,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     if (r.faded) {
       cls += ' drop';
       label = 'Dropped ' + when;
-      sub = (isHost ? 'You didn’t' : M.nameOf(r.host) + ' didn’t') + ' confirm it by 10 PM the night before, so it’s off.';
+      sub = (isHost ? 'You didn’t confirm' : r.host ? M.nameOf(r.host) + ' didn’t confirm' : 'Nobody confirmed') + ' it by 10 PM the night before, so it’s off.';
     } else if (isHost) {
       label = proposed ? 'You proposed a run ' + when : 'You’re hosting ' + when;
       if (proposed) {
@@ -1389,7 +1439,9 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       }
     } else {
       label = proposed ? 'You’d be in ' + when : 'Your run ' + when + ' · Confirmed';
-      if (proposed) { cls += ' tent'; sub = M.nameOf(r.host) + ' confirms by ' + lockRef(r, M.todayK) + '. If it’s confirmed, you’re going. If not, it’s dropped.'; }
+      if (proposed) cls += ' tent';
+      if (!r.host) sub = leftTxt(r, M) + (proposed ? ' Someone has to take over and confirm it by ' + lockRef(r, M.todayK) + ', or it’s dropped. Open Details to take over.' : ' The run is still on. Open Details to take over as host.');
+      else if (proposed) sub = M.nameOf(r.host) + ' confirms by ' + lockRef(r, M.todayK) + '. If it’s confirmed, you’re going. If not, it’s dropped.';
     }
     if (r.started && !r.faded) label = 'Running now';
     const t = clockParts(r.start);
@@ -1402,7 +1454,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       <p class="yr-soc"><${People} r=${r} M=${M} /></p>
       ${sub ? html`<p class="yr-sub">${sub}</p>` : null}
       <div class="yr-foot">
-        ${r.legs && !r.faded ? html`<p class="yr-trip">${tripTxt(r.legs, proposed)}</p>` : null}
+        ${r.legs && !r.faded ? html`<p class="yr-trip">${tripTimes(r.legs, proposed)}<span class="yr-trip-m">${tripMiles(r.legs)}</span></p>` : null}
         <div class="yr-act">
           ${isHost && proposed && M.canWrite ? html`<button class="btn btn-inv btn-sm" onClick=${() => openLock(r)}>Confirm run</button>` : null}
           <button class="btn btn-inv-line btn-sm" onClick=${() => onOpen(r)}>Details</button>
@@ -1433,15 +1485,19 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     if (r.faded) action = html`<span class="row-note">Dropped</span>`;
     else if (isHost) action = proposed && M.canWrite ? html`<button class="btn btn-maybe btn-sm" onClick=${() => openLock(r)}>Confirm</button>` : html`<span class="state-chip">${proposed ? 'You proposed it' : 'Hosting'}</span>`;
     else if (r.joinedByMe) action = html`<span class="state-chip in">${I.check()}${proposed ? 'You’d be in' : 'Joined'}</span>`;
+    else if (r.maybeByMe) action = html`<span class="state-chip">Maybe</span>`;
     else if (M.canWrite) {
-      action = proposed
-        ? html`<button class="btn btn-maybe btn-sm" onClick=${() => act.join(r)} aria-label=${'I’d be in: ' + r.title}>I’d be in</button>`
-        : html`<button class="btn btn-go btn-sm" onClick=${() => act.join(r)} aria-label=${'I’m in: ' + r.title}>I’m in</button>`;
+      action = [
+        html`<button key="m" class="btn btn-text btn-sm" onClick=${() => act.join(r, 'maybe')} aria-label=${'Maybe: ' + r.title}>Maybe</button>`,
+        proposed
+          ? html`<button key="i" class="btn btn-maybe btn-sm" onClick=${() => act.join(r)} aria-label=${'I’d be in: ' + r.title}>I’d be in</button>`
+          : html`<button key="i" class="btn btn-go btn-sm" onClick=${() => act.join(r)} aria-label=${'I’m in: ' + r.title}>I’m in</button>`,
+      ];
     }
     const mine = (isHost || r.joinedByMe) && !r.faded;
     return html`<li id=${'row-' + r.id} class=${'row' + (r.faded ? ' faded' : '') + (mine ? ' mine' : '')}>
       <div class="row-top">
-        <p class="row-time"><b>${clock(r.start)}</b>${proposed ? html`<span class="tag">Proposed</span>` : null}</p>
+        <p class="row-time"><b>${clock(r.start)}</b>${proposed ? html`<span class="tag">Proposed</span>` : null}${!r.host && !r.faded ? html`<span class="tag">Needs a host</span>` : null}</p>
         ${action ? html`<div class="row-act">${action}</div>` : null}
       </div>
       <h3 class="title"><button class="row-link" onClick=${() => onOpen(r)}>${r.title}</button></h3>
@@ -1494,12 +1550,12 @@ input[type=email]:focus{border-color:var(--green);outline:none}
   /* Door-to-door miles: one line, with the legs and the leave-time math one tap away. */
   function Trip({ L, proposed, M, act }) {
     const [open, setOpen] = useState(false);
-    const how = L.mode === 'walk' ? 'walk' : 'jog';
+    const how = L.mode === 'jog' ? 'jog' : 'walk';
     const legRow = (g, i) => html`<div class="leg" key=${i}><span>${g.label || g.from + ' → ' + g.to}${g.on ? html`<span class="m"> · ${g.on}</span>` : null}</span><span class="n">${mi1(g.mi)}</span></div>`;
     const mins = Math.max(1, Math.round(L.travelMin));
     return html`<section class="trip" aria-label="Your trip">
       <div class="trip-sum">
-        <p>${tripTxt(L, proposed)}</p>
+        <p>${tripTimes(L, proposed)}<span class="trip-m">${tripMiles(L)}</span></p>
         <button class="btn btn-text btn-sm" aria-expanded=${open} onClick=${() => setOpen(!open)}>${open ? 'Hide the legs' : 'Show the legs'}${I.chevron(open)}</button>
       </div>
       ${open ? html`<div class="legs">
@@ -1512,14 +1568,14 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         <div class="leg leg-tot"><span>Total</span><span class="n">${mi1(L.total)}</span></div>
         <p class="hint">${L.toStart < 0.05
           ? (L.corner ? 'The run starts at your door' : 'The run starts where you meet the trail') + ', so the leave time is just a few minutes early, rounded down to the nearest 5.'
-          : 'Leave time: about ' + mins + ' min to ' + how + ' ' + mi1(L.toStart) + ' mi at ' + pace(L.speed) + '/mi, plus a few minutes to spare, rounded down to the nearest 5.'} Distances are approximate: city blocks on the street grid, miles along the trail.${L.hasDoor ? '' : ' Set your nearest corner on your runner card to count the miles from your door.'}</p>
-        ${M.canWrite && M.meP ? html`<div class="trip-mode"><span class="lbl">To and from runs</span><${Seg} label="To and from runs" value=${how} onChange=${v => act.setTravel(v)} options=${[['jog', 'Jog'], ['walk', 'Walk']]} /></div>` : null}
+          : 'Leave time: about ' + mins + ' min to ' + how + ' ' + mi1(L.toStart) + ' mi at ' + pace(L.speed) + '/mi, plus a few minutes to spare, rounded down to the nearest 5.'} Home time: the run itself (${distTxt(L.run)} mi at ${pace(Math.round(L.runMin * 60 / Math.max(L.run, 0.1)))}/mi, about ${Math.round(L.runMin)} min)${L.homeLeg >= 0.05 ? ', then about ' + Math.max(1, Math.round(L.homeMin)) + ' min to ' + how + ' ' + mi1(L.homeLeg) + ' mi home' : ''}, rounded up to the nearest 5. Distances are approximate: city blocks on the street grid, miles along the trail.${L.hasDoor ? '' : ' Set your nearest corner on your runner card to count the miles from your door.'}</p>
+        ${M.canWrite && M.meP ? html`<div class="trip-mode"><span class="lbl">To and from runs</span><${Seg} label="To and from runs" value=${how} onChange=${v => act.setTravel(v)} options=${[['walk', 'Walk'], ['jog', 'Jog']]} /></div>` : null}
       </div>` : null}
     </section>`;
   }
 
   function RunDetail({ r, M, now, act, openLock, openPost }) {
-    const [confirm, setConfirm] = useState(false);
+    const [ask, setAsk] = useState(null);  // 'cancel' or 'leave' while the host confirms
     if (!r) return html`<div class="detail sheet-body-pad"><p class="d-state prop">Gone</p><p class="empty">This run is no longer on the board.</p></div>`;
     if (r.status === 'cancelled') return html`<div class="detail sheet-body-pad"><p class="d-state prop">Cancelled</p><p class="empty">The host cancelled this run.</p></div>`;
     const isHost = r.host === M.me;
@@ -1531,7 +1587,9 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     else if (proposed) state = 'Proposed · ' + day;
     else state = 'Confirmed · ' + day + (r.started ? ' · running now' : '');
     let next = null;
-    if (proposed) {
+    if (!r.host && !r.faded) {
+      next = leftTxt(r, M) + (proposed ? ' Anyone who can see this run can take it over, and has to confirm it by ' + lockRef(r, M.todayK) + ' or it’s dropped.' : ' The run is still on. Anyone who can see it can take over as host.');
+    } else if (proposed) {
       next = isHost
         ? 'Confirm by ' + lockRef(r, M.todayK) + ' to set the exact time and start. Everyone who said I’d be in is then going. If you don’t confirm, the run is dropped.'
         : M.nameOf(r.host) + ' confirms by ' + lockRef(r, M.todayK) + ' and sets the exact time and start. If you said I’d be in, you’re then going. If it isn’t confirmed, the run is dropped.';
@@ -1540,48 +1598,117 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     if (M.canWrite) {
       if (isHost) {
         if (r.faded) actions = html`<button class="btn btn-go" onClick=${() => openPost({ from: r, kind: 'locked' })}>Repost it confirmed</button>`;
-        else if (confirm) {
+        else if (ask === 'cancel') {
           actions = [
             html`<span key="c">Cancel this run?</span>`,
-            html`<button key="y" class="btn btn-line btn-sm btn-danger" onClick=${() => { setConfirm(false); act.cancel(r); }}>Yes, cancel it</button>`,
-            html`<button key="n" class="btn btn-text btn-sm" onClick=${() => setConfirm(false)}>Keep it</button>`,
+            html`<button key="y" class="btn btn-line btn-sm btn-danger" onClick=${() => { setAsk(null); act.cancel(r); }}>Yes, cancel it</button>`,
+            html`<button key="n" class="btn btn-text btn-sm" onClick=${() => setAsk(null)}>Keep it</button>`,
+          ];
+        } else if (ask === 'leave') {
+          actions = [
+            html`<span key="c">Drop out as host? The run stays up and anyone going can take over.</span>`,
+            html`<button key="y" class="btn btn-line btn-sm" onClick=${() => { setAsk(null); act.stepDown(r); }}>Yes, drop out</button>`,
+            html`<button key="n" class="btn btn-text btn-sm" onClick=${() => setAsk(null)}>Keep hosting</button>`,
           ];
         } else {
+          // Hosts can drop out once someone else is in (or a maybe); on their own, cancelling is the way out.
+          const others = r.joiners.filter(j => !isSample(j.id)).length + r.maybes.length;
           actions = [
             proposed ? html`<button key="l" class="btn btn-go" onClick=${() => openLock(r)}>Confirm run</button>` : null,
             html`<button key="e" class="btn btn-line" onClick=${() => openPost({ edit: r })}>Edit</button>`,
-            html`<button key="x" class="btn btn-text" onClick=${() => setConfirm(true)}>Cancel run</button>`,
+            others ? html`<button key="d" class="btn btn-text" onClick=${() => setAsk('leave')}>Drop out</button>` : null,
+            html`<button key="x" class="btn btn-text" onClick=${() => setAsk('cancel')}>Cancel run</button>`,
           ];
         }
       } else if (!r.faded) {
-        actions = r.joinedByMe
-          ? [html`<span key="in" class="in-mark"><i></i>${proposed ? 'You’d be in' : 'You’re going'}</span>`, html`<button key="out" class="btn btn-text" onClick=${() => act.leave(r)}>Drop out</button>`]
-          : proposed
-            ? html`<button class="btn btn-maybe btn-lg" onClick=${() => act.join(r)}>I’d be in</button>`
-            : html`<button class="btn btn-go btn-lg" onClick=${() => act.join(r)}>I’m in</button>`;
+        const take = !r.host ? html`<button key="t" class="btn btn-go" onClick=${() => act.takeOver(r)}>Take over as host</button>` : null;
+        const inBtn = proposed
+          ? html`<button key="i" class=${'btn btn-maybe' + (take ? '' : ' btn-lg')} onClick=${() => act.join(r)}>I’d be in</button>`
+          : html`<button key="i" class=${take ? 'btn btn-line' : 'btn btn-go btn-lg'} onClick=${() => act.join(r)}>I’m in</button>`;
+        if (r.joinedByMe) {
+          actions = [
+            html`<span key="in" class="in-mark"><i></i>${proposed ? 'You’d be in' : 'You’re going'}</span>`, take,
+            html`<button key="m" class="btn btn-text" onClick=${() => act.join(r, 'maybe')}>Change to maybe</button>`,
+            html`<button key="out" class="btn btn-text" onClick=${() => act.leave(r)}>Drop out</button>`,
+          ];
+        } else if (r.maybeByMe) {
+          actions = [
+            html`<span key="mb" class="in-mark maybe"><i></i>You’re a maybe</span>`, take, inBtn,
+            html`<button key="out" class="btn btn-text" onClick=${() => act.leave(r)}>Not going</button>`,
+          ];
+        } else {
+          actions = [take, inBtn, html`<button key="m" class="btn btn-text" onClick=${() => act.join(r, 'maybe')}>Maybe</button>`];
+        }
       }
     }
-    const going = [r.host].concat(r.joiners.map(j => j.id));
+    const going = [r.host].concat(r.joiners.map(j => j.id)).filter(Boolean);
     const sp = PLACE[r.placeId], fp = PLACE[r.finishId], tf = trailFinish(r);
     const startSub = [sp ? sp.where : r.place ? mi1(r.placeOff) + ' mi off the trail, near ' + spotName(r.spot) : 'On the trail', r.legs && !r.faded ? mi1(r.legs.toStart) + ' mi from you' : null].filter(Boolean).join(' · ');
     const homeSub = r.legs && !r.faded ? mi1(r.legs.homeLeg) + ' mi from your door' : null;
     const finishSub = [fp ? fp.where : tf ? 'On the trail' : mi1(r.finishOff) + ' mi off the trail, near ' + spotName(r.finishSpot || r.spot), homeSub].filter(Boolean).join(' · ');
     return html`<article class="detail sheet-body-pad">
-      <p class=${'d-state' + (proposed || r.faded ? ' prop' : '')}>${state}${isSample(r.host) ? html`<${SampleTag} />` : null}</p>
+      <p class=${'d-state' + (proposed || r.faded ? ' prop' : '')}>${state}</p>
       <p class="d-time">${proposed ? html`<span class="d-around">around</span> ` : null}${t.hm} <small>${t.ap}</small></p>
       <h3 class="d-title">${r.title}</h3>
       <p class="d-pace">${pace(r.pace)}/mi · ${distTxt(r.dist)} mi</p>
       ${next ? html`<p class="d-next">${next}</p>` : null}
       ${actions ? html`<div class="d-actions">${actions}</div>` : null}
       <dl class="d-rows">
-        <div><dt>${proposed ? 'Would be in' : 'Going'}</dt><dd><span class="who"><${Stack} ids=${going} M=${M} size=${24} /><span>${going.map((id, i) => html`<span key=${id}>${i ? ', ' : ''}<${Name} id=${id} M=${M} />${id === r.host ? ' (host)' : ''}</span>`)}</span></span></dd></div>
+        <div><dt>${proposed ? 'Would be in' : 'Going'}</dt><dd>${going.length ? html`<span class="who"><${Stack} ids=${going} M=${M} size=${24} /><span>${going.map((id, i) => html`<span key=${id}>${i ? ', ' : ''}<${Name} id=${id} M=${M} full=${true} />${id === r.host ? ' (host)' : ''}${isSample(id) ? html`<${BotTag} />` : null}</span>`)}</span></span>` : 'No one yet'}</dd></div>
+        ${r.maybes.length ? html`<div><dt>Maybe</dt><dd>${r.maybes.map((j, i) => html`<span key=${j.id}>${i ? ', ' : ''}<${Name} id=${j.id} M=${M} full=${true} /></span>`)}</dd></div>` : null}
         <div><dt>Start</dt><dd>${startLabel(r)}<span class="m">${startSub}</span></dd></div>
         <div><dt>Finish</dt><dd>${r.finish ? html`${r.finish}<span class="m">${finishSub}</span>` : html`Back at the start<span class="m">Out and back</span>`}</dd></div>
         ${r.note ? html`<div><dt>Note</dt><dd>${r.note}</dd></div>` : null}
         <div><dt>Seen by</dt><dd>${VIS_SEEN[r.vis] || VIS_SEEN.fof}</dd></div>
       </dl>
       ${r.legs && !r.faded ? html`<${Trip} key=${r.id} L=${r.legs} proposed=${proposed} M=${M} act=${act} />` : null}
+      ${Store.cloud && M.mode === 'live' ? html`<${Chat} key=${'chat-' + r.id} r=${r} M=${M} act=${act} />` : null}
     </article>`;
+  }
+
+  // "7:05 AM", "Yesterday 9:40 PM", "Mon 6:15 AM"
+  function msgTime(ms, todayK) {
+    const d = new Date(ms), n = dayDiff(dateKey(d), todayK);
+    return (n === 0 ? '' : n === -1 ? 'Yesterday ' : DOW[d.getDay()] + ' ') + clock(d.getHours() * 60 + d.getMinutes());
+  }
+
+  /* Chat on a run: everyone who can see the run can read it and post. */
+  function Chat({ r, M, act }) {
+    const [text, setText] = useState('');
+    const [busy, setBusy] = useState(false);
+    const listRef = useRef(null);
+    useEffect(() => { Cloud.openThread(r.id); return () => Cloud.closeThread(); }, [r.id]);
+    const th = Store.thread && Store.thread.runId === r.id ? Store.thread : null;
+    const items = th ? th.items : [];
+    useEffect(() => { const el = listRef.current; if (el) el.scrollTop = el.scrollHeight; }, [items.length]);
+    const send = async e => {
+      e.preventDefault();
+      const body = text.trim();
+      if (!body || busy) return;
+      setBusy(true);
+      const ok = await act.sendMessage(r, body);
+      setBusy(false);
+      if (ok) setText('');
+    };
+    return html`<section class="chat" aria-label="Chat">
+      <h4 class="chat-h">Chat</h4>
+      ${!th || !th.loaded
+        ? html`<p class="hint">Loading messages…</p>`
+        : items.length
+          ? html`<ol class="chat-list" ref=${listRef}>${items.map(m => html`<li key=${m.id} class="msg">
+              <${Avatar} id=${m.user} M=${M} size=${26} />
+              <div class="msg-b">
+                <p class="msg-h"><b><${Name} id=${m.user} M=${M} /></b> ${msgTime(m.at, M.todayK)}${m.user === M.me ? html`<button type="button" class="linkish msg-x" onClick=${() => act.deleteMessage(m)}>Delete</button>` : null}</p>
+                <p class="msg-text">${m.body}</p>
+              </div>
+            </li>`)}</ol>`
+          : html`<p class="hint">No messages yet. Ask about the plan, or say you’re running late.</p>`}
+      ${M.canWrite && M.meP ? html`<form class="chat-form" onSubmit=${send}>
+        <label class="sr-only" for=${'chat-' + r.id}>Message</label>
+        <textarea id=${'chat-' + r.id} rows="2" maxlength="500" placeholder="Message everyone on this run" value=${text} onInput=${e => setText(e.target.value)}></textarea>
+        <button type="submit" class="btn btn-go btn-sm" disabled=${busy || !text.trim()}>Send</button>
+      </form>` : null}
+    </section>`;
   }
 
   function authMsg(x) {
@@ -1683,7 +1810,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     return html`<li class="prow">
       <${Avatar} id=${id} M=${M} size=${38} />
       <div class="pi">
-        <div class="pn"><${Name} id=${id} M=${M} />${isSample(id) ? html`<${SampleTag} />` : null}</div>
+        <div class="pn"><${Name} id=${id} M=${M} full=${true} /></div>
         <div class="pm">${bits.concat(mutTxt ? [mutTxt] : []).join(' · ')}</div>
       </div>
       <div class="pa">${children}</div>
@@ -1698,15 +1825,15 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       return html`<div class="setup"><span>Set up your runner card to add friends. Friends see your friends-only runs, and their friends see your friends-of-friends runs.</span>${M.canWrite ? html`<button class="btn btn-line btn-sm" onClick=${openProfile}>Set up</button>` : null}</div>`;
     }
     const me = M.me;
-    const byName = (a, b) => M.nameOf(a).localeCompare(M.nameOf(b));
-    const friends = Array.from(M.F(me)).filter(id => M.profiles[id]).sort(byName);
+    const byName = (a, b) => M.fullNameOf(a).localeCompare(M.fullNameOf(b));
+    const friends = Array.from(M.F(me)).filter(id => M.profiles[id] && !isSample(id)).sort(byName);
     const incoming = M.incoming.filter(x => M.profiles[x.other]);
     const outgoingBy = {};
     M.outgoing.forEach(x => { outgoingBy[x.other] = x; });
     const ql = q.trim().toLowerCase();
     const others = Object.keys(M.profiles)
-      .filter(id => id !== me && (M.relation(id) === 'none' || M.relation(id) === 'outgoing'))
-      .filter(id => !ql || M.nameOf(id).toLowerCase().indexOf(ql) !== -1)
+      .filter(id => id !== me && !isSample(id) && (M.relation(id) === 'none' || M.relation(id) === 'outgoing'))
+      .filter(id => !ql || M.fullNameOf(id).toLowerCase().indexOf(ql) !== -1)
       .map(id => ({ id, mut: M.mutuals(id) }))
       .sort((a, b) => b.mut.length - a.mut.length || byName(a.id, b.id));
     return html`<div>
@@ -1731,7 +1858,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         ${others.length ? html`<ul class="flist">${others.map(o => html`<${PersonRow} key=${o.id} id=${o.id} M=${M} via=${o.mut}>
           ${outgoingBy[o.id]
             ? [html`<span key="p" class="pending">Requested</span>`, html`<button key="c" class="btn btn-text btn-sm" onClick=${() => act.cancelRequest(outgoingBy[o.id])}>Cancel</button>`]
-            : html`<button class="btn btn-line btn-sm" onClick=${() => act.request(o.id)} aria-label=${'Add ' + M.nameOf(o.id)}>${I.plus()}Add</button>`}
+            : html`<button class="btn btn-line btn-sm" onClick=${() => act.request(o.id)} aria-label=${'Add ' + M.fullNameOf(o.id)}>${I.plus()}Add</button>`}
         <//>`)}</ul>` : html`<p class="empty">${ql ? 'No one by that name on In. yet.' : M.realCount <= 1 ? 'No one else is on In. yet. Send friends the link and they’ll show up here.' : 'You’re connected with everyone on In. so far.'}</p>`}
       </section>
     </div>`;
@@ -1742,8 +1869,8 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     const showSamples = M.mode === 'sandbox' || (M.mode === 'live' && M.isOwner);
     return html`<div class="extras">
       ${showSamples ? html`<div class="extra-row">
-        <div><b>Sample classmates</b><p class="hint">Ten demo runners with weekly runs, so the board is never empty.${M.mode === 'live' ? ' This switch applies to everyone.' : ''}</p></div>
-        <${Seg} label="Sample classmates" value=${M.samplesOn ? 'on' : 'off'} onChange=${v => act.setSamples(v === 'on')} options=${[['on', 'Shown'], ['off', 'Hidden']]} />
+        <div><b>Beta bots</b><p class="hint">Up to three Philly icons say they’re in on All Wharton runs, each marked Bot. They never post runs or count as people, and they switch off by themselves once ${BOTS_UNTIL} people are on In.${M.mode === 'live' ? ' This switch applies to everyone.' : ''}</p></div>
+        <${Seg} label="Beta bots" value=${M.samplesOn ? 'on' : 'off'} onChange=${v => act.setSamples(v === 'on')} options=${[['on', 'On'], ['off', 'Off']]} />
       </div>` : null}
       ${M.mode === 'sandbox' ? html`<div class="extra-row">
         <div><b>Sandbox</b><p class="hint">Everything you post here stays in this browser.</p></div>
@@ -1773,7 +1900,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         spotSet: !!cur,
         dist: typeof h.dist === 'number' ? h.dist : 0.3,
         pace: (cur && cur.pace) || 540,
-        travel: (cur && cur.travel) || 'jog',
+        travel: (cur && cur.travel) || 'walk',
       };
     });
     const [err, setErr] = useState('');
@@ -1788,17 +1915,18 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     const submit = async e => {
       e.preventDefault();
       const handle = f.handle.trim();
-      if (!handle) { setErr('Add the name your running friends know you by.'); return; }
+      if (!handle) { setErr('Add your first and last name.'); return; }
+      if (handle.split(/\s+/).length < 2) { setErr('Add your last name too, so people know who’s coming.'); return; }
       setBusy(true);
       const home = f.where === 'corner' ? { st: f.st, cross: f.cross } : { dist: Math.round(f.dist * 10) / 10 };
-      const ok = await act.saveProfile({ handle: handle.slice(0, 24), spot: f.spot, pace: f.pace, travel: f.travel, vis: (cur && cur.vis) || 'fof', updatedAt: Date.now() }, home);
+      const ok = await act.saveProfile({ handle: handle.replace(/\s+/g, ' ').slice(0, 40), spot: f.spot, pace: f.pace, travel: f.travel, vis: (cur && cur.vis) || 'fof', updatedAt: Date.now() }, home);
       setBusy(false);
       if (ok) onClose();
     };
     const toGrid = f.where === 'corner' && SPOT[f.spot] && typeof SPOT[f.spot].gx === 'number' ? gridD({ gx: f.st, gy: CROSS_BY[f.cross].y }, SPOT[f.spot]) : null;
     return html`<${Sheet} title=${onboarding ? 'Set up your runner card' : 'Your runner card'} sub=${onboarding ? 'Roughly where you live, where you meet the river, and your easy pace.' : null} onClose=${onClose}>
       <form class="form" onSubmit=${submit}>
-        <div class="field"><label for="pf-name">Name on In.</label><input id="pf-name" type="text" maxlength="24" autocomplete="off" placeholder="First name and last initial" value=${f.handle} onInput=${e => { set('handle', e.target.value); setErr(''); }} /></div>
+        <div class="field"><label for="pf-name">Your name</label><input id="pf-name" type="text" maxlength="40" autocomplete="name" placeholder="First and last name" value=${f.handle} onInput=${e => { set('handle', e.target.value); setErr(''); }} /></div>
         ${f.where === 'corner' ? html`<div class="field"><label for="pf-st">Your nearest corner</label>
           <div class="corner">
             <select id="pf-st" aria-label="Numbered street" value=${f.st} onChange=${e => setCorner('st', Number(e.target.value))}>${STREETS.map(n => html`<option key=${n} value=${n}>${ordinal(n)}</option>`)}</select>
@@ -1813,8 +1941,8 @@ input[type=email]:focus{border-color:var(--green);outline:none}
           <select id="pf-spot" value=${f.spot} onChange=${e => setF(o => Object.assign({}, o, { spot: e.target.value, spotSet: true }))}>${SPOTS.map(s => html`<option key=${s.id} value=${s.id}>${s.name}</option>`)}</select>
           <span class="hint">Friends see this spot.${toGrid != null ? ' About ' + mi1(toGrid) + ' mi from your corner.' : ''}</span></div>
         <div class="field"><span class="lbl">Easy pace</span><${Stepper} id="pf-pace" label="pace" value=${f.pace} min=${300} max=${780} step=${5} fmt=${v => pace(v) + ' /mi'} onChange=${v => set('pace', v)} /></div>
-        <div class="field"><span class="lbl">Getting to and from runs</span><${Seg} label="Getting to and from runs" value=${f.travel} onChange=${v => set('travel', v)} options=${[['jog', 'Jog'], ['walk', 'Walk']]} />
-          <span class="hint">${f.travel === 'walk' ? 'Leave times assume you walk at 18:00/mi.' : 'Leave times assume you jog at your easy pace plus 1:00/mi, so ' + pace(f.pace + 60) + '/mi.'}</span></div>
+        <div class="field"><span class="lbl">Getting to and from runs</span><${Seg} label="Getting to and from runs" value=${f.travel} onChange=${v => set('travel', v)} options=${[['walk', 'Walk'], ['jog', 'Jog']]} />
+          <span class="hint">${f.travel === 'jog' ? 'Leave and home times assume you jog at your easy pace plus 1:00/mi, so ' + pace(f.pace + 60) + '/mi.' : 'Leave and home times assume you walk to and from runs at 20:00/mi.'}</span></div>
         ${err ? html`<p class="err">${err}</p>` : null}
         <div class="sheet-actions">
           <button type="button" class="btn btn-text" onClick=${onClose}>${onboarding ? 'Just browse' : 'Close'}</button>
@@ -1958,7 +2086,8 @@ input[type=email]:focus{border-color:var(--green);outline:none}
   function LockSheet({ M, runId, onClose, act }) {
     const run = M.runById[runId];
     const joinKey = run ? run.joiners.map(j => j.id).join(',') : '';
-    const parts = useMemo(() => (run ? participantsOf(run, M.profiles) : []), [runId, joinKey]);
+    const parts = useMemo(() => (run ? participantsOf(run, M.profiles).filter(p => !isSample(p.id)) : []), [runId, joinKey]);
+    const bots = run ? run.joiners.filter(j => isSample(j.id)).length : 0;
     const sug = useMemo(() => (run ? nashSuggest(parts, run) : null), [parts]);
     const [choice, setChoice] = useState(null);
     const [busy, setBusy] = useState(false);
@@ -1977,7 +2106,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     const alone = parts.length === 1;
     const times = [];
     for (let t = run.start - 30; t <= run.start + 30; t += 5) times.push(t);
-    const who = p => (p.id === M.me ? 'You' : M.nameOf(p.id));
+    const who = p => (p.id === M.me ? 'You' : M.fullNameOf(p.id));
     const submit = async e => {
       e.preventDefault();
       if (busy) return;
@@ -1986,7 +2115,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       setBusy(false);
       if (ok) onClose();
     };
-    const sub = 'Confirming sets the exact time, start and pace. ' + (alone ? 'No one has said they’d be in yet.' : 'The ' + (parts.length - 1) + (parts.length === 2 ? ' person' : ' people') + ' who said I’d be in are then going.');
+    const sub = 'Confirming sets the exact time, start and pace. ' + (alone ? 'No one has said they’d be in yet.' : 'The ' + (parts.length - 1) + (parts.length === 2 ? ' person' : ' people') + ' who said I’d be in are then going.') + (bots ? ' Bots tag along but don’t shape the plan.' : '');
     return html`<${Sheet} title=${'Confirm ' + run.title} sub=${sub} onClose=${onClose}>
       <div class="sug">
         <p class="sug-k">Suggested</p>
@@ -2026,8 +2155,8 @@ input[type=email]:focus{border-color:var(--green);outline:none}
 
   function Footer({ M }) {
     return html`<footer class="foot">
-      ${M && M.mode === 'live' && M.ready ? html`<p>Live board, ${M.realCount} ${M.realCount === 1 ? 'runner' : 'runners'} so far.${M.samplesOn ? ' Runs marked Sample are demo content.' : ''}</p>` : null}
-      ${M && M.mode === 'sandbox' ? html`<p>Sandbox: your posts stay in this browser.${M.samplesOn ? ' Runs marked Sample are demo content.' : ''}</p>` : null}
+      ${M && M.mode === 'live' && M.ready ? html`<p>Live board, ${M.realCount} ${M.realCount === 1 ? 'runner' : 'runners'} so far.${M.samplesOn ? ' People marked Bot aren’t real. They fill out runs during the beta.' : ''}</p>` : null}
+      ${M && M.mode === 'sandbox' ? html`<p>Sandbox: your posts stay in this browser.${M.samplesOn ? ' People marked Bot aren’t real. They fill out runs during the beta.' : ''}</p>` : null}
       <p>One trail: the Schuylkill River Trail from Grays Ferry Crescent to Manayunk. Distances are approximate: city blocks around Rittenhouse and Penn, miles along the trail.</p>
       <p>In. is a student project for Wharton runners, not affiliated with the Wharton School.</p>
     </footer>`;
@@ -2049,26 +2178,39 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         if (!M.meP || M.meP.travel === mode) return;
         const p = Object.assign({}, M.meP, { travel: mode, updatedAt: Date.now() });
         delete p.id;
-        await write(() => api().saveProfile(p), mode === 'walk' ? 'Leave times now assume you walk to runs.' : 'Leave times now assume you jog to runs.', say);
+        await write(() => api().saveProfile(p), mode === 'walk' ? 'Leave and home times now assume you walk to runs.' : 'Leave and home times now assume you jog to runs.', say);
       },
-      async join(r) {
+      // kind: 'in' (the default) or 'maybe'. Maybes don't commit you, so they never clash with other runs.
+      async join(r, kind) {
         const M = getM();
         if (!M.meP) { ctx.openProfile(true); return; }
         const me = Store.me;
-        // You can only be in one place at a time: runs overlap if their windows (plus 30 min to get between them) touch.
-        const span = x => [x.start - 30, x.start + (x.dist * x.pace) / 60 + 30];
-        const [a0, a1] = span(r);
-        const clash = M.runs.filter(x => x.id !== r.id && x.date === r.date && x.status !== 'cancelled' && !x.faded && !x.past && (x.host === me || x.joinedByMe))
-          .filter(x => { const [b0, b1] = span(x); return a0 < b1 && b0 < a1; });
-        const hosting = clash.find(x => x.host === me);
-        if (hosting) { say('You’re hosting ' + hosting.title + ' at ' + clock(hosting.start) + ', which overlaps. Cancel it first to join this one.'); return; }
-        for (const x of clash) { if (!(await write(() => api().deleteJoin(x.id + '__' + me), null, say))) return; }
-        const swapped = clash.length ? ' You’re out of ' + clash.map(x => x.title).join(' and ') + ', which overlapped.' : '';
-        const ok = await write(() => api().setJoin(r.id + '__' + me, { run: r.id, user: me, date: r.date, at: Date.now() }),
-          (isProposed(r) ? 'You’d be in. ' + M.nameOf(r.host) + ' confirms by 10 PM the night before.' : 'You’re going. It’s at the top of your runs.') + swapped, say);
+        const maybe = kind === 'maybe';
+        let swapped = '';
+        if (!maybe) {
+          // You can only be in one place at a time: runs overlap if their windows (plus 30 min to get between them) touch.
+          const span = x => [x.start - 30, x.start + (x.dist * x.pace) / 60 + 30];
+          const [a0, a1] = span(r);
+          const clash = M.runs.filter(x => x.id !== r.id && x.date === r.date && x.status !== 'cancelled' && !x.faded && !x.past && (x.host === me || x.joinedByMe))
+            .filter(x => { const [b0, b1] = span(x); return a0 < b1 && b0 < a1; });
+          const hosting = clash.find(x => x.host === me);
+          if (hosting) { say('You’re hosting ' + hosting.title + ' at ' + clock(hosting.start) + ', which overlaps. Cancel it first to join this one.'); return; }
+          for (const x of clash) { if (!(await write(() => api().deleteJoin(x.id + '__' + me), null, say))) return; }
+          swapped = clash.length ? ' You’re out of ' + clash.map(x => x.title).join(' and ') + ', which overlapped.' : '';
+        }
+        const confirmsTxt = r.host ? M.nameOf(r.host) + ' confirms by 10 PM the night before.' : 'It needs someone to take over as host and confirm it by 10 PM the night before.';
+        const msg = maybe ? 'You’re a maybe for ' + r.title + '.' : (isProposed(r) ? 'You’d be in. ' + confirmsTxt : 'You’re going. It’s at the top of your runs.') + swapped;
+        const ok = await write(() => api().setJoin(r.id + '__' + me, { run: r.id, user: me, date: r.date, at: Date.now(), kind: maybe ? 'maybe' : 'in' }), msg, say);
+        if (ok && !maybe) ctx.afterJoin();
+      },
+      async leave(r) { await write(() => api().deleteJoin(r.id + '__' + Store.me), 'You’re out of ' + r.title + '.', say); },
+      async stepDown(r) { await write(() => api().stepDown(r.id), 'You dropped out as host. The run stays up, and anyone going can take over.', say); },
+      async takeOver(r) {
+        const ok = await write(() => api().takeOver(r.id), 'You’re hosting ' + r.title + ' now.' + (isProposed(r) ? ' Confirm it by 10 PM the night before.' : ''), say);
         if (ok) ctx.afterJoin();
       },
-      async leave(r) { await write(() => api().deleteJoin(r.id + '__' + Store.me), 'You dropped out of ' + r.title + '.', say); },
+      sendMessage(r, body) { return write(() => api().sendMessage(r.id, body.slice(0, 500)), null, say); },
+      deleteMessage(m) { return write(() => api().deleteMessage(m.id), null, say); },
       async createRun(doc) {
         const id = api().newRunId();
         const full = Object.assign({}, doc, { host: Store.me, createdAt: Date.now(), lockedAt: doc.status === 'locked' ? Date.now() : 0 });
@@ -2106,7 +2248,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       async unfriend(id) { await write(() => api().updateFriendship(pairId(Store.me, id), { status: 'removed', at: Date.now() }), 'Removed from your friends.', say); },
       async cancelRequest(x) { await write(() => api().deleteFriendship(x.fid), 'Request cancelled.', say); },
       async setSamples(on) {
-        await write(() => api().setConfig({ samples: !!on }), on ? 'Sample classmates are on the board.' : 'Sample classmates are hidden' + (Store.mode === 'live' ? ' for everyone.' : '.'), say);
+        await write(() => api().setConfig({ samples: !!on }), on ? 'Beta bots are on.' : 'Beta bots are off' + (Store.mode === 'live' ? ' for everyone.' : '.'), say);
       },
       resetSandbox() { Sandbox.reset(); say('Sandbox reset.'); },
     };
@@ -2159,7 +2301,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     useEffect(() => {
       if (!M.ready || !M.me) return;
       const cur = new Map();
-      M.runs.forEach(r => { if (r.host === M.me && !r.sample) cur.set(r.id, r.joiners.map(j => j.id)); });
+      M.runs.forEach(r => { if (r.host === M.me && !r.sample) cur.set(r.id, r.joiners.filter(j => !isSample(j.id)).map(j => j.id)); });
       const prev = seen.current;
       seen.current = cur;
       if (!prev) return;
