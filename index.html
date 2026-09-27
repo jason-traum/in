@@ -27,7 +27,8 @@
       surface with hairline dividers. Don't flatten everything into divided rows on the canvas.
    3. The strongest treatment is reserved for your commitment: the solid green "Your run" card at the top,
       and a green edge plus a "Joined" chip on the joined row. Browsing rows stay plain white.
-   4. Actions: "I'm in" (confirmed) is solid deep green with white text. "I'd be in" (proposed) is outlined.
+   4. Actions you haven't taken are outlined: "Maybe" in gray, "I'm in" and "I'd be in" in green. A solid
+      green fill never sits on an unpicked answer, since it reads as already chosen (changed Sep 27, 2026).
       Joined and hosting states are explicit chips, never pale look-alike buttons.
    5. Condensed type (Saira Condensed) only for the wordmark and start times. Start times outrank day labels;
       day labels are small body-font labels.
@@ -146,6 +147,7 @@ ul{list-style:none;margin:0;padding:0}
 .yr-trip{font-size:14.5px;font-weight:600}
 .yr-trip-m,.trip-m{display:block;font-size:12.5px;font-weight:500;opacity:.85;margin-top:2px}
 .yr-act{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;align-items:center}
+.yr-act .yr-primary{flex:1 0 100%}
 .btn-inv{background:var(--on-green);color:var(--green)}
 .btn-inv-line{border-color:var(--on-green-2);color:var(--on-green)}
 .btn-inv-line:hover{background:color-mix(in srgb,var(--on-green) 12%,transparent)}
@@ -182,6 +184,10 @@ ul{list-style:none;margin:0;padding:0}
 @media (max-width:360px){.segc button{padding:0 7px;font-size:12.5px}}
 .controls + .day,.controls + .empty + .day{margin-top:14px}
 .corner{display:flex;align-items:center;gap:8px}
+.timepick{display:flex;align-items:center;gap:8px}
+.timepick select{flex:0 1 84px;min-width:0;text-align:center;font-variant-numeric:tabular-nums}
+.timepick > span{color:var(--muted);font-weight:700}
+.timepick .seg{margin-left:6px;flex-wrap:nowrap}
 .corner select{flex:1 1 0;min-width:0}
 .corner span{color:var(--muted);font-weight:600}
 
@@ -1624,7 +1630,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
   }
 
   /* Your next run: the one block on the page with a strong treatment. */
-  function YourRun({ r, M, onOpen, openLock }) {
+  function YourRun({ r, M, onOpen, openLock, openPost }) {
     const isHost = r.host === M.me;
     const proposed = isProposed(r);
     const when = whenRef(r.date, M.todayK);
@@ -1659,20 +1665,21 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       <div class="yr-foot">
         ${r.legs && !r.faded ? html`<p class="yr-trip">${tripTimes(r.legs, proposed)}<span class="yr-trip-m">${tripMiles(r.legs)}</span></p>` : null}
         <div class="yr-act">
-          ${isHost && proposed && M.canWrite ? html`<button class="btn btn-inv btn-sm" onClick=${() => openLock(r)}>Confirm run</button>` : null}
+          ${isHost && proposed && M.canWrite ? html`<button class="btn btn-inv btn-sm yr-primary" onClick=${() => openLock(r)}>Confirm run</button>` : null}
           <${ChatBtn} r=${r} onOpen=${onOpen} inv=${true} />
+          ${isHost && !r.faded && M.canWrite ? html`<button class="btn btn-inv-line btn-sm" onClick=${() => openPost({ edit: r })}>Edit</button>` : null}
           <button class="btn btn-inv-line btn-sm" onClick=${() => onOpen(r)}>Details</button>
         </div>
       </div>
     </article>`;
   }
 
-  function YourRuns({ M, onOpen, openLock }) {
+  function YourRuns({ M, onOpen, openLock, openPost }) {
     const mine = M.mine;
     if (!mine.length) return null;
     const rest = mine.slice(1);
     return html`<section class="yours" aria-label="Your runs">
-      <${YourRun} key=${mine[0].id} r=${mine[0]} M=${M} onOpen=${onOpen} openLock=${openLock} />
+      <${YourRun} key=${mine[0].id} r=${mine[0]} M=${M} onOpen=${onOpen} openLock=${openLock} openPost=${openPost} />
       ${rest.length ? html`<ul class="yr-more" aria-label="Your other runs">${rest.map(r => html`<li key=${r.id}><button class="yr-more-b" onClick=${() => onOpen(r)}>
         <span class="yr-more-t">${dayDiff(r.date, M.todayK) === 0 ? 'Today' : dayDiff(r.date, M.todayK) === 1 ? 'Tmrw' : DOW[parseKey(r.date).getDay()]} ${clock(r.start)}</span>
         <span class="yr-more-n">${r.title}</span>
@@ -1682,12 +1689,20 @@ input[type=email]:focus{border-color:var(--green);outline:none}
   }
 
   /* A run in the list: time and action on top, then what it is, pace, where, and who. */
-  function Row({ r, M, onOpen, act, openLock, openRsvp }) {
+  function Row({ r, M, onOpen, act, openLock, openRsvp, openPost }) {
     const isHost = r.host === M.me;
     const proposed = isProposed(r);
     let action = null;
     if (r.faded) action = html`<span class="row-note">Dropped</span>`;
-    else if (isHost) action = proposed && M.canWrite ? html`<button class="btn btn-maybe btn-sm" onClick=${() => openLock(r)}>Confirm</button>` : html`<span class="state-chip">${proposed ? 'You proposed it' : 'Hosting'}</span>`;
+    else if (isHost) {
+      // Your own run: edit it right here, and confirm it if it's still proposed.
+      action = M.canWrite
+        ? [
+          html`<button key="e" class="btn btn-line btn-sm" onClick=${() => openPost({ edit: r })} aria-label=${'Edit ' + r.title}>Edit</button>`,
+          proposed ? html`<button key="c" class="btn btn-maybe btn-sm" onClick=${() => openLock(r)}>Confirm</button>` : null,
+        ]
+        : html`<span class="state-chip">${proposed ? 'You proposed it' : 'Hosting'}</span>`;
+    }
     else if (r.joinedByMe || r.maybeByMe) {
       // Your answer is a chip with a chevron: tap it to switch between I'm in, Maybe and Not going.
       action = M.canWrite
@@ -1698,7 +1713,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         html`<button key="m" class="btn btn-line btn-sm" onClick=${() => act.join(r, 'maybe')} aria-label=${'Maybe: ' + r.title}>Maybe</button>`,
         proposed
           ? html`<button key="i" class="btn btn-maybe btn-sm" onClick=${() => act.join(r)} aria-label=${'I’d be in: ' + r.title}>I’d be in</button>`
-          : html`<button key="i" class="btn btn-go btn-sm" onClick=${() => act.join(r)} aria-label=${'I’m in: ' + r.title}>I’m in</button>`,
+          : html`<button key="i" class="btn btn-maybe btn-sm" onClick=${() => act.join(r)} aria-label=${'I’m in: ' + r.title}>I’m in</button>`,
       ];
     }
     const mine = (isHost || r.joinedByMe) && !r.faded;
@@ -1725,7 +1740,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         ${how ? html`<p class="rule-more">Confirming sets the exact time and start. Everyone who tapped I’d be in is then going. If the host doesn’t confirm by 10 PM, the run is dropped. Confirmed runs take I’m in right up to the start.</p>` : null}
       </div>` : null}
       ${d.runs.length
-        ? html`<ul class="rows">${d.runs.map(r => html`<${Row} key=${r.id} r=${r} M=${M} onOpen=${onOpen} act=${act} openLock=${openLock} openRsvp=${openRsvp} />`)}</ul>`
+        ? html`<ul class="rows">${d.runs.map(r => html`<${Row} key=${r.id} r=${r} M=${M} onOpen=${onOpen} act=${act} openLock=${openLock} openRsvp=${openRsvp} openPost=${openPost} />`)}</ul>`
         : d.total
           ? html`<p class="empty">${CIRCLE_EMPTY[circle] || 'Nothing '}${dayRef(d.key, M.todayK)} yet. <button class="linkish" onClick=${widen}>Show all Wharton</button></p>`
           : html`<p class="empty">Nothing posted for ${dayRef(d.key, M.todayK)} yet.${M.canWrite && M.meP ? html` <button class="linkish" onClick=${() => openPost({ date: d.key })}>Post the first run</button>` : null}</p>`}
@@ -1743,7 +1758,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     return html`<div>
       <${NoteLine} M=${M} />
       ${M.canWrite && !M.meP ? html`<div class="setup"><span>Set up your runner card to post and join runs.</span><button class="btn btn-go btn-sm" onClick=${openProfile}>Set up</button></div>` : null}
-      <${YourRuns} M=${M} onOpen=${onOpen} openLock=${openLock} />
+      <${YourRuns} M=${M} onOpen=${onOpen} openLock=${openLock} openPost=${openPost} />
       <div class=${'controls' + (M.mine.length ? ' after-yours' : '')}>
         <h2 class=${M.mine.length ? 'find-l' : 'vh'}>Find a run</h2>
         <div class="segc" role="group" aria-label="Show runs with">${CIRCLES.map(o => html`<button type="button" key=${o[0]} aria-pressed=${circle === o[0]} onClick=${() => setCircle(o[0])}>${o[1]}</button>`)}</div>
@@ -2183,8 +2198,20 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     <//>`;
   }
 
-  const TIME_OPTS = [];
-  for (let t = 300; t <= 1260; t += 15) TIME_OPTS.push(t);
+  // Start time as hour, minute (every 5) and AM/PM: three quick picks instead of one long list.
+  const HOURS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const MINUTES = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
+  function TimePick({ value, onChange }) {
+    const hr = Math.floor(value / 60), mn = value % 60, pm = hr >= 12, h12 = hr % 12 || 12;
+    const put = (h, m, p) => onChange(((h % 12) + (p ? 12 : 0)) * 60 + m);
+    const mins = MINUTES.indexOf(mn) === -1 ? MINUTES.concat([mn]).sort((a, b) => a - b) : MINUTES;
+    return html`<div class="timepick">
+      <select id="ps-hour" aria-label="Hour" value=${h12} onChange=${e => put(Number(e.target.value), mn, pm)}>${HOURS.map(h => html`<option key=${h} value=${h}>${h}</option>`)}</select>
+      <span aria-hidden="true">:</span>
+      <select id="ps-min" aria-label="Minute" value=${mn} onChange=${e => put(h12, Number(e.target.value), pm)}>${mins.map(m => html`<option key=${m} value=${m}>${pad2(m)}</option>`)}</select>
+      <${Seg} label="AM or PM" value=${pm ? 'pm' : 'am'} onChange=${v => put(h12, mn, v === 'pm')} options=${[['am', 'AM'], ['pm', 'PM']]} />
+    </div>`;
+  }
 
   // Where a start or finish off the list is: the closest corner, or where you're standing.
   // pin = { mode: 'corner', st, cross } or { mode: 'here', lat, lng }.
@@ -2242,7 +2269,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       return {
         kind, date,
         title: base && !base.titleAuto ? base.title || '' : '',
-        start: base ? base.start : 390,
+        start: base ? base.start : 360,
         placeId: base && PLACE[base.placeId] ? base.placeId : '',
         custom: startCustom, place: startCustom ? base.place : '', spot: base ? base.spot : mySpot,
         pin: pinFrom(startCustom ? base.placeId : ''),
@@ -2273,7 +2300,6 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     const lonely = M.me && M.F(M.me).size === 0 && f.vis !== 'wharton';
     const days = [];
     for (let i = 0; i < 7; i++) days.push(dateKey(addDays(now, i)));
-    const timeOpts = TIME_OPTS.indexOf(f.start) === -1 ? TIME_OPTS.concat([f.start]).sort((a, b) => a - b) : TIME_OPTS;
     const pickDay = k => setF(p => Object.assign({}, p, { date: k, kind: p.kind === 'intention' && now >= lockByFor(k) ? 'locked' : p.kind }));
     const isInt = f.kind === 'intention';
     const submit = async e => {
@@ -2304,8 +2330,8 @@ input[type=email]:focus{border-color:var(--green);outline:none}
           <span class="hint">${isInt ? 'A rough plan. People tap I’d be in. You confirm the exact time and start by 10 PM the night before, or the run is dropped.' : intentionOpen ? 'Exact time and start. People tap I’m in.' : 'Proposals for ' + dayRef(f.date, M.todayK) + ' closed at 10 PM, so this goes up confirmed.'}</span></div>
         <div class="field"><span class="lbl">Day</span>
           <div class="daypick" role="group" aria-label="Day">${days.map((k, i) => { const d = parseKey(k); return html`<button type="button" key=${k} class="daychip" aria-pressed=${f.date === k} onClick=${() => pickDay(k)}>${i === 0 ? 'Today' : i === 1 ? 'Tmrw' : DOW[d.getDay()]}<small>${MON[d.getMonth()]} ${d.getDate()}</small></button>`; })}</div></div>
-        <div class="field"><label for="ps-time">${isInt ? 'Around' : 'Start time'}</label>
-          <select id="ps-time" value=${f.start} onChange=${e => set('start', Number(e.target.value))}>${timeOpts.map(t => html`<option key=${t} value=${t} disabled=${atMin(f.date, t) - now < 10 * 60000}>${clock(t)}</option>`)}</select></div>
+        <div class="field"><span class="lbl">${isInt ? 'Around' : 'Start time'}</span>
+          <${TimePick} value=${f.start} onChange=${v => set('start', v)} /></div>
         <div class="field"><label for="ps-spot">Start</label>
           <select id="ps-spot" value=${f.custom ? '__custom' : f.placeId ? 'p:' + f.placeId : f.spot} onChange=${e => {
             const v = e.target.value;
