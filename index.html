@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <title>In.</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Plan tomorrow's run with friends on the Schuylkill River Trail.">
+<meta name="description" content="Plan tomorrow's run with friends, on the river trail or anywhere in Philly.">
 <meta property="og:title" content="In.">
-<meta property="og:description" content="Plan tomorrow's run with friends on the Schuylkill River Trail.">
+<meta property="og:description" content="Plan tomorrow's run with friends, on the river trail or anywhere in Philly.">
 <meta name="theme-color" content="#1E5F55">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -345,6 +345,14 @@ ul{list-style:none;margin:0;padding:0}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media (max-width:460px){.row2{grid-template-columns:1fr}}
 .sub-field{display:grid;gap:12px;padding:12px 0 2px 14px;border-left:2px solid var(--green-soft)}
+.sublbl{font-size:14px;font-weight:600;color:var(--ink)}
+.loc-set{display:flex;align-items:center;gap:10px;margin:0;padding:10px 12px;border:1px solid var(--hair);border-radius:10px;background:var(--surface)}
+.loc-set .ic{color:var(--green-text);flex:none;width:18px;height:18px}
+.loc-set b{display:block;font-size:15.5px}
+.loc-set small{display:block;font-size:12.5px;color:var(--muted)}
+.loc-row{display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px}
+.loc-row .linkish{font-size:14px;padding:8px 0}
+.maplink{display:inline-block;margin-left:8px;padding:2px 0;font-size:13.5px;font-weight:600;color:var(--green-text);text-decoration:underline;text-underline-offset:3px}
 input[type=text],input[type=search],select{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--hair);border-radius:10px;padding:10px 12px;min-height:46px;width:100%}
 input[type=text]:focus,select:focus{border-color:var(--green);outline:none}
 input[type=range]{width:100%;accent-color:var(--green);min-height:28px}
@@ -412,87 +420,151 @@ input[type=email]:focus{border-color:var(--green);outline:none}
   }
   const { html, render, useState, useEffect, useMemo, useRef, useCallback } = window.htmPreact;
 
+  /* ---------------- Where things are: miles on the street grid ----------------
+     A point is miles from 15th & Market along Philly's street grid: x runs east along Market and the other
+     east-west streets, y runs north along the numbered streets. The grid sits about 9° off true north, so a
+     phone's latitude and longitude become grid miles with a small rotation. Street positions come from
+     geocoding each street (US Census geocoder), so they're good to about half a block. */
+  const GRID = { lat0: 39.95253, lng0: -75.16531, kx: 53.03, ky: 69.05, c: Math.cos(9.3 * Math.PI / 180), s: Math.sin(9.3 * Math.PI / 180) };
+  function gridOf(lat, lng) {
+    const e = (lng - GRID.lng0) * GRID.kx, n = (lat - GRID.lat0) * GRID.ky;
+    return { x: e * GRID.c - n * GRID.s, y: e * GRID.s + n * GRID.c };
+  }
+  function latLngOf(p) {
+    const e = p.x * GRID.c + p.y * GRID.s, n = p.y * GRID.c - p.x * GRID.s;
+    return { lat: GRID.lat0 + n / GRID.ky, lng: GRID.lng0 + e / GRID.kx };
+  }
+
   /* ---------------- The trail: named access points, mile 0 at the south end (approximate) ---------------- */
   const SPOTS = [
-    { id: 'grays-ferry', name: 'Grays Ferry Crescent', short: 'Grays Ferry', mi: 0 },
-    { id: 'christian', name: 'Christian St', short: 'Christian St', mi: 1.0, gx: 26, gy: -0.99 },
-    { id: 'south', name: 'South St Bridge', short: 'South St', mi: 1.35, gx: 26, gy: -0.63 },
-    { id: 'locust', name: 'Locust St (Schuylkill River Park)', short: 'Locust St', mi: 1.7, gx: 25, gy: -0.27 },
-    { id: 'walnut', name: 'Walnut St Bridge', short: 'Walnut St', mi: 1.85, gx: 25, gy: -0.18 },
-    { id: 'chestnut', name: 'Chestnut St Bridge', short: 'Chestnut St', mi: 1.95, gx: 24.5, gy: -0.09 },
-    { id: 'market', name: 'Market St', short: 'Market St', mi: 2.05, gx: 24.5, gy: 0 },
-    { id: 'paines', name: "Paine's Park", short: "Paine's Park", mi: 2.8, gx: 25, gy: 0.6 },
-    { id: 'art-museum', name: 'Art Museum / Water Works', short: 'Art Museum', mi: 3.0, gx: 25.5, gy: 0.75 },
-    { id: 'boathouse', name: 'Boathouse Row', short: 'Boathouse Row', mi: 3.3 },
-    { id: 'girard', name: 'Girard Ave Bridge', short: 'Girard Ave', mi: 3.9 },
-    { id: 'strawberry', name: 'Strawberry Mansion Bridge', short: 'Strawberry Mansion', mi: 5.4 },
-    { id: 'falls', name: 'Falls Bridge', short: 'Falls Bridge', mi: 6.9 },
-    { id: 'manayunk', name: 'Manayunk (Lock St)', short: 'Manayunk', mi: 9.8 },
+    { id: 'grays-ferry', name: 'Grays Ferry Crescent', short: 'Grays Ferry', mi: 0, x: -1.56, y: -1.19 },
+    { id: 'christian', name: 'Christian St', short: 'Christian St', mi: 1.0, x: -1.04, y: -0.867 },
+    { id: 'south', name: 'South St Bridge', short: 'South St', mi: 1.35, x: -0.9, y: -0.612 },
+    { id: 'locust', name: 'Locust St (Schuylkill River Park)', short: 'Locust St', mi: 1.7, x: -0.87, y: -0.293 },
+    { id: 'walnut', name: 'Walnut St Bridge', short: 'Walnut St', mi: 1.85, x: -0.86, y: -0.214 },
+    { id: 'chestnut', name: 'Chestnut St Bridge', short: 'Chestnut St', mi: 1.95, x: -0.84, y: -0.107 },
+    { id: 'market', name: 'Market St', short: 'Market St', mi: 2.05, x: -0.83, y: 0 },
+    { id: 'paines', name: "Paine's Park", short: "Paine's Park", mi: 2.8, x: -0.99, y: 0.71 },
+    { id: 'art-museum', name: 'Art Museum / Water Works', short: 'Art Museum', mi: 3.0, x: -0.96, y: 0.755 },
+    { id: 'boathouse', name: 'Boathouse Row', short: 'Boathouse Row', mi: 3.3, x: -1.21, y: 0.98 },
+    { id: 'girard', name: 'Girard Ave Bridge', short: 'Girard Ave', mi: 3.9, x: -1.69, y: 1.31 },
+    { id: 'strawberry', name: 'Strawberry Mansion Bridge', short: 'Strawberry Mansion', mi: 5.4, x: -1.95, y: 2.65 },
+    { id: 'falls', name: 'Falls Bridge', short: 'Falls Bridge', mi: 6.9, x: -2.33, y: 3.52 },
+    { id: 'manayunk', name: 'Manayunk (Lock St)', short: 'Manayunk', mi: 9.8, x: -3.57, y: 4.3 },
   ];
   const SPOT = {};
   SPOTS.forEach(s => { SPOT[s.id] = s; });
   const spotMi = id => (SPOT[id] ? SPOT[id].mi : 1.85);
   const spotName = id => (SPOT[id] ? SPOT[id].name : 'the trail');
 
-  /* ---------------- The street grid: Center City and University City (approximate) ----------------
-     A point is (numbered street, miles north of Market). One block between numbered streets is about 0.1 mi.
-     Walking between two grid points counts city blocks; getting to the trail counts blocks to an access point. */
-  const BLOCK_MI = 0.1;
+  /* ---------------- The street grid, for picking a corner ----------------
+     x of each numbered street (14 is Broad) and y of each cross street, in grid miles. */
+  const STREET_X = {
+    2: 1.153, 3: 1.049, 4: 0.964, 5: 0.878, 6: 0.794, 7: 0.709, 8: 0.624, 9: 0.54, 10: 0.455, 11: 0.371, 12: 0.287, 13: 0.202, 14: 0.082,
+    15: 0, 16: -0.088, 17: -0.173, 18: -0.257, 19: -0.342, 20: -0.427, 21: -0.53, 22: -0.615, 23: -0.677, 24: -0.733, 25: -0.797, 26: -0.863,
+    30: -1.02, 31: -1.07, 32: -1.187, 33: -1.3, 34: -1.409, 35: -1.478, 36: -1.554, 37: -1.66, 38: -1.761, 39: -1.848, 40: -1.972, 41: -2.107,
+    42: -2.179, 43: -2.304, 44: -2.373, 45: -2.47, 46: -2.567,
+  };
+  const STREETS = Object.keys(STREET_X).map(Number).sort((a, b) => a - b);
+  const ordinal = n => n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th');
+  const streetName = n => (n === 14 ? 'Broad' : ordinal(n));
   const CROSS = [
-    { id: 'fairmount', name: 'Fairmount Ave', y: 0.75 }, { id: 'spring-garden', name: 'Spring Garden', y: 0.6 },
-    { id: 'callowhill', name: 'Callowhill', y: 0.45 }, { id: 'vine', name: 'Vine', y: 0.34 }, { id: 'race', name: 'Race', y: 0.25 },
-    { id: 'arch', name: 'Arch', y: 0.16 }, { id: 'jfk', name: 'JFK Blvd', y: 0.07 }, { id: 'market', name: 'Market', y: 0 },
-    { id: 'chestnut', name: 'Chestnut', y: -0.09 }, { id: 'sansom', name: 'Sansom', y: -0.135 }, { id: 'walnut', name: 'Walnut', y: -0.18 },
-    { id: 'locust', name: 'Locust', y: -0.27 }, { id: 'spruce', name: 'Spruce', y: -0.36 }, { id: 'pine', name: 'Pine', y: -0.45 },
-    { id: 'lombard', name: 'Lombard', y: -0.54 }, { id: 'south', name: 'South', y: -0.63 }, { id: 'bainbridge', name: 'Bainbridge', y: -0.72 },
-    { id: 'fitzwater', name: 'Fitzwater', y: -0.81 }, { id: 'catharine', name: 'Catharine', y: -0.9 }, { id: 'christian', name: 'Christian', y: -0.99 },
+    { id: 'girard', name: 'Girard Ave', y: 1.337 }, { id: 'poplar', name: 'Poplar', y: 1.248 }, { id: 'brown', name: 'Brown', y: 1.086 },
+    { id: 'fairmount', name: 'Fairmount Ave', y: 0.955 }, { id: 'spring-garden', name: 'Spring Garden', y: 0.7 },
+    { id: 'callowhill', name: 'Callowhill', y: 0.506 }, { id: 'vine', name: 'Vine', y: 0.375 }, { id: 'race', name: 'Race', y: 0.27 },
+    { id: 'arch', name: 'Arch', y: 0.141 }, { id: 'jfk', name: 'JFK Blvd', y: 0.071 }, { id: 'market', name: 'Market', y: 0 },
+    { id: 'chestnut', name: 'Chestnut', y: -0.107 }, { id: 'sansom', name: 'Sansom', y: -0.161 }, { id: 'walnut', name: 'Walnut', y: -0.214 },
+    { id: 'locust', name: 'Locust', y: -0.293 }, { id: 'spruce', name: 'Spruce', y: -0.378 }, { id: 'pine', name: 'Pine', y: -0.478 },
+    { id: 'lombard', name: 'Lombard', y: -0.541 }, { id: 'south', name: 'South', y: -0.612 }, { id: 'bainbridge', name: 'Bainbridge', y: -0.672 },
+    { id: 'fitzwater', name: 'Fitzwater', y: -0.741 }, { id: 'catharine', name: 'Catharine', y: -0.811 }, { id: 'christian', name: 'Christian', y: -0.865 },
+    { id: 'carpenter', name: 'Carpenter', y: -0.933 }, { id: 'washington', name: 'Washington Ave', y: -1.019 },
   ];
   const CROSS_BY = {};
   CROSS.forEach(c => { CROSS_BY[c.id] = c; });
-  const STREETS = [];
-  for (let n = 15; n <= 26; n++) STREETS.push(n);
-  for (let n = 30; n <= 42; n++) STREETS.push(n);
-  const ordinal = n => n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th');
-  // Places people meet or end up. Starts in the neighborhood, and food or coffee after.
+  // West of the river only these cross streets line up with Center City's; the rest have other names or angles.
+  const WEST_CROSS = { market: 1, chestnut: 1, sansom: 1, walnut: 1, locust: 1, spruce: 1, pine: 1 };
+  const cornerOk = (st, cross) => STREET_X[st] != null && !!CROSS_BY[cross];
+  const cornerPt = (st, cross) => ({ x: STREET_X[st], y: CROSS_BY[cross].y });
+  // The closest corner to a point, with a label ("21st & Chestnut") when it's close enough to be useful.
+  function nearCorner(p) {
+    const west = p.x < -0.95;
+    const closest = (list, v, f) => list.reduce((b, k) => (Math.abs(f(k) - v) < Math.abs(f(b) - v) ? k : b));
+    const st = closest(STREETS, p.x, n => STREET_X[n]);
+    const cr = closest(west ? CROSS.filter(c => WEST_CROSS[c.id]) : CROSS, p.y, c => c.y);
+    const dx = Math.abs(STREET_X[st] - p.x), dy = Math.abs(cr.y - p.y);
+    const label = dx > 0.15 ? '' : dy <= (west ? 0.06 : 0.12) ? streetName(st) + ' & ' + cr.name : west && p.y > -1 && p.y < 1 ? streetName(st) + ' St' : '';
+    return { st, cross: cr.id, label };
+  }
+  // Places people meet or end up: starts in the neighborhood, parks and trails off the river, and food or coffee after.
   const PLACES = [
-    { id: '2116-chestnut', name: '2116 Chestnut', where: '21st & Chestnut', gx: 21.2, gy: -0.09, kind: 'meet' },
-    { id: 'rittenhouse', name: 'Rittenhouse Square', where: '19th & Walnut corner', gx: 19, gy: -0.18, kind: 'meet' },
-    { id: 'fitler', name: 'Fitler Square', where: '23rd & Pine', gx: 23, gy: -0.45, kind: 'meet' },
-    { id: 'huntsman', name: 'Huntsman Hall', where: '38th & Walnut', gx: 37.3, gy: -0.18, kind: 'meet' },
-    { id: 'la-colombe', name: 'La Colombe', where: '19th & Sansom', gx: 19, gy: -0.135, kind: 'food' },
-    { id: 'parc', name: 'Parc', where: '18th & Locust, on the square', gx: 18, gy: -0.27, kind: 'food' },
-    { id: 'rival-bros', name: 'Rival Bros. Coffee', where: '24th & Lombard', gx: 24, gy: -0.54, kind: 'food' },
-    { id: 'ants-pants', name: 'Ants Pants Cafe', where: '22nd & South', gx: 22.1, gy: -0.63, kind: 'food' },
+    { id: '2116-chestnut', name: '2116 Chestnut', where: '21st & Chestnut', x: -0.544, y: -0.107, kind: 'meet' },
+    { id: 'rittenhouse', name: 'Rittenhouse Square', where: '19th & Walnut corner', x: -0.342, y: -0.214, kind: 'meet' },
+    { id: 'fitler', name: 'Fitler Square', where: '23rd & Pine', x: -0.677, y: -0.478, kind: 'meet' },
+    { id: 'logan', name: 'Logan Square', where: '19th & the Parkway', x: -0.342, y: 0.32, kind: 'meet' },
+    { id: 'huntsman', name: 'Huntsman Hall', where: '38th & Walnut', x: -1.69, y: -0.214, kind: 'meet' },
+    { id: 'penn-park', name: 'Penn Park', where: '31st & Walnut', x: -1.1, y: -0.27, kind: 'park' },
+    { id: 'clark-park', name: 'Clark Park', where: '43rd & Baltimore', x: -2.27, y: -0.6, kind: 'park' },
+    { id: 'washington-sq', name: 'Washington Square', where: '6th & Walnut', x: 0.74, y: -0.25, kind: 'park' },
+    { id: 'race-pier', name: 'Race Street Pier', where: 'Delaware River Trail', x: 1.33, y: 0.27, kind: 'park' },
+    { id: 'valley-green', name: 'Valley Green', where: 'Wissahickon, Forbidden Drive', x: -3.95, y: 6.52, kind: 'park' },
+    { id: 'fdr-park', name: 'FDR Park', where: 'Broad & Pattison', x: -0.03, y: -3.29, kind: 'park' },
+    { id: 'la-colombe', name: 'La Colombe', where: '19th & Sansom', x: -0.342, y: -0.161, kind: 'food' },
+    { id: 'parc', name: 'Parc', where: '18th & Locust, on the square', x: -0.257, y: -0.293, kind: 'food' },
+    { id: 'rival-bros', name: 'Rival Bros. Coffee', where: '24th & Lombard', x: -0.733, y: -0.541, kind: 'food' },
+    { id: 'ants-pants', name: 'Ants Pants Cafe', where: '22nd & South', x: -0.623, y: -0.612, kind: 'food' },
   ];
   const PLACE = {};
   PLACES.forEach(p => { PLACE[p.id] = p; });
-  const gridD = (a, b) => Math.abs(a.gx - b.gx) * BLOCK_MI + Math.abs(a.gy - b.gy);
-  const GRID_SPOTS = SPOTS.filter(s => typeof s.gx === 'number');
-  // The trail access closest to a grid point, and how far it is.
+  // Walking on the grid counts blocks both ways.
+  const gridD = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+  // The trail access closest to a point, and how far it is.
   function nearestAccess(pt) {
     let best = null;
-    GRID_SPOTS.forEach(s => { const d = gridD(pt, s); if (!best || d < best.d) best = { s, d }; });
+    SPOTS.forEach(s => { const d = gridD(pt, s); if (!best || d < best.d) best = { s, d }; });
     return best;
   }
-  // Stored fields for a named start or finish. The closest trail spot and off-trail miles ride along so
-  // visibility, the host's confirm suggestion, and older runs all keep working.
-  function startFields(placeId, spot) {
-    const p = PLACE[placeId];
+  // A start or finish someone pinned (at a corner, or where they were standing) is stored as "ll:<lat>,<lng>".
+  const isPin = id => typeof id === 'string' && id.indexOf('ll:') === 0;
+  const pinId = ll => 'll:' + ll.lat.toFixed(4) + ',' + ll.lng.toFixed(4);
+  function pinPt(id) {
+    if (!isPin(id)) return null;
+    const a = id.slice(3).split(',').map(Number);
+    return a.length === 2 && isFinite(a[0]) && isFinite(a[1]) && Math.abs(a[0]) <= 90 && Math.abs(a[1]) <= 180 ? gridOf(a[0], a[1]) : null;
+  }
+  const placePt = id => PLACE[id] || pinPt(id);
+  const pinWhere = id => { const p = pinPt(id); const c = p ? nearCorner(p) : null; return c && c.label ? 'Near ' + c.label : 'Pinned on the map'; };
+  // Stored fields for a start or finish at a named or pinned place. The closest trail spot and off-trail miles
+  // ride along so visibility, the host's confirm suggestion, and older runs all keep working.
+  const offMi = d => Math.min(5, Math.round(d * 10) / 10);
+  function startFields(placeId, spot, name) {
+    const p = placePt(placeId);
     if (!p) return { spot: spot, place: '', placeOff: 0, placeId: '' };
     const n = nearestAccess(p);
-    return { spot: n.s.id, place: p.name, placeOff: Math.round(n.d * 10) / 10, placeId: p.id };
+    return { spot: n.s.id, place: PLACE[placeId] ? p.name : String(name || '').trim().slice(0, 60), placeOff: offMi(n.d), placeId };
   }
-  function finishFields(finishId) {
+  function finishFields(finishId, name) {
     const none = { finish: '', finishSpot: '', finishOff: 0, finishId: '' };
     if (!finishId) return none;
     if (finishId.indexOf('trail:') === 0) {
       const id = finishId.slice(6);
       return SPOT[id] ? { finish: spotName(id), finishSpot: id, finishOff: 0, finishId } : none;
     }
-    const p = PLACE[finishId];
+    const p = placePt(finishId);
     if (!p) return none;
     const n = nearestAccess(p);
-    return { finish: p.name, finishSpot: n.s.id, finishOff: Math.round(n.d * 10) / 10, finishId: p.id };
+    return { finish: PLACE[finishId] ? p.name : String(name || '').trim().slice(0, 60), finishSpot: n.s.id, finishOff: offMi(n.d), finishId };
+  }
+  // Apple Maps (opens the Maps app on an iPhone) at a grid point.
+  const mapUrl = (name, p) => { const ll = latLngOf(p); return 'https://maps.apple.com/?q=' + encodeURIComponent(name) + '&ll=' + ll.lat.toFixed(5) + ',' + ll.lng.toFixed(5); };
+  // One reading of the phone's location: { lat, lng, acc } or { error } in words people can act on.
+  function locate() {
+    return new Promise(resolve => {
+      if (!navigator.geolocation) { resolve({ error: 'This browser can’t share a location. Pick a corner instead.' }); return; }
+      navigator.geolocation.getCurrentPosition(
+        p => resolve({ lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy }),
+        e => resolve({ error: e && e.code === 1 ? 'Location is turned off for In. Allow it in your browser’s settings, or pick a corner.' : 'Couldn’t get your location. Try again, or pick a corner.' }),
+        { enableHighAccuracy: false, timeout: 12000, maximumAge: 60000 });
+    });
   }
   // Schematic scale for the strip: each gap between named spots gets a base width plus a bit per mile.
   const CUM = [];
@@ -576,14 +648,14 @@ input[type=email]:focus{border-color:var(--green);outline:none}
   const isWide = () => !!(window.matchMedia && window.matchMedia('(min-width: 960px)').matches);
 
   /* ---------------- Distance: city blocks on the grid, trail miles along the river ----------------
-     A location is a grid point { gx, gy } (your corner, 2116 Chestnut, a café), a trail spot { spot },
-     or a typed-in place just off the trail { spot, off }. The shortest way between two locations is either
-     straight through the streets (both on the grid) or streets to the trail, along it, and back off. */
+     A location is a grid point { x, y } (where you live, 2116 Chestnut, a park, a pinned spot), a trail spot
+     { spot }, or an older typed-in place just off the trail { spot, off }. The shortest way between two locations
+     is either straight through the streets (both on the grid) or streets to the trail, along it, and back off. */
   const offOf = (name, off) => (name ? (typeof off === 'number' ? off : 0.2) : 0);
-  const onGrid = loc => typeof loc.gx === 'number';
+  const onGrid = loc => typeof loc.x === 'number';
   function toTrail(loc, s) {
     if (loc.spot) return loc.spot === s.id ? loc.off || 0 : Infinity;
-    return onGrid(loc) && typeof s.gx === 'number' ? gridD(loc, s) : Infinity;
+    return onGrid(loc) ? gridD(loc, s) : Infinity;
   }
   function route(a, b) {
     let best = onGrid(a) && onGrid(b) ? { mi: gridD(a, b), via: null } : null;
@@ -610,22 +682,31 @@ input[type=email]:focus{border-color:var(--green);outline:none}
   }
   const trailFinish = r => (typeof r.finishId === 'string' && r.finishId.indexOf('trail:') === 0 && SPOT[r.finishId.slice(6)] ? r.finishId.slice(6) : '');
   function startLoc(r) {
-    const p = PLACE[r.placeId];
-    if (p) return { name: p.name, gx: p.gx, gy: p.gy };
+    const p = placePt(r.placeId);
+    if (p) return { name: PLACE[r.placeId] ? p.name : shortPlace(r.place), x: p.x, y: p.y };
     if (r.place) return { name: shortPlace(r.place), spot: r.spot, off: r.placeOff };
     return { name: spotName(r.spot), spot: r.spot, off: 0 };
   }
   function finishLoc(r) {
     if (!r.finish) return startLoc(r);
-    const p = PLACE[r.finishId];
-    if (p) return { name: p.name, gx: p.gx, gy: p.gy };
+    const p = placePt(r.finishId);
+    if (p) return { name: PLACE[r.finishId] ? p.name : shortPlace(r.finish), x: p.x, y: p.y };
     const ts = trailFinish(r);
     if (ts) return { name: spotName(ts), spot: ts, off: 0 };
     return { name: shortPlace(r.finish), spot: r.finishSpot || r.spot, off: r.finishOff || 0 };
   }
-  // Home: your nearest corner if you set one (private), otherwise your trail spot plus door-to-trail miles.
+  // Where a start or finish is on the map, when we know (not for older typed-in places).
+  function locPt(loc) {
+    if (onGrid(loc)) return loc;
+    return loc.spot && !loc.off && SPOT[loc.spot] ? SPOT[loc.spot] : null;
+  }
+  // Home (private): your location rounded to about a block, or your nearest corner, or else your trail spot
+  // plus door-to-trail miles.
+  const homePt = home => (home && typeof home.lat === 'number' && typeof home.lng === 'number' ? gridOf(home.lat, home.lng)
+    : home && typeof home.st === 'number' && cornerOk(home.st, home.cross) ? cornerPt(home.st, home.cross) : null);
   function homeLoc(meP, home) {
-    if (home && typeof home.st === 'number' && CROSS_BY[home.cross]) return { name: 'Your door', gx: home.st, gy: CROSS_BY[home.cross].y, corner: true };
+    const p = homePt(home);
+    if (p) return { name: 'Your door', x: p.x, y: p.y, corner: true };
     const hasDoor = !!(home && typeof home.dist === 'number');
     return { name: 'Your door', spot: meP.spot, off: hasDoor ? home.dist : 0, hasDoor };
   }
@@ -633,23 +714,29 @@ input[type=email]:focus{border-color:var(--green);outline:none}
   // Leave time: jog at easy pace + 1:00/mi (or walk at 18:00/mi), arrive 3 minutes early, rounded down to 5 minutes
   // because the distances are approximate.
   const WALK_PACE = 1200;  // seconds per mile: a 20:00/mi walk
+  // Past this, nobody walks there (Valley Green, FDR Park): count a ride at about 3 min/mi plus 10 minutes to get going.
+  const RIDE_MI = 2.5;
+  const rideMin = mi => mi * 3 + 10;
   function myLegs(r, meP, home) {
     if (!meP || !SPOT[meP.spot]) return null;
     const H = homeLoc(meP, home), Hb = Object.assign({}, H, { name: 'your door' });
     const S = startLoc(r), Fn = finishLoc(r);
     const go = route(H, S), back = route(Fn, Hb);
-    const there = legsOf(H, S, go), backL = legsOf(Fn, Hb, back);
     const toStart = go ? go.mi : 0, homeLeg = back ? back.mi : 0;
+    // A ride is one leg; walking or jogging follows the streets and the trail.
+    const there = toStart > RIDE_MI ? [{ from: H.name, to: S.name, mi: toStart }] : legsOf(H, S, go);
+    const backL = homeLeg > RIDE_MI ? [{ from: Fn.name, to: Hb.name, mi: homeLeg }] : legsOf(Fn, Hb, back);
     const runRow = { label: r.finish ? S.name + ' → ' + Fn.name : S.name + ', out and back', mi: r.dist };
     // Getting to and from runs: walking at 20:00/mi unless you've said you jog (easy pace + 1:00/mi).
     const mode = meP.travel === 'jog' ? 'jog' : 'walk';
     const speed = mode === 'walk' ? WALK_PACE : (meP.pace || 540) + 60;
-    const travelMin = (toStart * speed) / 60;
+    const rideTo = toStart > RIDE_MI, rideHome = homeLeg > RIDE_MI;
+    const travelMin = rideTo ? rideMin(toStart) : (toStart * speed) / 60;
     const runMin = (r.dist * r.pace) / 60;
-    const homeMin = (homeLeg * speed) / 60;
+    const homeMin = rideHome ? rideMin(homeLeg) : (homeLeg * speed) / 60;
     return {
       hasDoor: !!(H.corner || H.hasDoor), corner: !!H.corner, there, back: backL, runRow, run: r.dist, toStart, homeLeg, total: toStart + r.dist + homeLeg,
-      mode, speed, travelMin, runMin, homeMin,
+      mode, speed, travelMin, runMin, homeMin, rideTo, rideHome,
       leaveAt: Math.floor((r.start - travelMin - 3) / 5) * 5,
       homeAt: Math.ceil((r.start + runMin + homeMin) / 5) * 5,
     };
@@ -669,7 +756,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     const baseMi = spotMi(r.spot);
     // A start in the neighborhood (2116 Chestnut, Rittenhouse Square) is a deliberate meeting point, not a
     // trail compromise, so confirming keeps it and only settles the pace.
-    if (PLACE[r.placeId]) return [{ key: 'place', mi: baseMi, off: offOf(r.place, r.placeOff) }];
+    if (placePt(r.placeId)) return [{ key: 'place', mi: baseMi, off: offOf(r.place, r.placeOff) }];
     const cands = SPOTS.filter(s => Math.abs(s.mi - baseMi) <= 1.6).map(s => ({ key: s.id, mi: s.mi, off: 0 }));
     if (r.place) cands.unshift({ key: 'place', mi: baseMi, off: offOf(r.place, r.placeOff) });
     return cands;
@@ -1005,7 +1092,8 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       } else if (what === 'home') {
         const { data, error } = await sb.from('homes').select('*').eq('id', me).maybeSingle();
         if (error) throw error;
-        Store.home = data ? Object.assign({}, typeof data.st === 'number' ? { st: data.st, cross: data.cross_street } : {}, data.dist != null ? { dist: Number(data.dist) } : {}) : null;
+        Store.home = data ? Object.assign({}, data.lat != null && data.lng != null ? { lat: Number(data.lat), lng: Number(data.lng) } : {},
+          typeof data.st === 'number' ? { st: data.st, cross: data.cross_street } : {}, data.dist != null ? { dist: Number(data.dist) } : {}) : null;
       }
       if (what in Store.loaded) Store.loaded[what] = true;
     },
@@ -1052,8 +1140,12 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       Store.profiles = Object.assign({}, Store.profiles, { [this.uid]: p }); Store.emit();
     },
     async saveHome(h) {
-      const corner = typeof h.st === 'number';
-      await this.run(this.sb.from('homes').upsert({ id: this.uid, st: corner ? h.st : null, cross_street: corner ? h.cross : null, dist: corner ? null : typeof h.dist === 'number' ? h.dist : null, updated_at: iso() }));
+      const located = typeof h.lat === 'number' && typeof h.lng === 'number';
+      const corner = !located && typeof h.st === 'number';
+      await this.run(this.sb.from('homes').upsert({
+        id: this.uid, lat: located ? h.lat : null, lng: located ? h.lng : null, st: corner ? h.st : null, cross_street: corner ? h.cross : null,
+        dist: located || corner ? null : typeof h.dist === 'number' ? h.dist : null, updated_at: iso(),
+      }));
       Store.home = h; Store.emit();
     },
     async setFriendship(id, d) {
@@ -1248,7 +1340,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       r.title = tt || autoTitle(r.start);
       r.place = r.place || '';
       r.finish = r.finish || '';
-      r.placeId = PLACE[r.placeId] ? r.placeId : '';
+      r.placeId = placePt(r.placeId) ? r.placeId : '';
       r.finishId = typeof r.finishId === 'string' ? r.finishId : '';
       r.placeOff = offOf(r.place, r.placeOff);
       r.startMi = spotMi(r.spot);
@@ -1364,6 +1456,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     search: () => html`<svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="7" cy="7" r="4.6" /><path d="M10.4 10.4L14 14" /></svg>`,
     x: () => html`<svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8" /></svg>`,
     chevron: open => html`<svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style=${open ? 'transform:rotate(180deg)' : ''}><path d="M4 6l4 4 4-4" /></svg>`,
+    pin: () => html`<svg class="ic" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M8 14.5s4.6-4.2 4.6-8A4.6 4.6 0 0 0 3.4 6.5c0 3.8 4.6 8 4.6 8z" /><circle cx="8" cy="6.4" r="1.6" /></svg>`,
   };
   const VIS_OPTS = [['friends', 'Friends'], ['fof', 'Friends of friends'], ['wharton', 'All Wharton']];
   const VIS_HINT = { friends: 'Only your friends see it.', fof: 'Your friends and their friends see it.', wharton: 'Every Wharton student on In. sees it.' };
@@ -1395,7 +1488,8 @@ input[type=email]:focus{border-color:var(--green);outline:none}
   function tripMiles(L) {
     const extra = L.toStart + L.homeLeg;
     if (extra < 0.05) return distTxt(L.run) + ' mi, door to door';
-    return distTxt(L.run) + ' mi run + ' + mi1(extra) + ' mi ' + (L.mode === 'walk' ? 'walk' : 'jog');
+    const ride = (L.rideTo ? L.toStart : 0) + (L.rideHome ? L.homeLeg : 0), foot = extra - ride;
+    return distTxt(L.run) + ' mi run' + (foot >= 0.05 ? ' + ' + mi1(foot) + ' mi ' + (L.mode === 'walk' ? 'walk' : 'jog') : '') + (ride ? ' + ' + mi1(ride) + ' mi by car' : '');
   }
   function stateWord(r, M) {
     if (r.faded) return 'Dropped';
@@ -1509,7 +1603,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
 
   function TopBar({ M, onMe, onPost }) {
     return html`<header class="top"><div class="top-in">
-      <div class="brand"><span class="mark" role="img" aria-label="In.">In<span class="dot"></span></span>${M.mode === 'sandbox' ? html`<span class="mode-chip" title="Your posts stay in this browser">Sandbox</span>` : null}<span class="brand-sub">Schuylkill River Trail · Wharton</span></div>
+      <div class="brand"><span class="mark" role="img" aria-label="In.">In<span class="dot"></span></span>${M.mode === 'sandbox' ? html`<span class="mode-chip" title="Your posts stay in this browser">Sandbox</span>` : null}<span class="brand-sub">Philly runs · Wharton</span></div>
       <div class="top-r">
         ${M.canWrite ? html`<button class="btn btn-line btn-sm" onClick=${onPost}>${I.plus()}Post a run</button>` : null}
         ${M.canWrite || M.meP ? html`<button class="me-btn" onClick=${onMe} aria-label="Your runner card">${M.meP ? html`<${Avatar} id=${M.me} M=${M} size=${34} />` : html`<span class="me-setup">Set up</span>`}</button>` : null}
@@ -1672,16 +1766,18 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         <button class="btn btn-line btn-sm" aria-expanded=${open} onClick=${() => setOpen(!open)}>${open ? 'Hide the legs' : 'Show the legs'}${I.chevron(open)}</button>
       </div>
       ${open ? html`<div class="legs">
-        ${L.there.length ? html`<p class="leg-h">Getting there, ${how === 'walk' ? 'walking' : 'jogging'}</p>` : null}
+        ${L.there.length ? html`<p class="leg-h">Getting there, ${L.rideTo ? 'by car' : how === 'walk' ? 'walking' : 'jogging'}</p>` : null}
         ${L.there.map(legRow)}
         <p class="leg-h">The run</p>
         ${legRow(L.runRow, 'run')}
-        ${L.back.length ? html`<p class="leg-h">Getting home, ${how === 'walk' ? 'walking' : 'jogging'}</p>` : null}
+        ${L.back.length ? html`<p class="leg-h">Getting home, ${L.rideHome ? 'by car' : how === 'walk' ? 'walking' : 'jogging'}</p>` : null}
         ${L.back.map(legRow)}
         <div class="leg leg-tot"><span>Total</span><span class="n">${mi1(L.total)}</span></div>
         <p class="hint">${L.toStart < 0.05
           ? (L.corner ? 'The run starts at your door' : 'The run starts where you meet the trail') + ', so the leave time is just a few minutes early, rounded down to the nearest 5.'
-          : 'Leave time: about ' + mins + ' min to ' + how + ' ' + mi1(L.toStart) + ' mi at ' + pace(L.speed) + '/mi, plus a few minutes to spare, rounded down to the nearest 5.'} Home time: the run itself (${distTxt(L.run)} mi at ${pace(Math.round(L.runMin * 60 / Math.max(L.run, 0.1)))}/mi, about ${Math.round(L.runMin)} min)${L.homeLeg >= 0.05 ? ', then about ' + Math.max(1, Math.round(L.homeMin)) + ' min to ' + how + ' ' + mi1(L.homeLeg) + ' mi home' : ''}, rounded up to the nearest 5. Distances are approximate: city blocks on the street grid, miles along the trail.${L.hasDoor ? '' : ' Set your nearest corner on your runner card to count the miles from your door.'}</p>
+          : L.rideTo
+            ? 'Leave time: ' + mi1(L.toStart) + ' mi is too far to ' + how + ', so this counts a ride, about ' + mins + ' min, plus a few minutes to spare, rounded down to the nearest 5.'
+            : 'Leave time: about ' + mins + ' min to ' + how + ' ' + mi1(L.toStart) + ' mi at ' + pace(L.speed) + '/mi, plus a few minutes to spare, rounded down to the nearest 5.'} Home time: the run itself (${distTxt(L.run)} mi at ${pace(Math.round(L.runMin * 60 / Math.max(L.run, 0.1)))}/mi, about ${Math.round(L.runMin)} min)${L.homeLeg >= 0.05 ? ', then about ' + Math.max(1, Math.round(L.homeMin)) + ' min ' + (L.rideHome ? 'by car for ' : 'to ' + how + ' ') + mi1(L.homeLeg) + ' mi home' : ''}, rounded up to the nearest 5. Distances are approximate: city blocks on the street grid, miles along the trail.${L.hasDoor ? '' : ' Add where you live on your runner card to count the miles from your door.'}</p>
         ${M.canWrite && M.meP ? html`<div class="trip-mode"><span class="lbl">To and from runs</span><${Seg} label="To and from runs" value=${how} onChange=${v => act.setTravel(v)} options=${[['walk', 'Walk'], ['jog', 'Jog']]} /></div>` : null}
       </div>` : null}
     </section>`;
@@ -1745,9 +1841,10 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     }
     const going = [r.host].concat(r.joiners.map(j => j.id)).filter(Boolean);
     const sp = PLACE[r.placeId], fp = PLACE[r.finishId], tf = trailFinish(r);
-    const startSub = [sp ? sp.where : r.place ? mi1(r.placeOff) + ' mi off the trail, near ' + spotName(r.spot) : 'On the trail', r.legs && !r.faded ? mi1(r.legs.toStart) + ' mi from you' : null].filter(Boolean).join(' · ');
+    const startSub = [sp ? sp.where : isPin(r.placeId) ? pinWhere(r.placeId) : r.place ? mi1(r.placeOff) + ' mi off the trail, near ' + spotName(r.spot) : 'On the trail', r.legs && !r.faded ? mi1(r.legs.toStart) + ' mi from you' : null].filter(Boolean).join(' · ');
     const homeSub = r.legs && !r.faded ? mi1(r.legs.homeLeg) + ' mi from your door' : null;
-    const finishSub = [fp ? fp.where : tf ? 'On the trail' : mi1(r.finishOff) + ' mi off the trail, near ' + spotName(r.finishSpot || r.spot), homeSub].filter(Boolean).join(' · ');
+    const finishSub = [fp ? fp.where : tf ? 'On the trail' : isPin(r.finishId) ? pinWhere(r.finishId) : mi1(r.finishOff) + ' mi off the trail, near ' + spotName(r.finishSpot || r.spot), homeSub].filter(Boolean).join(' · ');
+    const mapLink = loc => { const p = locPt(loc); return p ? html` <a class="maplink" href=${mapUrl(loc.name, p)} target="_blank" rel="noopener">Map</a>` : null; };
     return html`<article class="detail sheet-body-pad">
       <p class=${'d-state' + (proposed || r.faded ? ' prop' : '')}>${state}</p>
       <p class="d-time">${proposed ? html`<span class="d-around">around</span> ` : null}${t.hm} <small>${t.ap}</small></p>
@@ -1763,8 +1860,8 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       <dl class="d-rows">
         <div><dt>${proposed ? 'Would be in' : 'Going'}</dt><dd>${going.length ? html`<span class="who"><${Stack} ids=${going} M=${M} size=${24} /><span>${going.map((id, i) => html`<span key=${id}>${i ? ', ' : ''}<${Name} id=${id} M=${M} full=${true} />${id === r.host ? ' (host)' : ''}${isSample(id) ? html`<${BotTag} />` : null}</span>`)}</span></span>` : 'No one yet'}</dd></div>
         ${r.maybes.length ? html`<div><dt>Maybe</dt><dd>${r.maybes.map((j, i) => html`<span key=${j.id}>${i ? ', ' : ''}<${Name} id=${j.id} M=${M} full=${true} /></span>`)}</dd></div>` : null}
-        <div><dt>Start</dt><dd>${startLabel(r)}<span class="m">${startSub}</span></dd></div>
-        <div><dt>Finish</dt><dd>${r.finish ? html`${r.finish}<span class="m">${finishSub}</span>` : html`Back at the start<span class="m">Out and back</span>`}</dd></div>
+        <div><dt>Start</dt><dd>${startLabel(r)}${mapLink(startLoc(r))}<span class="m">${startSub}</span></dd></div>
+        <div><dt>Finish</dt><dd>${r.finish ? html`${r.finish}${mapLink(finishLoc(r))}<span class="m">${finishSub}</span>` : html`Back at the start<span class="m">Out and back</span>`}</dd></div>
         ${r.note ? html`<div><dt>Note</dt><dd>${r.note}</dd></div>` : null}
         <div><dt>Seen by</dt><dd>${VIS_SEEN[r.vis] || VIS_SEEN.fof}</dd></div>
       </dl>
@@ -1857,7 +1954,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     return html`<main class="signin">
       <div class="signin-in">
         <span class="mark" role="img" aria-label="In.">In<span class="dot"></span></span>
-        <p class="lede">Plan tomorrow’s run with friends on the Schuylkill River Trail. See who’s going, say I’m in, and get a leave-by time from your door.</p>
+        <p class="lede">Plan tomorrow’s run with friends, on the river trail or anywhere in Philly. See who’s going, say I’m in, and get a leave-by time from your door.</p>
         <section class="signin-card" aria-labelledby="signin-h">
           ${sent ? html`
             <h1 id="signin-h">Check your email</h1>
@@ -1989,21 +2086,23 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         <div><b>Account</b><p class="hint">Signed in as ${Store.email || 'you'}.</p></div>
         <button type="button" class="btn btn-line btn-sm" onClick=${() => Cloud.signOut().then(() => location.reload(), () => location.reload())}>Sign out</button>
       </div>` : null}
-      <p class="hint">In. is a student project for Wharton runners, not affiliated with the Wharton School.</p>
     </div>`;
   }
 
   function ProfileSheet({ M, onboarding, onClose, act }) {
     const cur = M.meP;
     const h = M.home || {};
-    const hasCorner = typeof h.st === 'number' && !!CROSS_BY[h.cross];
+    const located = typeof h.lat === 'number' && typeof h.lng === 'number';
+    const hasCorner = typeof h.st === 'number' && cornerOk(h.st, h.cross);
     const [f, setF] = useState(() => {
-      const st = hasCorner ? h.st : 20, cross = hasCorner ? h.cross : 'walnut';
+      const near = located ? nearCorner(gridOf(h.lat, h.lng)) : null;
+      const st = hasCorner ? h.st : near ? near.st : 20, cross = hasCorner ? h.cross : near ? near.cross : 'walnut';
       return {
         handle: (cur && cur.handle) || Store.suggestedHandle || '',
-        where: hasCorner || typeof h.dist !== 'number' ? 'corner' : 'trail',
+        where: located ? 'here' : hasCorner || typeof h.dist !== 'number' ? 'corner' : 'trail',
+        lat: located ? h.lat : null, lng: located ? h.lng : null,
         st, cross,
-        spot: (cur && cur.spot) || nearestAccess({ gx: st, gy: CROSS_BY[cross].y }).s.id,
+        spot: (cur && cur.spot) || nearestAccess(located ? gridOf(h.lat, h.lng) : cornerPt(st, cross)).s.id,
         spotSet: !!cur,
         dist: typeof h.dist === 'number' ? h.dist : 0.3,
         pace: (cur && cur.pace) || 540,
@@ -2012,41 +2111,65 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     });
     const [err, setErr] = useState('');
     const [busy, setBusy] = useState(false);
+    const [locBusy, setLocBusy] = useState(false);
+    const [locMsg, setLocMsg] = useState('');
     const set = (k, v) => setF(o => Object.assign({}, o, { [k]: v }));
     // Until you pick a trail spot yourself, it follows your corner to the closest access.
     const setCorner = (k, v) => setF(o => {
-      const n = Object.assign({}, o, { [k]: v });
-      if (!o.spotSet) n.spot = nearestAccess({ gx: n.st, gy: CROSS_BY[n.cross].y }).s.id;
+      const n = Object.assign({}, o, { [k]: v, where: 'corner' });
+      if (!o.spotSet) n.spot = nearestAccess(cornerPt(n.st, n.cross)).s.id;
       return n;
     });
+    // Your phone's location, rounded to about a block, picks your corner and the closest trail access.
+    const useLocation = async () => {
+      setLocMsg('');
+      setLocBusy(true);
+      const r = await locate();
+      setLocBusy(false);
+      if (r.error) { setLocMsg(r.error); return; }
+      const lat = Math.round(r.lat * 1000) / 1000, lng = Math.round(r.lng * 1000) / 1000;
+      const p = gridOf(lat, lng), c = nearCorner(p), n = nearestAccess(p);
+      if (n.d > 8) { setLocMsg('That’s more than 8 miles from the trail. Tap this when you’re home, or pick your corner.'); return; }
+      setF(o => Object.assign({}, o, { where: 'here', lat, lng, st: c.st, cross: c.cross, spot: n.s.id, spotSet: false }));
+      if (r.acc > 800) setLocMsg('That reading is rough, give or take ' + mi1(r.acc / 1609) + ' mi. If the corner looks wrong, pick it yourself.');
+    };
     const submit = async e => {
       e.preventDefault();
       const handle = f.handle.trim();
       if (!handle) { setErr('Add your first and last name.'); return; }
       if (handle.split(/\s+/).length < 2) { setErr('Add your last name too, so people know who’s coming.'); return; }
       setBusy(true);
-      const home = f.where === 'corner' ? { st: f.st, cross: f.cross } : { dist: Math.round(f.dist * 10) / 10 };
+      const home = f.where === 'here' ? { lat: f.lat, lng: f.lng } : f.where === 'corner' ? { st: f.st, cross: f.cross } : { dist: Math.round(f.dist * 10) / 10 };
       const ok = await act.saveProfile({ handle: handle.replace(/\s+/g, ' ').slice(0, 40), spot: f.spot, pace: f.pace, travel: f.travel, vis: (cur && cur.vis) || 'fof', updatedAt: Date.now() }, home);
       setBusy(false);
       if (ok) onClose();
     };
-    const toGrid = f.where === 'corner' && SPOT[f.spot] && typeof SPOT[f.spot].gx === 'number' ? gridD({ gx: f.st, gy: CROSS_BY[f.cross].y }, SPOT[f.spot]) : null;
+    const hp = f.where === 'here' ? gridOf(f.lat, f.lng) : f.where === 'corner' ? cornerPt(f.st, f.cross) : null;
+    const toSpot = hp && SPOT[f.spot] ? gridD(hp, SPOT[f.spot]) : null;
+    const hereLabel = f.where === 'here' ? nearCorner(hp).label : '';
     return html`<${Sheet} title=${onboarding ? 'Set up your runner card' : 'Your runner card'} sub=${onboarding ? 'Roughly where you live, where you meet the river, and your easy pace.' : null} onClose=${onClose}>
       <form class="form" onSubmit=${submit}>
         <div class="field"><label for="pf-name">Your name</label><input id="pf-name" type="text" maxlength="40" autocomplete="name" placeholder="First and last name" value=${f.handle} onInput=${e => { set('handle', e.target.value); setErr(''); }} /></div>
-        ${f.where === 'corner' ? html`<div class="field"><label for="pf-st">Your nearest corner</label>
-          <div class="corner">
-            <select id="pf-st" aria-label="Numbered street" value=${f.st} onChange=${e => setCorner('st', Number(e.target.value))}>${STREETS.map(n => html`<option key=${n} value=${n}>${ordinal(n)}</option>`)}</select>
+        <div class="field"><span class="lbl">Where you live</span>
+          ${f.where === 'here' ? html`<p class="loc-set">${I.pin()}<span><b>${hereLabel ? 'Near ' + hereLabel : 'Set from your location'}</b><small>From your phone’s location, rounded to about a block.</small></span></p>`
+          : f.where === 'corner' ? html`<div class="corner">
+            <select id="pf-st" aria-label="Numbered street" value=${f.st} onChange=${e => setCorner('st', Number(e.target.value))}>${STREETS.map(n => html`<option key=${n} value=${n}>${streetName(n)}</option>`)}</select>
             <span aria-hidden="true">&</span>
             <select id="pf-cross" aria-label="Cross street" value=${f.cross} onChange=${e => setCorner('cross', e.target.value)}>${CROSS.map(c => html`<option key=${c.id} value=${c.id}>${c.name}</option>`)}</select>
+          </div>`
+          : html`<label class="sublbl" for="pf-dist">Door to trail: ${f.dist.toFixed(1)} mi</label>
+          <input id="pf-dist" type="range" min="0.1" max="3" step="0.1" value=${f.dist} onInput=${e => set('dist', Number(e.target.value))} />`}
+          <div class="loc-row">
+            <button type="button" class="btn btn-line btn-sm" onClick=${useLocation} disabled=${locBusy}>${I.pin()}${locBusy ? 'Finding you…' : f.where === 'here' ? 'Update from my location' : 'Use my location'}</button>
+            ${f.where === 'corner'
+              ? html`<button type="button" class="linkish" onClick=${() => set('where', 'trail')}>Not near these streets?</button>`
+              : html`<button type="button" class="linkish" onClick=${() => setCorner('st', f.st)}>Pick a corner instead</button>`}
           </div>
-          <span class="hint">Only you see this. It sets your miles to each start, whether that's 2116 Chestnut or the trail. In. never asks for your address. <button type="button" class="linkish" onClick=${() => set('where', 'trail')}>I don't live in Center City or University City</button></span></div>`
-        : html`<div class="field"><label for="pf-dist">Door to trail: ${f.dist.toFixed(1)} mi</label>
-          <input id="pf-dist" type="range" min="0.1" max="1" step="0.1" value=${f.dist} onInput=${e => set('dist', Number(e.target.value))} />
-          <span class="hint">How far you go from your door to your trail spot. Only you see it. <button type="button" class="linkish" onClick=${() => set('where', 'corner')}>Use my nearest corner instead</button></span></div>`}
+          ${locMsg ? html`<span class="warnline">${locMsg}</span>` : null}
+          <span class="hint">${f.where === 'trail' ? 'How far you go from your door to your trail spot. ' : ''}Only you see this. It sets your miles to every start and your leave-by times. In. never asks for your address.</span></div>
         <div class="field"><label for="pf-spot">Where you meet the trail</label>
           <select id="pf-spot" value=${f.spot} onChange=${e => setF(o => Object.assign({}, o, { spot: e.target.value, spotSet: true }))}>${SPOTS.map(s => html`<option key=${s.id} value=${s.id}>${s.name}</option>`)}</select>
-          <span class="hint">Friends see this spot.${toGrid != null ? ' About ' + mi1(toGrid) + ' mi from your corner.' : ''}</span></div>
+          <span class="hint">Friends see this spot.${toSpot != null ? ' About ' + mi1(toSpot) + ' mi from you.' : ''}</span></div>
         <div class="field"><span class="lbl">Easy pace</span><${Stepper} id="pf-pace" label="pace" value=${f.pace} min=${300} max=${780} step=${5} fmt=${v => pace(v) + ' /mi'} onChange=${v => set('pace', v)} /></div>
         <div class="field"><span class="lbl">Getting to and from runs</span><${Seg} label="Getting to and from runs" value=${f.travel} onChange=${v => set('travel', v)} options=${[['walk', 'Walk'], ['jog', 'Jog']]} />
           <span class="hint">${f.travel === 'jog' ? 'Leave and home times assume you jog at your easy pace plus 1:00/mi, so ' + pace(f.pace + 60) + '/mi.' : 'Leave and home times assume you walk to and from runs at 20:00/mi.'}</span></div>
@@ -2063,6 +2186,47 @@ input[type=email]:focus{border-color:var(--green);outline:none}
   const TIME_OPTS = [];
   for (let t = 300; t <= 1260; t += 15) TIME_OPTS.push(t);
 
+  // Where a start or finish off the list is: the closest corner, or where you're standing.
+  // pin = { mode: 'corner', st, cross } or { mode: 'here', lat, lng }.
+  const pinReady = pin => (pin.mode === 'here' ? typeof pin.lat === 'number' : cornerOk(pin.st, pin.cross));
+  const pinLL = pin => (pin.mode === 'here' ? { lat: pin.lat, lng: pin.lng } : latLngOf(cornerPt(pin.st, pin.cross)));
+  function pinFrom(id) {
+    const p = pinPt(id);
+    if (!p) return { mode: 'corner', st: '', cross: '' };
+    const c = nearCorner(p);
+    if (cornerOk(c.st, c.cross) && gridD(p, cornerPt(c.st, c.cross)) < 0.02) return { mode: 'corner', st: c.st, cross: c.cross };
+    const ll = latLngOf(p);
+    return { mode: 'here', lat: ll.lat, lng: ll.lng };
+  }
+  function PinField({ id, pin, onChange }) {
+    const [busy, setBusy] = useState(false);
+    const [msg, setMsg] = useState('');
+    const here = async () => {
+      setMsg('');
+      setBusy(true);
+      const r = await locate();
+      setBusy(false);
+      if (r.error) { setMsg(r.error); return; }
+      onChange({ mode: 'here', lat: Math.round(r.lat * 1e4) / 1e4, lng: Math.round(r.lng * 1e4) / 1e4 });
+    };
+    const corner = (k, v) => onChange(Object.assign({ st: '', cross: '' }, pin.mode === 'corner' ? pin : null, { mode: 'corner', [k]: v }));
+    const lab = pin.mode === 'here' ? nearCorner(gridOf(pin.lat, pin.lng)).label : '';
+    return html`<div class="field"><span class="lbl">Where is it?</span>
+      ${pin.mode === 'here'
+        ? html`<p class="loc-set">${I.pin()}<span><b>${lab ? 'Near ' + lab : 'Where you were standing'}</b><small>Pinned from your location.</small></span></p>`
+        : html`<div class="corner">
+          <select id=${id + '-st'} aria-label="Numbered street" value=${pin.st} onChange=${e => corner('st', Number(e.target.value))}><option value="" disabled>Street</option>${STREETS.map(n => html`<option key=${n} value=${n}>${streetName(n)}</option>`)}</select>
+          <span aria-hidden="true">&</span>
+          <select id=${id + '-cross'} aria-label="Cross street" value=${pin.cross} onChange=${e => corner('cross', e.target.value)}><option value="" disabled>Cross street</option>${CROSS.map(c => html`<option key=${c.id} value=${c.id}>${c.name}</option>`)}</select>
+        </div>`}
+      <div class="loc-row">
+        <button type="button" class="btn btn-line btn-sm" onClick=${here} disabled=${busy}>${I.pin()}${busy ? 'Finding you…' : 'Use where I am now'}</button>
+        ${pin.mode === 'here' ? html`<button type="button" class="linkish" onClick=${() => onChange({ mode: 'corner', st: '', cross: '' })}>Pick a corner instead</button>` : null}
+      </div>
+      ${msg ? html`<span class="warnline">${msg}</span>` : null}
+      <span class="hint">The closest corner is close enough. Everyone who can see the run sees this spot.</span></div>`;
+  }
+
   function PostSheet({ M, now, opts, onClose, act }) {
     const o = opts || {};
     const editing = o.edit || null;
@@ -2073,17 +2237,19 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       if (date < M.todayK) date = tmr;
       const kind = o.kind || (editing ? (editing.status === 'locked' ? 'locked' : 'intention') : now < lockByFor(date) ? 'intention' : 'locked');
       const mySpot = M.meP ? M.meP.spot : 'walnut';
+      const startCustom = !!(base && base.place && !PLACE[base.placeId]);
+      const finCustom = !!(base && base.finish && !PLACE[base.finishId] && !trailFinish(base));
       return {
         kind, date,
         title: base && !base.titleAuto ? base.title || '' : '',
         start: base ? base.start : 390,
         placeId: base && PLACE[base.placeId] ? base.placeId : '',
-        custom: !!(base && base.place && !PLACE[base.placeId]), place: base && base.place && !PLACE[base.placeId] ? base.place : '', spot: base ? base.spot : mySpot,
-        placeOff: base && base.place && !PLACE[base.placeId] ? offOf(base.place, base.placeOff) : 0.2,
+        custom: startCustom, place: startCustom ? base.place : '', spot: base ? base.spot : mySpot,
+        pin: pinFrom(startCustom ? base.placeId : ''),
         finishMode: base && base.finish ? 'else' : 'back',
         finishPick: !(base && base.finish) ? '' : PLACE[base.finishId] ? 'p:' + base.finishId : trailFinish(base) ? 't:' + trailFinish(base) : '__custom',
-        finish: base && base.finish && !PLACE[base.finishId] && !trailFinish(base) ? base.finish : '', finishSpot: base ? base.finishSpot || base.spot : mySpot,
-        finishOff: base && base.finish ? offOf(base.finish, base.finishOff) : 0.2,
+        finish: finCustom ? base.finish : '',
+        finPin: pinFrom(finCustom ? base.finishId : ''),
         pace: base ? base.pace : M.meP ? M.meP.pace : 540,
         dist: base ? base.dist : 5,
         vis: base ? base.vis || 'fof' : (M.meP && M.meP.vis) || 'fof',
@@ -2098,10 +2264,12 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     const problems = [];
     if (f.kind === 'intention' && !intentionOpen) problems.push('Proposals for ' + dayRef(f.date, M.todayK) + ' closed at 10 PM the night before. Post it confirmed.');
     if (startAt - now < 10 * 60000) problems.push('Pick a start at least 10 minutes from now.');
-    if (tried && f.custom && !f.place.trim()) problems.push('Name the start, like a coffee shop or Huntsman Hall.');
+    if (tried && f.custom && !f.place.trim()) problems.push('Name the start, like a coffee shop or a park entrance.');
+    if (tried && f.custom && !pinReady(f.pin)) problems.push('Show where the start is: pick the closest corner, or tap Use where I am now.');
     const elsewhere = f.finishMode === 'else';
     if (tried && elsewhere && !f.finishPick) problems.push('Pick where the run ends, or make it out and back.');
     if (tried && elsewhere && f.finishPick === '__custom' && !f.finish.trim()) problems.push('Name the finish, or make it out and back.');
+    if (tried && elsewhere && f.finishPick === '__custom' && !pinReady(f.finPin)) problems.push('Show where the finish is: pick the closest corner, or tap Use where I am now.');
     const lonely = M.me && M.F(M.me).size === 0 && f.vis !== 'wharton';
     const days = [];
     for (let i = 0; i < 7; i++) days.push(dateKey(addDays(now, i)));
@@ -2111,11 +2279,11 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     const submit = async e => {
       e.preventDefault();
       setTried(true);
-      const missing = (f.custom && !f.place.trim()) || (elsewhere && (!f.finishPick || (f.finishPick === '__custom' && !f.finish.trim())));
+      const missing = (f.custom && (!f.place.trim() || !pinReady(f.pin))) || (elsewhere && (!f.finishPick || (f.finishPick === '__custom' && (!f.finish.trim() || !pinReady(f.finPin)))));
       if (problems.length || missing || busy) return;
-      const where = f.custom ? { spot: f.spot, place: f.place.trim().slice(0, 60), placeOff: f.placeOff, placeId: '' } : startFields(f.placeId, f.spot);
+      const where = f.custom ? startFields(pinId(pinLL(f.pin)), f.spot, f.place) : startFields(f.placeId, f.spot);
       let fin = finishFields('');
-      if (elsewhere && f.finishPick === '__custom') fin = { finish: f.finish.trim().slice(0, 60), finishSpot: f.finishSpot, finishOff: f.finishOff, finishId: '' };
+      if (elsewhere && f.finishPick === '__custom') fin = finishFields(pinId(pinLL(f.finPin)), f.finish);
       else if (elsewhere && f.finishPick.indexOf('p:') === 0) fin = finishFields(f.finishPick.slice(2));
       else if (elsewhere && f.finishPick.indexOf('t:') === 0) fin = finishFields('trail:' + f.finishPick.slice(2));
       const doc = Object.assign({
@@ -2147,13 +2315,13 @@ input[type=email]:focus{border-color:var(--green);outline:none}
           }}>
             <optgroup label="On the trail">${SPOTS.map(s => html`<option key=${s.id} value=${s.id}>${s.name}</option>`)}</optgroup>
             <optgroup label="In the neighborhood">${PLACES.filter(pl => pl.kind === 'meet').map(pl => html`<option key=${pl.id} value=${'p:' + pl.id}>${pl.name} (${pl.where})</option>`)}</optgroup>
+            <optgroup label="Parks and other trails">${PLACES.filter(pl => pl.kind === 'park').map(pl => html`<option key=${pl.id} value=${'p:' + pl.id}>${pl.name} (${pl.where})</option>`)}</optgroup>
             <optgroup label="Coffee and food">${PLACES.filter(pl => pl.kind === 'food').map(pl => html`<option key=${pl.id} value=${'p:' + pl.id}>${pl.name} (${pl.where})</option>`)}</optgroup>
             <option value="__custom">Somewhere else…</option>
           </select>
           ${f.custom ? html`<div class="sub-field">
-            <div class="field"><label for="ps-place">Place</label><input id="ps-place" type="text" maxlength="60" placeholder="Huntsman Hall steps" value=${f.place} onInput=${e => set('place', e.target.value)} /></div>
-            <div class="field"><label for="ps-place-spot">Closest trail spot</label><select id="ps-place-spot" value=${f.spot} onChange=${e => set('spot', e.target.value)}>${SPOTS.map(s => html`<option key=${s.id} value=${s.id}>${s.name}</option>`)}</select></div>
-            <div class="field"><span class="lbl">Distance from the trail</span><${Stepper} id="ps-place-off" label="distance from the trail" value=${f.placeOff} min=${0} max=${1.5} step=${0.1} fmt=${v => mi1(v) + ' mi'} onChange=${v => set('placeOff', v)} /><span class="hint">Added to everyone's miles to the start.</span></div>
+            <div class="field"><label for="ps-place">Place</label><input id="ps-place" type="text" maxlength="60" placeholder="Like Sweetgreen on Chestnut" value=${f.place} onInput=${e => set('place', e.target.value)} /></div>
+            <${PinField} id="ps-place" pin=${f.pin} onChange=${v => set('pin', v)} />
           </div>` : null}</div>
         <div class="field"><span class="lbl">Finish</span>
           <${Seg} label="Finish" value=${f.finishMode} onChange=${v => set('finishMode', v)} options=${[['back', 'Out and back'], ['else', 'Ends somewhere else']]} />
@@ -2163,13 +2331,13 @@ input[type=email]:focus{border-color:var(--green);outline:none}
                 <option value="" disabled>Pick a place</option>
                 <optgroup label="Coffee and food">${PLACES.filter(pl => pl.kind === 'food').map(pl => html`<option key=${pl.id} value=${'p:' + pl.id}>${pl.name} (${pl.where})</option>`)}</optgroup>
                 <optgroup label="In the neighborhood">${PLACES.filter(pl => pl.kind === 'meet').map(pl => html`<option key=${pl.id} value=${'p:' + pl.id}>${pl.name} (${pl.where})</option>`)}</optgroup>
+                <optgroup label="Parks and other trails">${PLACES.filter(pl => pl.kind === 'park').map(pl => html`<option key=${pl.id} value=${'p:' + pl.id}>${pl.name} (${pl.where})</option>`)}</optgroup>
                 <optgroup label="On the trail">${SPOTS.map(sp => html`<option key=${sp.id} value=${'t:' + sp.id}>${sp.name}</option>`)}</optgroup>
                 <option value="__custom">Somewhere else…</option>
               </select></div>
             ${f.finishPick === '__custom' ? html`
               <div class="field"><label for="ps-finish">Place</label><input id="ps-finish" type="text" maxlength="60" placeholder="Name of the café or spot" value=${f.finish} onInput=${e => set('finish', e.target.value)} /></div>
-              <div class="field"><label for="ps-finish-spot">Closest trail spot</label><select id="ps-finish-spot" value=${f.finishSpot} onChange=${e => set('finishSpot', e.target.value)}>${SPOTS.map(sp => html`<option key=${sp.id} value=${sp.id}>${sp.name}</option>`)}</select></div>
-              <div class="field"><span class="lbl">Distance from the trail</span><${Stepper} id="ps-finish-off" label="finish distance from the trail" value=${f.finishOff} min=${0} max=${1.5} step=${0.1} fmt=${v => mi1(v) + ' mi'} onChange=${v => set('finishOff', v)} /></div>` : null}
+              <${PinField} id="ps-finish" pin=${f.finPin} onChange=${v => set('finPin', v)} />` : null}
             <span class="hint">Everyone's miles home count from here.</span>
           </div>` : html`<span class="hint">Ends where it starts.</span>`}</div>
         <div class="row2">
@@ -2264,8 +2432,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     return html`<footer class="foot">
       ${M && M.mode === 'live' && M.ready ? html`<p>Live board, ${M.realCount} ${M.realCount === 1 ? 'runner' : 'runners'} so far.${M.samplesOn ? ' People marked Bot aren’t real. They fill out runs during the beta.' : ''}</p>` : null}
       ${M && M.mode === 'sandbox' ? html`<p>Sandbox: your posts stay in this browser.${M.samplesOn ? ' People marked Bot aren’t real. They fill out runs during the beta.' : ''}</p>` : null}
-      <p>One trail: the Schuylkill River Trail from Grays Ferry Crescent to Manayunk. Distances are approximate: city blocks around Rittenhouse and Penn, miles along the trail.</p>
-      <p>In. is a student project for Wharton runners, not affiliated with the Wharton School.</p>
+      <p>Made by Jason Traum for Wharton runners.</p>
     </footer>`;
   }
 
