@@ -209,11 +209,12 @@ alter table public.runs enable row level security;
 alter table public.joins enable row level security;
 alter table public.app_config enable row level security;
 
+-- Start from nothing (Supabase's defaults grant everything, including TRUNCATE, which skips these rules),
+-- then allow exactly what the app uses.
 grant usage on schema public to authenticated;
-revoke all on public.admins, public.profiles, public.homes, public.friendships, public.runs, public.joins, public.app_config from anon;
+revoke all on public.admins, public.profiles, public.homes, public.friendships, public.runs, public.joins, public.app_config from anon, authenticated;
 grant select, insert, update, delete on public.profiles, public.homes, public.friendships, public.runs, public.joins to authenticated;
 grant select, update on public.app_config to authenticated;
-revoke all on public.admins from authenticated;
 revoke execute on function public.is_admin(), public.are_friends(uuid, uuid), public.share_a_friend(uuid, uuid), public.can_see_run(uuid, text, text, uuid), public.run_visible(text, uuid) from public, anon;
 grant execute on function public.is_admin(), public.are_friends(uuid, uuid), public.share_a_friend(uuid, uuid), public.can_see_run(uuid, text, text, uuid), public.run_visible(text, uuid) to authenticated;
 
