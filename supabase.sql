@@ -29,7 +29,8 @@ alter table public.profiles alter column travel set default 'walk';
 alter table public.profiles drop constraint if exists profiles_handle_check;
 alter table public.profiles add constraint profiles_handle_check check (char_length(btrim(handle)) between 1 and 40);
 
--- Where you live, roughly (nearest corner or door-to-trail miles). Private: only you can read it.
+-- Where you live, roughly: your phone's location rounded to about a block, your nearest corner, or
+-- door-to-trail miles. Private: only you can read it.
 create table if not exists public.homes (
   id uuid primary key default auth.uid() references auth.users (id) on delete cascade,
   st smallint check (st between 1 and 99),
@@ -37,6 +38,8 @@ create table if not exists public.homes (
   dist numeric(3, 1) check (dist between 0 and 5),
   updated_at timestamptz not null default now()
 );
+alter table public.homes add column if not exists lat numeric(6, 3) check (lat between -90 and 90);
+alter table public.homes add column if not exists lng numeric(6, 3) check (lng between -180 and 180);
 
 -- One row per pair of people, with the smaller id first.
 create table if not exists public.friendships (
