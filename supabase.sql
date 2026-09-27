@@ -16,13 +16,18 @@ insert into public.admins (email) values (lower('YOUR_EMAIL_HERE')) on conflict 
 -- Everyone's runner card. Readable by every signed-in person (it's how friends find each other).
 create table if not exists public.profiles (
   id uuid primary key default auth.uid() references auth.users (id) on delete cascade,
-  handle text not null check (char_length(btrim(handle)) between 1 and 24),
+  handle text not null check (char_length(btrim(handle)) between 1 and 40),
   spot text not null check (char_length(spot) between 1 and 40),
   pace smallint not null check (pace between 240 and 960),
-  travel text not null default 'jog' check (travel in ('jog', 'walk')),
+  travel text not null default 'walk' check (travel in ('jog', 'walk')),
   vis text not null default 'fof' check (vis in ('friends', 'fof', 'wharton')),
   updated_at timestamptz not null default now()
 );
+
+-- Names are first and last (older cards allowed 24 characters).
+alter table public.profiles alter column travel set default 'walk';
+alter table public.profiles drop constraint if exists profiles_handle_check;
+alter table public.profiles add constraint profiles_handle_check check (char_length(btrim(handle)) between 1 and 40);
 
 -- Where you live, roughly (nearest corner or door-to-trail miles). Private: only you can read it.
 create table if not exists public.homes (
@@ -48,7 +53,7 @@ create table if not exists public.friendships (
 
 create table if not exists public.runs (
   id text primary key default gen_random_uuid()::text check (char_length(id) between 8 and 64),
-  host uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  host uuid default auth.uid() references auth.users (id) on delete cascade,
   date date not null,
   status text not null check (status in ('intention', 'locked', 'cancelled')),
   start smallint not null check (start between 0 and 1439),
@@ -68,9 +73,15 @@ create table if not exists public.runs (
   samples_in text[] not null default '{}',
   created_at timestamptz not null default now(),
   locked_at timestamptz,
-  touched_at timestamptz
+  touched_at timestamptz,
+  left_by uuid references auth.users (id) on delete set null,
+  left_at timestamptz
 );
 alter table public.runs add column if not exists touched_at timestamptz;
+-- A host can drop out: the run then has no host (host is null) and remembers who left (left_by).
+alter table public.runs alter column host drop not null;
+alter table public.runs add column if not exists left_by uuid references auth.users (id) on delete set null;
+alter table public.runs add column if not exists left_at timestamptz;
 create index if not exists runs_date_idx on public.runs (date);
 
 create table if not exists public.joins (
@@ -78,9 +89,24 @@ create table if not exists public.joins (
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   date date not null,
   at timestamptz not null default now(),
+  kind text not null default 'in' check (kind in ('in', 'maybe')),
   primary key (run_id, user_id)
 );
+-- "I'm in" or "Maybe".
+alter table public.joins add column if not exists kind text not null default 'in';
+alter table public.joins drop constraint if exists joins_kind_check;
+alter table public.joins add constraint joins_kind_check check (kind in ('in', 'maybe'));
 create index if not exists joins_date_idx on public.joins (date);
+
+-- Chat on each run. Anyone who can see the run can read and post.
+create table if not exists public.messages (
+  id uuid primary key default gen_random_uuid(),
+  run_id text not null references public.runs (id) on delete cascade,
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  body text not null check (char_length(btrim(body)) between 1 and 500),
+  at timestamptz not null default now()
+);
+create index if not exists messages_run_idx on public.messages (run_id, at);
 
 -- One row of app-wide settings.
 create table if not exists public.app_config (
@@ -133,10 +159,11 @@ language sql stable security definer set search_path = public as $$
   );
 $$;
 
--- The same question for a run that already exists, by id (the rules for joins use this).
+-- The same question for a run that already exists, by id (the rules for joins and chat use this).
+-- A run whose host dropped out keeps the audience it had: friends of the person who hosted it.
 create or replace function public.run_visible(p_run text, p_user uuid) returns boolean
 language sql stable security definer set search_path = public as $$
-  select p_user = auth.uid() and exists (select 1 from runs r where r.id = p_run and can_see_run(r.host, r.vis, r.id, p_user));
+  select p_user = auth.uid() and exists (select 1 from runs r where r.id = p_run and can_see_run(coalesce(r.host, r.left_by), r.vis, r.id, p_user));
 $$;
 
 -- Friend requests move one way: only the person asked can accept or decline.
@@ -167,16 +194,42 @@ drop trigger if exists friendship_guard on public.friendships;
 create trigger friendship_guard before insert or update on public.friendships
   for each row execute function public.friendship_guard();
 
--- Hosts own their runs: nobody else can change the host.
+-- Hosts own their runs: the host only changes through step_down and take_over below.
 create or replace function public.run_guard() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
-  if auth.uid() is not null and new.host <> old.host then raise exception 'the host cannot change'; end if;
+  if auth.uid() is not null and new.host is distinct from old.host
+     and coalesce(current_setting('in.host_change', true), '') <> 'on' then
+    raise exception 'the host cannot change';
+  end if;
   return new;
 end $$;
 
 drop trigger if exists run_guard on public.runs;
 create trigger run_guard before update on public.runs for each row execute function public.run_guard();
+
+-- The host drops out. The run stays up with no host, and remembers who left.
+create or replace function public.step_down(p_run text) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  perform set_config('in.host_change', 'on', true);
+  update runs set left_by = host, left_at = now(), host = null
+    where id = p_run and host = auth.uid() and status <> 'cancelled';
+  if not found then raise exception 'only the host can drop out as host' using errcode = '42501'; end if;
+end $$;
+
+-- Anyone who can see a run with no host can take it over. They stop being a joiner and become the host.
+create or replace function public.take_over(p_run text) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'sign in first' using errcode = '42501'; end if;
+  perform set_config('in.host_change', 'on', true);
+  update runs r set host = auth.uid()
+    where r.id = p_run and r.host is null and r.status <> 'cancelled'
+      and can_see_run(r.left_by, r.vis, r.id, auth.uid());
+  if not found then raise exception 'this run already has a host' using errcode = '42501'; end if;
+  delete from joins where run_id = p_run and user_id = auth.uid();
+end $$;
 
 -- When someone joins or drops out, touch the run so everyone who can see it gets a live update.
 -- Joins themselves aren't broadcast: Supabase sends deletes to every listener, and who left which run is private.
@@ -208,15 +261,17 @@ alter table public.friendships enable row level security;
 alter table public.runs enable row level security;
 alter table public.joins enable row level security;
 alter table public.app_config enable row level security;
+alter table public.messages enable row level security;
 
 -- Start from nothing (Supabase's defaults grant everything, including TRUNCATE, which skips these rules),
 -- then allow exactly what the app uses.
 grant usage on schema public to authenticated;
-revoke all on public.admins, public.profiles, public.homes, public.friendships, public.runs, public.joins, public.app_config from anon, authenticated;
+revoke all on public.admins, public.profiles, public.homes, public.friendships, public.runs, public.joins, public.app_config, public.messages from anon, authenticated;
 grant select, insert, update, delete on public.profiles, public.homes, public.friendships, public.runs, public.joins to authenticated;
 grant select, update on public.app_config to authenticated;
-revoke execute on function public.is_admin(), public.are_friends(uuid, uuid), public.share_a_friend(uuid, uuid), public.can_see_run(uuid, text, text, uuid), public.run_visible(text, uuid) from public, anon;
-grant execute on function public.is_admin(), public.are_friends(uuid, uuid), public.share_a_friend(uuid, uuid), public.can_see_run(uuid, text, text, uuid), public.run_visible(text, uuid) to authenticated;
+grant select, insert, delete on public.messages to authenticated;
+revoke execute on function public.is_admin(), public.are_friends(uuid, uuid), public.share_a_friend(uuid, uuid), public.can_see_run(uuid, text, text, uuid), public.run_visible(text, uuid), public.step_down(text), public.take_over(text) from public, anon;
+grant execute on function public.is_admin(), public.are_friends(uuid, uuid), public.share_a_friend(uuid, uuid), public.can_see_run(uuid, text, text, uuid), public.run_visible(text, uuid), public.step_down(text), public.take_over(text) to authenticated;
 
 drop policy if exists profiles_read on public.profiles;
 drop policy if exists profiles_insert on public.profiles;
@@ -249,7 +304,7 @@ drop policy if exists runs_read on public.runs;
 drop policy if exists runs_insert on public.runs;
 drop policy if exists runs_update on public.runs;
 drop policy if exists runs_delete on public.runs;
-create policy runs_read on public.runs for select to authenticated using (public.can_see_run(host, vis, id, auth.uid()));
+create policy runs_read on public.runs for select to authenticated using (public.can_see_run(coalesce(host, left_by), vis, id, auth.uid()));
 create policy runs_insert on public.runs for insert to authenticated with check (host = auth.uid());
 create policy runs_update on public.runs for update to authenticated using (host = auth.uid()) with check (host = auth.uid());
 create policy runs_delete on public.runs for delete to authenticated using (host = auth.uid());
@@ -265,6 +320,14 @@ create policy joins_update on public.joins for update to authenticated
   using (user_id = auth.uid()) with check (user_id = auth.uid() and public.run_visible(run_id, auth.uid()));
 create policy joins_delete on public.joins for delete to authenticated using (user_id = auth.uid());
 
+drop policy if exists messages_read on public.messages;
+drop policy if exists messages_insert on public.messages;
+drop policy if exists messages_delete on public.messages;
+create policy messages_read on public.messages for select to authenticated using (public.run_visible(run_id, auth.uid()));
+create policy messages_insert on public.messages for insert to authenticated
+  with check (user_id = auth.uid() and public.run_visible(run_id, auth.uid()));
+create policy messages_delete on public.messages for delete to authenticated using (user_id = auth.uid());
+
 drop policy if exists config_read on public.app_config;
 drop policy if exists config_update on public.app_config;
 create policy config_read on public.app_config for select to authenticated using (true);
@@ -278,7 +341,7 @@ create policy config_update on public.app_config for update to authenticated usi
 do $$
 declare t text;
 begin
-  foreach t in array array['profiles', 'friendships', 'runs', 'app_config'] loop
+  foreach t in array array['profiles', 'friendships', 'runs', 'app_config', 'messages'] loop
     begin
       execute format('alter publication supabase_realtime add table public.%I', t);
     exception when duplicate_object then null;  -- already added
