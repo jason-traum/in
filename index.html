@@ -1732,7 +1732,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
           ${outgoingBy[o.id]
             ? [html`<span key="p" class="pending">Requested</span>`, html`<button key="c" class="btn btn-text btn-sm" onClick=${() => act.cancelRequest(outgoingBy[o.id])}>Cancel</button>`]
             : html`<button class="btn btn-line btn-sm" onClick=${() => act.request(o.id)} aria-label=${'Add ' + M.nameOf(o.id)}>${I.plus()}Add</button>`}
-        <//>`)}</ul>` : html`<p class="empty">${ql ? 'No one by that name on In. yet.' : 'You are connected with everyone on In. so far.'}</p>`}
+        <//>`)}</ul>` : html`<p class="empty">${ql ? 'No one by that name on In. yet.' : M.realCount <= 1 ? 'No one else is on In. yet. Send friends the link and they’ll show up here.' : 'You’re connected with everyone on In. so far.'}</p>`}
       </section>
     </div>`;
   }
