@@ -2223,12 +2223,12 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       body = html`${first} confirmed it, so you’re going. That’s In.: post a run or tap I’m in, and everyone knows who’s coming and when to leave.`;
       acts = [
         html`<button key="o" type="button" class="btn btn-line btn-sm" onClick=${() => Demo.reset()}>Start over</button>`,
-        html`<a key="s" class="btn btn-go btn-sm" href="./">Sign up for real</a>`,
+        html`<a key="s" class="btn btn-go btn-sm" href="./" target="_top">Sign up for real</a>`,
       ];
     }
     return html`<section class="demo-guide" aria-label="Demo">
       <div class="demo-step">
-        <p class="demo-n">Demo${step ? ' · step ' + step + ' of 3' : ''}<span> · nothing here is saved · <a class="linkish" href="./">Leave</a></span></p>
+        <p class="demo-n">Demo${step ? ' · step ' + step + ' of 3' : ''}<span> · nothing here is saved · <a class="linkish" href="./" target="_top">Leave</a></span></p>
         <p>${body}</p>
         <div class="notif-act">${acts}</div>
       </div>
