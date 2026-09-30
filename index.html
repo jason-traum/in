@@ -381,6 +381,7 @@ input[type=range]{width:100%;accent-color:var(--green);min-height:28px}
 .demo-step{display:grid;gap:8px;padding:14px 16px;border-radius:14px;background:var(--green-soft);border:1px solid color-mix(in srgb,var(--green) 35%,var(--hair))}
 .demo-step p{margin:0;font-size:15px;line-height:1.45;color:var(--ink)}
 .demo-step .demo-n{font-size:12.5px;font-weight:700;color:var(--green-text);letter-spacing:.02em}
+.demo-step .demo-n span{font-weight:500;color:var(--ink-2)}
 .signin-demo{margin-top:14px;text-decoration:none;text-align:center}
 .notif-card{display:grid;gap:10px;margin:14px 0;padding:14px 16px;border-radius:14px;background:var(--surface);border:1px solid var(--hair)}
 .notif-card p{margin:0;font-size:14.5px;line-height:1.45;color:var(--ink-2)}
@@ -892,29 +893,32 @@ input[type=email]:focus{border-color:var(--green);outline:none}
      Sample runners host and fill a week of runs, and you get a ready-made runner card. The walkthrough target is
      a proposed run: say you'd be in, and a few seconds later its host confirms it. Nothing touches Supabase. */
   const DEMO_RUN = 'demo-shakeout';
+  const DEMO_PEOPLE = [
+    ['demo-maya', 'Maya Chen', 'walnut', 540], ['demo-dev', 'Dev Patel', 'walnut', 570], ['demo-marcus', 'Marcus Reed', 'south', 555],
+    ['demo-hannah', 'Hannah Kim', 'chestnut', 510], ['demo-tomas', 'Tomas Silva', 'art-museum', 465], ['demo-sam', 'Sam Ortiz', 'boathouse', 555],
+    ['demo-ines', 'Ines Duarte', 'locust', 600], ['demo-priya', 'Priya Shah', 'south', 600], ['demo-aisha', 'Aisha Bello', 'market', 525],
+  ];
   function demoData() {
     const now = new Date(), day = n => dateKey(addDays(now, n));
     const tgt = now.getHours() >= 21 ? 2 : 1;
     const toSat = ((6 - now.getDay()) + 7) % 7 || 7, sat = Math.max(toSat, 2);
-    const runs = {}, joins = {};
+    const runs = {}, joins = {}, profiles = {}, friendships = {};
+    DEMO_PEOPLE.forEach(([id, handle, spot, pace]) => { profiles[id] = { handle, spot, pace, travel: 'walk', vis: 'fof', updatedAt: Date.now() }; });
+    profiles['me-local'] = { handle: 'You (demo)', spot: 'chestnut', pace: 540, travel: 'walk', vis: 'fof', updatedAt: Date.now() };
+    ['demo-maya', 'demo-hannah', 'demo-priya'].forEach(id => { friendships[pairId('me-local', id)] = { a: 'me-local' < id ? 'me-local' : id, b: 'me-local' < id ? id : 'me-local', from: id, to: 'me-local', status: 'accepted', at: Date.now() - 864e5 }; });
     const run = (id, host, n, status, start, title, spot, dist, secs, extra, people) => {
       const date = day(n);
       runs[id] = Object.assign({ host, date, status, start, title, spot, place: '', placeOff: 0, placeId: '', finish: '', finishSpot: '', finishOff: 0, finishId: '',
-        pace: secs, dist, vis: 'wharton', note: '', samplesIn: [], sample: true, createdAt: Date.now() - 3 * 3600e3, lockedAt: status === 'locked' ? Date.now() - 3600e3 : 0 }, extra || {});
+        pace: secs, dist, vis: 'wharton', note: '', samplesIn: [], createdAt: Date.now() - 3 * 3600e3, lockedAt: status === 'locked' ? Date.now() - 3600e3 : 0 }, extra || {});
       (people || []).forEach(([u, kind], i) => { joins[id + '__' + u] = { run: id, user: u, date, at: Date.now() - (50 - i) * 60e3, kind }; });
     };
-    run('demo-morning', 'sample-maya', 1, 'locked', 375, 'Morning Miles', 'chestnut', 8, 540, null, [['sample-tomas', 'in'], ['sample-hannah', 'in'], ['sample-priya', 'maybe']]);
-    run(DEMO_RUN, 'sample-dev', tgt, 'intention', 420, 'Shakeout before class, then K’Far', 'walnut', 4, 570,
-      Object.assign({ note: 'Easy pace, coffee after' }, finishFields('kfar')), [['sample-marcus', 'in']]);
-    run('demo-penn', 'sample-hannah', 1, 'locked', 1065, 'Penn Park loops', 'walnut', 5, 510, startFields('penn-park', 'walnut'), [['sample-ines', 'in'], ['sample-leo', 'in']]);
-    run('demo-tempo', 'sample-tomas', 1, 'locked', 1110, 'Tempo on Kelly Drive', 'art-museum', 6, 465, null, [['sample-sam', 'in']]);
-    run('demo-delaware', 'sample-priya', 2, 'intention', 1080, 'Delaware River Trail sunset', 'market', 5, 600, startFields('race-pier', 'market'), [['sample-aisha', 'maybe']]);
-    run('demo-long', 'sample-sam', sat, 'locked', 480, 'Saturday long run to the Falls', 'boathouse', 12, 555, null, [['sample-aisha', 'in'], ['sample-leo', 'in'], ['sample-maya', 'in'], ['sample-marcus', 'maybe']]);
-    run('demo-wiss', 'sample-ines', sat + 1, 'locked', 540, 'Wissahickon trails', 'manayunk', 8, 600, startFields('valley-green', 'manayunk'), [['sample-priya', 'in']]);
-    return {
-      profiles: { 'me-local': { handle: 'You (demo)', spot: 'chestnut', pace: 540, travel: 'walk', vis: 'fof', updatedAt: Date.now() } },
-      runs, joins, home: { st: 21, cross: 'chestnut' },
-    };
+    run('demo-morning', 'demo-maya', 1, 'locked', 375, 'Morning Miles', 'chestnut', 8, 540, null, [['demo-tomas', 'in'], ['demo-hannah', 'in'], ['demo-priya', 'maybe']]);
+    run(DEMO_RUN, 'demo-dev', tgt, 'intention', 420, 'Shakeout before class, then K’Far', 'walnut', 4, 570,
+      Object.assign({ note: 'Easy pace, coffee after' }, finishFields('kfar')), [['demo-marcus', 'in']]);
+    run('demo-penn', 'demo-hannah', 1, 'locked', 1065, 'Penn Park loops', 'walnut', 5, 510, startFields('penn-park', 'walnut'), [['demo-ines', 'in'], ['demo-aisha', 'in']]);
+    run('demo-long', 'demo-sam', sat, 'locked', 480, 'Saturday long run to the Falls', 'boathouse', 12, 555, null, [['demo-aisha', 'in'], ['demo-maya', 'in'], ['demo-tomas', 'in'], ['demo-marcus', 'maybe']]);
+    run('demo-wiss', 'demo-ines', sat + 1, 'locked', 540, 'Wissahickon trails', 'manayunk', 8, 600, startFields('valley-green', 'manayunk'), [['demo-priya', 'in']]);
+    return { profiles, friendships, runs, joins, home: { st: 21, cross: 'chestnut' } };
   }
   const Demo = Object.assign({}, Sandbox, {
     init() {
@@ -922,7 +926,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       const d = demoData();
       Object.assign(Store, {
         mode: 'sandbox', demo: true, api: Demo, me: 'me-local', pseudo: false, canWrite: true, isOwner: false, sandboxReason: 'demo',
-        profiles: d.profiles, friendships: {}, runs: d.runs, joins: d.joins, home: d.home, config: {}, people: {},
+        profiles: d.profiles, friendships: d.friendships, runs: d.runs, joins: d.joins, home: d.home, config: { samples: false }, people: {},
         loaded: { profiles: true, friendships: true, runs: true, joins: true, home: true },
       });
       Store.emit();
@@ -1718,7 +1722,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
 
   function TopBar({ M, onMe, onPost }) {
     return html`<header class="top"><div class="top-in">
-      <div class="brand"><span class="mark" role="img" aria-label="In.">In<span class="dot"></span></span>${M.mode === 'sandbox' ? html`<span class="mode-chip" title=${Store.demo ? 'Sample runners, nothing is saved' : 'Your posts stay in this browser'}>${Store.demo ? 'Demo' : 'Sandbox'}</span>` : null}<span class="brand-sub">Philly runs · Wharton</span></div>
+      <div class="brand"><span class="mark" role="img" aria-label="In.">In<span class="dot"></span></span>${M.mode === 'sandbox' ? html`<span class="mode-chip" title=${Store.demo ? 'Nothing here is saved' : 'Your posts stay in this browser'}>${Store.demo ? 'Demo' : 'Sandbox'}</span>` : null}<span class="brand-sub">Philly runs · Wharton</span></div>
       <div class="top-r">
         ${M.canWrite ? html`<button class="btn btn-line btn-sm" onClick=${onPost}>${I.plus()}Post a run</button>` : null}
         ${M.canWrite || M.meP ? html`<button class="me-btn" onClick=${onMe} aria-label="Your runner card">${M.meP ? html`<${Avatar} id=${M.me} M=${M} size=${34} />` : html`<span class="me-setup">Set up</span>`}</button>` : null}
@@ -2223,9 +2227,8 @@ input[type=email]:focus{border-color:var(--green);outline:none}
       ];
     }
     return html`<section class="demo-guide" aria-label="Demo">
-      <p class="demo-bar"><b>Demo</b> with sample runners. Nothing you do here is saved. <a class="linkish" href="./">Leave the demo</a></p>
       <div class="demo-step">
-        ${step ? html`<p class="demo-n">Step ${step} of 3</p>` : null}
+        <p class="demo-n">Demo${step ? ' · step ' + step + ' of 3' : ''}<span> · nothing here is saved · <a class="linkish" href="./">Leave</a></span></p>
         <p>${body}</p>
         <div class="notif-act">${acts}</div>
       </div>
@@ -2319,7 +2322,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         <${Seg} label="Beta bots" value=${M.samplesOn ? 'on' : 'off'} onChange=${v => act.setSamples(v === 'on')} options=${[['on', 'On'], ['off', 'Off']]} />
       </div>` : null}
       ${Store.demo ? html`<div class="extra-row">
-        <div><b>Demo</b><p class="hint">Sample runners, and nothing you do here is saved.</p></div>
+        <div><b>Demo</b><p class="hint">Nothing you do here is saved.</p></div>
         <button type="button" class="btn btn-line btn-sm" onClick=${() => Demo.reset()}>Start over</button>
       </div>` : null}
       ${M.mode === 'sandbox' && !Store.demo ? html`<div class="extra-row">
