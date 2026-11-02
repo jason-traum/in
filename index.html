@@ -1603,7 +1603,8 @@ input[type=email]:focus{border-color:var(--green);outline:none}
   function whenRef(k, todayK) { const n = dayDiff(k, todayK); return n === 0 ? 'today' : n === 1 ? 'tomorrow' : 'on ' + DOW_LONG[parseKey(k).getDay()]; }
   const lockRef = (r, todayK) => (dateKey(r.lockBy) === todayK ? '10 PM tonight' : '10 PM ' + DOW_LONG[r.lockBy.getDay()]);
   // "Leave by 6:20 AM · home by 7:35 AM". Clock times can pass midnight on late runs, so wrap them.
-  const clockW = m => clock(((Math.round(m) % 1440) + 1440) % 1440);
+  // A no-break space keeps "6:55 AM" on one line when the trip line wraps on a narrow phone.
+  const clockW = m => clock(((Math.round(m) % 1440) + 1440) % 1440).replace(' ', '\u00a0');
   function tripTimes(L, proposed) {
     const w = proposed ? 'around ' : 'by ';
     return 'Leave ' + w + clockW(L.leaveAt) + ' · home ' + w + clockW(L.homeAt);
