@@ -238,8 +238,7 @@ ul{list-style:none;margin:0;padding:0}
 .row-note{font-size:13px;color:var(--muted);padding:8px 2px;white-space:nowrap}
 .empty{font-size:14px;color:var(--muted);margin-top:10px}
 .hidden-line{font-size:14px;color:var(--muted);margin-top:28px;max-width:62ch}
-.skel-row{height:128px;border-radius:14px;background:linear-gradient(90deg,var(--surface),var(--fill),var(--surface));background-size:200% 100%;animation:sk 1.3s linear infinite}
-@keyframes sk{to{background-position:-200% 0}}
+.skel-row{height:128px;border-radius:14px;background:var(--fill)}
 
 /* avatars */
 .av{display:inline-grid;place-items:center;border-radius:50%;background:var(--green-soft);color:var(--green-text);font-weight:600;flex:none;object-fit:cover;line-height:1;letter-spacing:.02em}
@@ -355,7 +354,7 @@ ul{list-style:none;margin:0;padding:0}
 .sub-field{display:grid;gap:12px;padding:12px 0 2px 14px;border-left:2px solid var(--green-soft)}
 .sublbl{font-size:14px;font-weight:600;color:var(--ink)}
 .loc-set{display:flex;align-items:center;gap:10px;margin:0;padding:10px 12px;border:1px solid var(--hair);border-radius:10px;background:var(--surface)}
-.loc-set .ic{color:var(--green-text);flex:none;width:18px;height:18px}
+.loc-set .ic{color:var(--green-text);flex:none}
 .loc-set b{display:block;font-size:16px}
 .loc-set small{display:block;font-size:13px;color:var(--muted)}
 .loc-row{display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px}
@@ -383,7 +382,7 @@ input[type=range]{width:100%;accent-color:var(--green);min-height:28px}
 .sheet-actions{display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap;position:sticky;bottom:0;background:var(--surface);padding-block:14px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--hair);margin-top:4px}
 .demo-guide{display:grid;gap:10px;margin:14px 0}
 .demo-bar{margin:0;font-size:14px;color:var(--ink-2)}
-.demo-step{display:grid;gap:8px;padding:14px 16px;border-radius:14px;background:var(--green-soft);border:1px solid color-mix(in srgb,var(--green) 35%,var(--hair))}
+.demo-step{display:grid;gap:8px;padding:14px 16px;border-radius:14px;background:var(--surface);border:1px solid var(--hair);box-shadow:var(--shadow)}
 .demo-step p{margin:0;font-size:15px;line-height:1.45;color:var(--ink)}
 .demo-step .demo-n{font-size:13px;font-weight:600;color:var(--green-text);letter-spacing:.02em}
 .demo-step .demo-n span{font-weight:500;color:var(--ink-2)}
@@ -1573,14 +1572,14 @@ input[type=email]:focus{border-color:var(--green);outline:none}
 
   /* ---------------- Small pieces ---------------- */
   const I = {
-    chat: () => html`<svg class="ic" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M2.5 3h11v8H7.2L4.4 13.4V11H2.5z" /></svg>`,
-    down: () => html`<svg class="ic" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4" /></svg>`,
-    check: () => html`<svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7" /></svg>`,
-    plus: () => html`<svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3v10M3 8h10" /></svg>`,
-    search: () => html`<svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="7" cy="7" r="4.6" /><path d="M10.4 10.4L14 14" /></svg>`,
-    x: () => html`<svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8" /></svg>`,
-    chevron: open => html`<svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style=${open ? 'transform:rotate(180deg)' : ''}><path d="M4 6l4 4 4-4" /></svg>`,
-    pin: () => html`<svg class="ic" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M8 14.5s4.6-4.2 4.6-8A4.6 4.6 0 0 0 3.4 6.5c0 3.8 4.6 8 4.6 8z" /><circle cx="8" cy="6.4" r="1.6" /></svg>`,
+    chat: () => html`<svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2.5 3h11v8H7.2L4.4 13.4V11H2.5z" /></svg>`,
+    down: () => html`<svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4" /></svg>`,
+    check: () => html`<svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7" /></svg>`,
+    plus: () => html`<svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 3v10M3 8h10" /></svg>`,
+    search: () => html`<svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="4.6" /><path d="M10.4 10.4L14 14" /></svg>`,
+    x: () => html`<svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8" /></svg>`,
+    chevron: open => html`<svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style=${open ? 'transform:rotate(180deg)' : ''}><path d="M4 6l4 4 4-4" /></svg>`,
+    pin: () => html`<svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M8 14.5s4.6-4.2 4.6-8A4.6 4.6 0 0 0 3.4 6.5c0 3.8 4.6 8 4.6 8z" /><circle cx="8" cy="6.4" r="1.6" /></svg>`,
   };
   const VIS_OPTS = [['friends', 'Friends'], ['fof', 'Friends of friends'], ['wharton', 'All Wharton']];
   const VIS_HINT = { friends: 'Only your friends see it.', fof: 'Your friends and their friends see it.', wharton: 'Every Wharton student on In. sees it.' };
