@@ -461,7 +461,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     { id: 'walnut', name: 'Walnut St Bridge', short: 'Walnut St', mi: 1.85, x: -0.86, y: -0.214 },
     { id: 'chestnut', name: 'Chestnut St Bridge', short: 'Chestnut St', mi: 1.95, x: -0.84, y: -0.107 },
     { id: 'market', name: 'Market St', short: 'Market St', mi: 2.05, x: -0.83, y: 0 },
-    { id: 'paines', name: "Paine's Park", short: "Paine's Park", mi: 2.8, x: -0.99, y: 0.71 },
+    { id: 'paines', name: 'Paine’s Park', short: 'Paine’s Park', mi: 2.8, x: -0.99, y: 0.71 },
     { id: 'art-museum', name: 'Art Museum / Water Works', short: 'Art Museum', mi: 3.0, x: -0.96, y: 0.755 },
     { id: 'boathouse', name: 'Boathouse Row', short: 'Boathouse Row', mi: 3.3, x: -1.21, y: 0.98 },
     { id: 'girard', name: 'Girard Ave Bridge', short: 'Girard Ave', mi: 3.9, x: -1.69, y: 1.31 },
@@ -1400,7 +1400,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         say('This board is view-only for you. Ask the owner for edit access.');
       } else if (code === 'quota_exceeded') say('The board is full. Old runs need clearing before new ones fit.');
       else if (code === 'resource_exhausted') say('Too many changes at once. Wait a moment and try again.');
-      else say("That didn't save. Check your connection and try again.");
+      else say('That didn’t save. Check your connection and try again.');
       return false;
     }
   }
@@ -1922,7 +1922,9 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     const isHost = r.host === M.me;
     const proposed = isProposed(r);
     const t = clockParts(r.start);
-    const day = dayName(r.date, M.todayK) + ', ' + dateTxt(r.date);
+    // "Tomorrow, Mon, Nov 2" for today and tomorrow, otherwise just "Tue, Nov 3" so the weekday isn't said twice.
+    const dd = dayDiff(r.date, M.todayK);
+    const day = dd === 0 || dd === 1 ? dayName(r.date, M.todayK) + ', ' + dateTxt(r.date) : dateTxt(r.date);
     let state;
     if (r.faded) state = 'Dropped · not confirmed by 10 PM · ' + day;
     else if (proposed) state = 'Proposed · ' + day;
@@ -2185,7 +2187,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
           ${confirmId === id
             ? [html`<button key="r" class="btn btn-line btn-sm btn-danger" onClick=${() => { setConfirmId(null); act.unfriend(id); }}>Remove</button>`, html`<button key="k" class="btn btn-line btn-sm" onClick=${() => setConfirmId(null)}>Keep</button>`]
             : html`<button class="btn btn-line btn-sm" onClick=${() => setConfirmId(id)}>Remove</button>`}
-        <//>`)}</ul>` : html`<p class="empty">No friends yet. Add a few classmates below. Their runs, and their friends' runs, then show up on your board.</p>`}
+        <//>`)}</ul>` : html`<p class="empty">No friends yet. Add a few classmates below. Their runs, and their friends’ runs, then show up on your board.</p>`}
       </section>
       <section>
         <h2 class="section-title">Find classmates</h2>
@@ -2420,7 +2422,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
         <div class="field"><label for="pf-spot">Where you meet the trail</label>
           <select id="pf-spot" value=${f.spot} onChange=${e => setF(o => Object.assign({}, o, { spot: e.target.value, spotSet: true }))}>${SPOTS.map(s => html`<option key=${s.id} value=${s.id}>${s.name}</option>`)}</select>
           <span class="hint">Friends see this spot.${toSpot != null ? ' About ' + mi1(toSpot) + ' mi from you.' : ''}</span></div>
-        <div class="field"><span class="lbl">Easy pace</span><${Stepper} id="pf-pace" label="pace" value=${f.pace} min=${300} max=${780} step=${5} fmt=${v => pace(v) + ' /mi'} onChange=${v => set('pace', v)} /></div>
+        <div class="field"><span class="lbl">Easy pace</span><${Stepper} id="pf-pace" label="pace" value=${f.pace} min=${300} max=${780} step=${5} fmt=${v => pace(v) + '/mi'} onChange=${v => set('pace', v)} /></div>
         <div class="field"><span class="lbl">Getting to and from runs</span><${Seg} label="Getting to and from runs" value=${f.travel} onChange=${v => set('travel', v)} options=${[['walk', 'Walk'], ['jog', 'Jog']]} />
           <span class="hint">${f.travel === 'jog' ? 'Leave and home times assume you jog at your easy pace plus 1:00/mi, so ' + pace(f.pace + 60) + '/mi.' : 'Leave and home times assume you walk to and from runs at 20:00/mi.'}</span></div>
         ${err ? html`<p class="err">${err}</p>` : null}
@@ -2558,7 +2560,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     };
     return html`<${Sheet} title=${editing ? 'Edit run' : 'Post a run'} onClose=${onClose}>
       <form class="form" onSubmit=${submit}>
-        <div class="field"><label for="ps-title">What's the run?<span class="opt">optional</span></label>
+        <div class="field"><label for="ps-title">What’s the run?<span class="opt">optional</span></label>
           <input id="ps-title" type="text" maxlength="48" placeholder=${autoTitle(f.start)} value=${f.title} onInput=${e => set('title', e.target.value)} /></div>
         <div class="field"><span class="lbl">Proposed or confirmed</span>
           <${Seg} label="Proposed or confirmed" value=${f.kind} onChange=${v => set('kind', v)} options=${[['intention', 'Proposed', !intentionOpen], ['locked', 'Confirmed']]} />
@@ -2599,10 +2601,10 @@ input[type=email]:focus{border-color:var(--green);outline:none}
             ${f.finishPick === '__custom' ? html`
               <div class="field"><label for="ps-finish">Place</label><input id="ps-finish" type="text" maxlength="60" placeholder="Name of the café or spot" value=${f.finish} onInput=${e => set('finish', e.target.value)} /></div>
               <${PinField} id="ps-finish" pin=${f.finPin} onChange=${v => set('finPin', v)} />` : null}
-            <span class="hint">Everyone's miles home count from here.</span>
+            <span class="hint">Everyone’s miles home count from here.</span>
           </div>` : html`<span class="hint">Ends where it starts.</span>`}</div>
         <div class="row2">
-          <div class="field"><span class="lbl">Pace</span><${Stepper} id="ps-pace" label="pace" value=${f.pace} min=${300} max=${780} step=${5} fmt=${v => pace(v) + ' /mi'} onChange=${v => set('pace', v)} /></div>
+          <div class="field"><span class="lbl">Pace</span><${Stepper} id="ps-pace" label="pace" value=${f.pace} min=${300} max=${780} step=${5} fmt=${v => pace(v) + '/mi'} onChange=${v => set('pace', v)} /></div>
           <div class="field"><span class="lbl">Run distance</span><${Stepper} id="ps-dist" label="distance" value=${f.dist} min=${1} max=${20} step=${0.5} fmt=${v => distTxt(v) + ' mi'} onChange=${v => set('dist', v)} /></div>
         </div>
         <div class="field"><span class="lbl">Who can see it</span><${Seg} label="Who can see it" value=${f.vis} onChange=${v => set('vis', v)} options=${VIS_OPTS} />
@@ -2629,7 +2631,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
     const [busy, setBusy] = useState(false);
     if (!run || !sug || run.status !== 'intention' || run.faded) {
       return html`<${Sheet} title="Confirm this run" onClose=${onClose}>
-        <p class="sheet-body-pad">This run can't be confirmed anymore. Proposed runs have to be confirmed by 10 PM the night before.</p>
+        <p class="sheet-body-pad">This run can’t be confirmed anymore. Proposed runs have to be confirmed by 10 PM the night before.</p>
       <//>`;
     }
     const c = choice || { start: run.start, key: sug.key, pace: sug.pace };
@@ -2668,7 +2670,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
           ${gains[i] <= 0 ? html`<span class="pl-w">may skip</span>` : null}
         </li>`;
       })}</ul>
-      <p class="hint" style="margin:0 0 16px">Miles count from each runner's trail spot. Door-to-trail miles are private and the same wherever you meet, so they're left out.</p>
+      <p class="hint" style="margin:0 0 16px">Miles count from each runner’s trail spot. Door-to-trail miles are private and the same wherever you meet, so they’re left out.</p>
       <form class="form" onSubmit=${submit}>
         <div class="row2">
           <div class="field"><label for="lk-time">Start time</label>
@@ -2679,7 +2681,7 @@ input[type=email]:focus{border-color:var(--green);outline:none}
               ${SPOTS.map(s => html`<option key=${s.id} value=${s.id}>${s.name}${s.id === sug.key ? ' (suggested)' : ''}</option>`)}
             </select></div>
         </div>
-        <div class="field"><span class="lbl">Pace</span><${Stepper} id="lk-pace" label="pace" value=${c.pace} min=${300} max=${780} step=${5} fmt=${v => pace(v) + ' /mi'} onChange=${v => set('pace', v)} /></div>
+        <div class="field"><span class="lbl">Pace</span><${Stepper} id="lk-pace" label="pace" value=${c.pace} min=${300} max=${780} step=${5} fmt=${v => pace(v) + '/mi'} onChange=${v => set('pace', v)} /></div>
         ${!onSug ? html`<p class="hint">You changed the plan. <button type="button" class="linkish" onClick=${() => setChoice(null)}>Go back to the suggestion</button></p>` : null}
         <div class="sheet-actions">
           <button type="button" class="btn btn-line" onClick=${onClose}>Not yet</button>
